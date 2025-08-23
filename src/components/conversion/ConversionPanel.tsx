@@ -439,13 +439,18 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
 
     const quality = settings.quality ?? 80;
     const progressPercent = quality;
+    
+    // Disable quality slider for WebP in lossless mode
+    const isQualityDisabled = settings.format === "webp" && settings.lossless;
 
     return (
       <div className="setting-item">
         <div className="setting-label">
-          <label htmlFor={`quality-slider-${settings.format}`}>Quality</label>
+          <label htmlFor={`quality-slider-${settings.format}`}>
+            Quality {isQualityDisabled && "(N/A in lossless mode)"}
+          </label>
           <span className="setting-value" aria-live="polite">
-            {quality}%
+            {isQualityDisabled ? "—" : `${quality}%`}
           </span>
         </div>
         <div className="slider-container">
@@ -458,17 +463,21 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             onChange={(e) => handleQualityChange(Number(e.target.value))}
             className="quality-slider"
             data-accessibility-mode={accessibilityMode}
-            disabled={disabled || isProcessing}
-            aria-label={`Quality setting for ${settings.format.toUpperCase()} format`}
+            disabled={disabled || isProcessing || isQualityDisabled}
+            aria-label={`Quality setting for ${settings.format.toUpperCase()} format${isQualityDisabled ? " (disabled in lossless mode)" : ""}`}
             aria-valuemin={1}
             aria-valuemax={100}
             aria-valuenow={quality}
-            aria-valuetext={`${quality} percent`}
+            aria-valuetext={isQualityDisabled ? "Not applicable in lossless mode" : `${quality} percent`}
+            style={isQualityDisabled ? { opacity: 0.5 } : undefined}
           />
           <div
             className="slider-track"
             style={
-              { "--progress": `${progressPercent}%` } as React.CSSProperties
+              { 
+                "--progress": `${progressPercent}%`,
+                opacity: isQualityDisabled ? 0.5 : 1 
+              } as React.CSSProperties
             }
           />
         </div>

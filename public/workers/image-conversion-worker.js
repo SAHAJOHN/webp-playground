@@ -321,8 +321,18 @@ function getMimeType(format) {
  * Get quality value for conversion
  */
 function getQualityValue(settings) {
-  const lossyFormats = ["jpeg", "webp", "avif"];
+  // Special handling for WebP - check lossless mode
+  if (settings.format === "webp") {
+    if (settings.lossless) {
+      // For lossless WebP, use quality = 1.0
+      // Firefox 105+ and some other browsers use this to trigger lossless encoding
+      return 1.0;
+    }
+    return settings.quality / 100; // Convert 1-100 to 0-1 for lossy WebP
+  }
 
+  // Other lossy formats always use quality
+  const lossyFormats = ["jpeg", "avif"];
   if (lossyFormats.includes(settings.format)) {
     return settings.quality / 100; // Convert 1-100 to 0-1
   }
