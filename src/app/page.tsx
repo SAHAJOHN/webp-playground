@@ -1,103 +1,502 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback } from "react";
+import styled from "styled-components";
+import {
+  ImageIcon,
+  Settings,
+  Download,
+  RefreshCw,
+  Trash2,
+  Shield,
+  Zap,
+  FileImage,
+} from "lucide-react";
+import {
+  FileUpload,
+  ConversionPanel,
+  PreviewComparison,
+  ProgressIndicator,
+  DownloadManager,
+} from "@/components";
+import { useSimpleImageConversion } from "@/hooks/conversion/useSimpleImageConversion";
+import type { ConversionSettingsType, SupportedFormatType } from "@/types";
+
+// Styled Components
+const MainContainerStyled = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+
+  .header {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  }
+
+  .content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    gap: 2rem;
+  }
+
+  .upload-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    border: 1px solid #e2e8f0;
+  }
+
+  .settings-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    border: 1px solid #e2e8f0;
+  }
+
+  .processing-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    border: 1px solid #e2e8f0;
+  }
+
+  .results-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    border: 1px solid #e2e8f0;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .feature-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .action-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    font-size: 0.875rem;
+  }
+
+  .action-button.primary {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .action-button.primary:hover:not(:disabled) {
+    background: #2563eb;
+  }
+
+  .action-button.secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+
+  .action-button.secondary:hover:not(:disabled) {
+    background: #e2e8f0;
+  }
+
+  .action-button.danger {
+    background: #ef4444;
+    color: white;
+  }
+
+  .action-button.danger:hover:not(:disabled) {
+    background: #dc2626;
+  }
+
+  .action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #64748b;
+  }
+
+  .empty-state-icon {
+    margin: 0 auto 1rem;
+    width: 4rem;
+    height: 4rem;
+    color: #cbd5e1;
+  }
+
+  @media (max-width: 768px) {
+    .content-wrapper {
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    .upload-section,
+    .settings-section,
+    .processing-section,
+    .results-section {
+      padding: 1.5rem;
+    }
+
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .action-button {
+      justify-content: center;
+    }
+  }
+`;
+
+const HeaderStyled = styled.header`
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .logo-icon {
+    width: 2rem;
+    height: 2rem;
+    color: #3b82f6;
+  }
+
+  .privacy-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #ecfdf5;
+    color: #059669;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #d1fae5;
+  }
+
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+    }
+  }
+`;
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // State for selected files and conversion settings
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [conversionSettings, setConversionSettings] =
+    useState<ConversionSettingsType>({
+      format: "webp" as SupportedFormatType,
+      quality: 80,
+      lossless: false,
+    });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Simple image conversion hook for testing
+  const {
+    jobs: simpleJobs,
+    isProcessing,
+    results: simpleResults,
+    convertFiles,
+    clearJobs,
+  } = useSimpleImageConversion();
+
+  const isDownloading = false;
+
+  // Handle files selected from FileUpload component
+  const handleFilesSelected = useCallback((files: File[]) => {
+    setSelectedFiles(files);
+  }, []);
+
+  // Handle conversion start
+  const handleStartConversion = useCallback(() => {
+    if (selectedFiles.length > 0) {
+      convertFiles(selectedFiles, conversionSettings);
+    }
+  }, [selectedFiles, conversionSettings, convertFiles]);
+
+  // Handle settings change
+  const handleSettingsChange = useCallback(
+    (newSettings: ConversionSettingsType) => {
+      setConversionSettings(newSettings);
+    },
+    []
+  );
+
+  // Handle clear files
+  const handleClearFiles = useCallback(() => {
+    setSelectedFiles([]);
+    clearJobs();
+  }, [clearJobs]);
+
+  // Get job arrays for display
+  const jobsArray = simpleJobs;
+  const resultsArray = simpleResults;
+  const hasResults = resultsArray.length > 0;
+
+  return (
+    <MainContainerStyled>
+      {/* Header */}
+      <HeaderStyled>
+        <div className="header">
+          <div className="header-content">
+            <div className="logo">
+              <ImageIcon className="logo-icon" />
+              Multi-Format Image Converter
+            </div>
+            <div className="privacy-badge">
+              <Shield size={16} />
+              100% Client-Side Processing
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </HeaderStyled>
+
+      {/* Main Content */}
+      <div className="content-wrapper">
+        {/* Features Overview */}
+        <div className="feature-grid">
+          <div className="feature-card">
+            <Zap size={20} />
+            <span>Fast client-side conversion</span>
+          </div>
+          <div className="feature-card">
+            <Shield size={20} />
+            <span>No server uploads required</span>
+          </div>
+          <div className="feature-card">
+            <FileImage size={20} />
+            <span>7 formats supported</span>
+          </div>
+        </div>
+
+        {/* File Upload Section */}
+        <div className="upload-section">
+          <h2 className="section-title">
+            <FileImage size={24} />
+            Upload Images
+          </h2>
+          <FileUpload
+            onFilesSelected={handleFilesSelected}
+            acceptedFormats={[
+              "jpeg",
+              "jpg",
+              "png",
+              "gif",
+              "webp",
+              "avif",
+              "svg",
+              "ico",
+            ]}
+            maxFileSize={50 * 1024 * 1024} // 50MB
+            maxFiles={10}
+            disabled={isProcessing}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          {selectedFiles.length > 0 && (
+            <div className="action-buttons">
+              <button
+                className="action-button secondary"
+                onClick={handleClearFiles}
+                disabled={isProcessing}
+              >
+                <Trash2 size={16} />
+                Clear Files
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Conversion Settings Section */}
+        {selectedFiles.length > 0 && (
+          <div className="settings-section">
+            <h2 className="section-title">
+              <Settings size={24} />
+              Conversion Settings
+            </h2>
+            <ConversionPanel
+              settings={conversionSettings}
+              onSettingsChange={handleSettingsChange}
+              isProcessing={isProcessing}
+            />
+            <div className="action-buttons">
+              <button
+                className="action-button primary"
+                onClick={handleStartConversion}
+                disabled={isProcessing || selectedFiles.length === 0}
+              >
+                <RefreshCw size={16} />
+                {isProcessing ? "Converting..." : "Start Conversion"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Processing Section */}
+        {jobsArray.length > 0 && (
+          <div className="processing-section">
+            <h2 className="section-title">
+              <RefreshCw size={24} />
+              Conversion Progress
+            </h2>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+            >
+              {jobsArray.map((job) => (
+                <ProgressIndicator
+                  key={job.id}
+                  progress={job.progress}
+                  fileName={job.file.name}
+                  status={job.status}
+                  onCancel={() => {
+                    // Cancel individual job if needed
+                  }}
+                />
+              ))}
+            </div>
+            {isProcessing && (
+              <div className="action-buttons">
+                <button className="action-button danger" onClick={clearJobs}>
+                  <Trash2 size={16} />
+                  Clear All
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Results Section */}
+        {hasResults && (
+          <div className="results-section">
+            <h2 className="section-title">
+              <Download size={24} />
+              Conversion Results
+            </h2>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.5rem",
+              }}
+            >
+              {resultsArray.map((result, index) => (
+                <PreviewComparison
+                  key={`result-${index}`}
+                  originalFile={result.originalFile}
+                  convertedBlob={result.convertedBlob}
+                  isLoading={false}
+                  showSizeComparison={true}
+                />
+              ))}
+            </div>
+            <DownloadManager
+              results={resultsArray}
+              isDownloading={isDownloading}
+              onDownloadSingle={(index) => {
+                // Simple download implementation
+                const result = resultsArray[index];
+                if (result) {
+                  const url = URL.createObjectURL(result.convertedBlob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `converted-${result.originalFile.name}`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }
+              }}
+              onDownloadAll={() => {
+                // Simple download all implementation
+                resultsArray.forEach((result, index) => {
+                  const url = URL.createObjectURL(result.convertedBlob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `converted-${result.originalFile.name}`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                });
+              }}
+              onClear={clearJobs}
+            />
+          </div>
+        )}
+
+        {/* Empty State */}
+        {selectedFiles.length === 0 && !hasResults && (
+          <div className="empty-state">
+            <FileImage className="empty-state-icon" />
+            <h3 className="text-lg font-semibold mb-2">
+              Ready to convert your images?
+            </h3>
+            <p className="mb-4">
+              Drag and drop your images above or click to select files.
+              <br />
+              Supports JPEG, PNG, GIF, WebP, AVIF, SVG, and ICO formats.
+            </p>
+          </div>
+        )}
+      </div>
+    </MainContainerStyled>
   );
 }

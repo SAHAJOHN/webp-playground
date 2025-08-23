@@ -1,15 +1,18 @@
 # Product Overview
 
-webp-playground is an experimental Next.js application for lightweight client-side file conversion utilities, with a focus on WebP format conversion.
+webp-playground is an experimental Next.js application for lightweight client-side file conversion utilities, supporting multiple image formats (JPEG, PNG, GIF, WebP, AVIF, SVG, ICO) with a professional UI built using styled-components and Lucide React icons.
 
 ## Key Characteristics
 
 - **Client-side processing** - No server uploads required for privacy and speed
 - **Next.js App Router** - Modern React framework with server components
 - **TypeScript** - Type-safe development experience
-- **Responsive design** - Tailwind CSS for mobile-first UI
+- **Responsive design** - Tailwind CSS and styled-components for mobile-first UI
+- **Professional iconography** - Lucide React icons throughout the interface
+- **Multi-format support** - JPEG, PNG, GIF, WebP, AVIF, SVG, and ICO conversion
+- **Clean architecture** - Organized components, hooks, and services structure
+- **Performance optimized** - Web Workers, memory management, and progressive enhancement
 - **Experimental/playground** nature allows for rapid prototyping
-- **WebP focus** but extensible to other formats
 
 ## Target Use Cases
 
@@ -30,8 +33,30 @@ webp-playground is an experimental Next.js application for lightweight client-si
 
 ## Technical Goals
 
-- Leverage **Web Workers** for non-blocking conversion
-- Use **Canvas API** or **WebAssembly** for image processing
-- Implement **progressive enhancement** for browser compatibility
-- Maintain **client-side only** approach for privacy
-- Optimize for **performance** with large files
+- ✅ **Web Workers** implemented for non-blocking conversion
+- ✅ **Canvas API** used for image processing with fallbacks
+- ✅ **Progressive enhancement** implemented for browser compatibility
+- ✅ **Client-side only** approach maintained for privacy
+- ✅ **Performance optimization** with memory management and chunked processing
+- ✅ **Clean architecture** with organized services, hooks, and components
+
+## Development Standards
+
+### UI Components
+
+- Use **styled-components** with `Styled` suffix for component styling
+- Implement **Lucide React** icons for consistent visual language
+- Use TypeScript generics and nested class styling: `styled.button<PropsType>\`.class { }\``
+- Follow **TypeScript type** declarations with `Type` suffix (no interfaces)
+
+### Code Quality
+
+- Maintain **type safety** with TypeScript throughout
+- Use **modern React patterns** with hooks and functional components
+- Implement **accessibility standards** for inclusive design
+- Follow **Next.js App Router** conventions for optimal performance
+- Use **organized architecture** with logical separation of concerns:
+  - `src/components/` organized by purpose (conversion, feedback, ui)
+  - `src/hooks/` organized by functionality (conversion, ui, utils)
+  - `src/lib/` organized by type (services, utils, components)
+- **Clean imports** using organized folder structure and index files
