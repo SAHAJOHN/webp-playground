@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useEffect } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import styled from "styled-components";
 import { Settings, Sliders, ToggleLeft, ToggleRight } from "lucide-react";
 import { ConversionPanelPropsType } from "@/types/components";
@@ -326,8 +326,6 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
   const {
     accessibilityMode,
     announce,
-    handleKeyboardNavigation,
-    isHighContrast,
     isReducedMotion,
   } = useAccessibility({
     announceChanges: true,
@@ -343,7 +341,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     ) as HTMLElement[];
   };
 
-  const { currentIndex, onKeyDown } = useKeyboardNavigation(
+  const { onKeyDown } = useKeyboardNavigation(
     getFormatButtonElements(),
     "horizontal"
   );
@@ -368,33 +366,34 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
       // Reset format-specific settings when changing format
       if (format === "png") {
         newSettings.compressionLevel = newSettings.compressionLevel ?? 6;
-        // Remove optional properties safely
-        const { quality, lossless, ...rest } = newSettings;
-        Object.assign(newSettings, rest);
+        // Set format-specific quality for PNG
+        newSettings.quality = 100; // PNG doesn't use quality
+        newSettings.lossless = undefined;
       } else if (format === "webp") {
         newSettings.quality = newSettings.quality ?? 80;
         newSettings.lossless = newSettings.lossless ?? false;
-        const { compressionLevel, ...rest } = newSettings;
-        Object.assign(newSettings, rest);
+        newSettings.compressionLevel = undefined;
       } else if (format === "jpeg") {
         newSettings.quality = newSettings.quality ?? 85;
         newSettings.progressive = newSettings.progressive ?? false;
-        const { compressionLevel, lossless, ...rest } = newSettings;
-        Object.assign(newSettings, rest);
+        newSettings.compressionLevel = undefined;
+        newSettings.lossless = undefined;
       } else if (format === "avif") {
         newSettings.quality = newSettings.quality ?? 75;
         newSettings.speed = newSettings.speed ?? 6;
-        const { compressionLevel, lossless, ...rest } = newSettings;
-        Object.assign(newSettings, rest);
+        newSettings.compressionLevel = undefined;
+        newSettings.lossless = undefined;
       } else if (format === "gif") {
         newSettings.colors = newSettings.colors ?? 256;
         newSettings.dithering = newSettings.dithering ?? false;
-        const { quality, compressionLevel, lossless, ...rest } = newSettings;
-        Object.assign(newSettings, rest);
+        newSettings.quality = 100; // GIF doesn't use quality
+        newSettings.compressionLevel = undefined;
+        newSettings.lossless = undefined;
       } else if (format === "ico") {
         newSettings.sizes = newSettings.sizes ?? [16, 32, 48];
-        const { quality, compressionLevel, lossless, ...rest } = newSettings;
-        Object.assign(newSettings, rest);
+        newSettings.quality = 100; // ICO doesn't use quality
+        newSettings.compressionLevel = undefined;
+        newSettings.lossless = undefined;
       }
 
       onSettingsChange(newSettings);
@@ -594,7 +593,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             aria-describedby="format-description"
             onKeyDown={onKeyDown}
           >
-            {supportedFormats.map((format, index) => (
+            {supportedFormats.map((format) => (
               <button
                 key={format}
                 type="button"

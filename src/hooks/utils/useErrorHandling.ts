@@ -56,7 +56,7 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
   const handleError = useCallback(
     async (
       error: Error | string,
-      context?: Record<string, any>,
+      context?: Record<string, unknown>,
       retryCallback?: () => Promise<void>
     ) => {
       const processedError = ErrorHandlingService.processError(error, {
@@ -183,7 +183,7 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
       if (showNotifications) {
         showInfo("Success", "Operation completed successfully");
       }
-    } catch (retryError) {
+    } catch (_retryError) {
       // Retry failed - handle the new error
       const retryDelay = ErrorHandlingService.getRetryDelay(
         error,
@@ -286,7 +286,7 @@ export const useAsyncOperation = <T>(
   const { showLoading, showSuccess } = useNotificationHelpers();
 
   const execute = useCallback(
-    async (context?: Record<string, any>) => {
+    async (context?: Record<string, unknown>) => {
       setIsLoading(true);
       errorHandling.clearError();
 
@@ -308,9 +308,9 @@ export const useAsyncOperation = <T>(
 
         return result;
       } catch (error) {
-        await errorHandling.handleError(error as Error, context, () =>
-          execute(context)
-        );
+        await errorHandling.handleError(error as Error, context, async () => {
+          await execute(context);
+        });
         throw error;
       } finally {
         setIsLoading(false);
@@ -354,7 +354,9 @@ export const useFileOperation = (options: UseErrorHandlingOptionsType = {}) => {
       try {
         return await operation();
       } catch (error) {
-        await handleFileError(error as Error, fileName, () => operation());
+        await handleFileError(error as Error, fileName, async () => {
+          await operation();
+        });
         return null;
       }
     },
@@ -499,7 +501,7 @@ export const useBatchOperation = <T>(
           await Promise.all(batchPromises);
         }
 
-        setResults(batchResults.filter(Boolean));
+        setResults(batchResults.filter(Boolean) as unknown as T[]);
         setErrors(batchErrors);
 
         if (progressNotification) {

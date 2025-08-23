@@ -2,7 +2,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import { Loader, Upload, Download, Settings, Image, Zap } from "lucide-react";
+import { Loader, Upload, Download, Settings, Zap } from "lucide-react";
 
 type LoadingStateType =
   | "uploading"

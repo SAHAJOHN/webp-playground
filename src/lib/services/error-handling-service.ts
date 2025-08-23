@@ -29,12 +29,12 @@ type ProcessedErrorType = {
   userMessage: string;
   technicalMessage: string;
   recoveryStrategy: ErrorRecoveryStrategyType;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   timestamp: number;
 };
 
 type ErrorHandlerOptionsType = {
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   silent?: boolean;
   logToConsole?: boolean;
   notifyUser?: boolean;
@@ -558,8 +558,8 @@ export class ErrorHandlingService {
     try {
       const data = await operation();
       return { success: true, data };
-    } catch (error) {
-      const processedError = this.processError(error as Error, { context });
+    } catch (_error) {
+      const processedError = this.processError(_error as Error, { context });
       return { success: false, error: processedError };
     }
   }

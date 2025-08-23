@@ -2,7 +2,7 @@ import {
   ConversionSettingsType,
   SupportedFormatType,
   ConversionResultType,
-} from "../types/conversion";
+} from "@/types/conversion";
 import { ImageConversionWorkerService } from "./image-conversion-worker-service";
 import { MemoryManagementService } from "./memory-management-service";
 import { ChunkedProcessingService } from "./chunked-processing-service";
@@ -379,7 +379,7 @@ export class ImageConversionService {
       // Try WebAssembly fallback first for better format support
       try {
         return await this.wasmFallbackService.convertImage(imageData, settings);
-      } catch (wasmError) {
+      } catch {
         // Fall back to regular canvas conversion
         return this.convertCanvasToFormat(canvas, settings);
       }
@@ -499,7 +499,7 @@ export class ImageConversionService {
     try {
       const memoryService = MemoryManagementService.getInstance();
       memoryService.cleanupCanvas(canvas);
-    } catch (error) {
+    } catch {
       // Fallback cleanup if memory service is not available
       const ctx = canvas.getContext("2d");
       if (ctx) {
@@ -605,7 +605,7 @@ export class ImageConversionService {
    * Get performance metrics and optimization recommendations
    */
   static async getPerformanceMetrics(): Promise<{
-    browserCapabilities: any;
+    browserCapabilities: Record<string, unknown>;
     memoryUsage: unknown;
     recommendedSettings: unknown;
     optimizationTips: string[];
@@ -650,7 +650,7 @@ export class ImageConversionService {
     }
 
     return {
-      browserCapabilities: capabilities,
+      browserCapabilities: capabilities as Record<string, unknown>,
       memoryUsage: memoryStats,
       recommendedSettings: {
         maxConcurrentJobs: capabilities?.webWorkers ? 4 : 1,

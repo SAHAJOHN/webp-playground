@@ -1,7 +1,8 @@
 import {
   ConversionSettingsType,
   ConversionResultType,
-} from "../types/conversion";
+  SupportedFormatType,
+} from "@/types/conversion";
 import { MemoryManagementService } from "./memory-management-service";
 
 // Worker message types (matching worker script)
@@ -11,13 +12,14 @@ const MESSAGE_TYPES = {
   CONVERSION_COMPLETE: "CONVERSION_COMPLETE",
   CONVERSION_ERROR: "CONVERSION_ERROR",
   WORKER_READY: "WORKER_READY",
+  CLEANUP_MEMORY: "CLEANUP_MEMORY",
 } as const;
 
 type MessageType = (typeof MESSAGE_TYPES)[keyof typeof MESSAGE_TYPES];
 
 type WorkerMessageType = {
   type: MessageType;
-  payload?: any;
+  payload?: Record<string, unknown>;
   timestamp?: number;
 };
 
@@ -58,7 +60,6 @@ export class ImageConversionWorkerService {
       this.worker = new Worker("/workers/image-conversion-worker.js");
       this.setupWorkerEventHandlers();
     } catch (error) {
-      console.error("Failed to initialize Web Worker:", error);
       throw new Error("Web Worker not supported or failed to initialize");
     }
   }
@@ -77,12 +78,10 @@ export class ImageConversionWorkerService {
     );
 
     this.worker.addEventListener("error", (error: ErrorEvent) => {
-      console.error("Worker error:", error);
       this.handleWorkerError(error);
     });
 
     this.worker.addEventListener("messageerror", (error: MessageEvent) => {
-      console.error("Worker message error:", error);
       this.handleWorkerError(
         new ErrorEvent("messageerror", {
           message: "Failed to deserialize worker message",
@@ -104,26 +103,32 @@ export class ImageConversionWorkerService {
         break;
 
       case MESSAGE_TYPES.PROGRESS_UPDATE:
-        this.handleProgressUpdate(payload);
+        if (payload) {
+          this.handleProgressUpdate(payload as { jobId: string; progress: number; message?: string });
+        }
         break;
 
       case MESSAGE_TYPES.CONVERSION_COMPLETE:
-        this.handleConversionComplete(payload);
+        if (payload) {
+          this.handleConversionComplete(payload as { jobId: string; result: { convertedBlob: Blob; originalSize: number; convertedSize: number; compressionRatio: number; format: string } });
+        }
         break;
 
       case MESSAGE_TYPES.CONVERSION_ERROR:
-        this.handleConversionError(payload);
+        if (payload) {
+          this.handleConversionError(payload as { jobId: string; error: { message: string; stack?: string } });
+        }
         break;
 
       default:
-        console.warn("Unknown worker message type:", type);
+        // Unknown worker message type, ignore
     }
   }
 
   /**
    * Handle progress updates from worker
    */
-  private handleProgressUpdate(payload: any): void {
+  private handleProgressUpdate(payload: { jobId: string; progress: number; message?: string }): void {
     const { jobId, progress, message } = payload;
     const jobItem = this.jobQueue.get(jobId);
 
@@ -135,7 +140,7 @@ export class ImageConversionWorkerService {
   /**
    * Handle successful conversion completion
    */
-  private handleConversionComplete(payload: any): void {
+  private handleConversionComplete(payload: { jobId: string; result: { convertedBlob: Blob; originalSize: number; convertedSize: number; compressionRatio: number; format: string } }): void {
     const { jobId, result } = payload;
     const jobItem = this.jobQueue.get(jobId);
 
@@ -150,7 +155,7 @@ export class ImageConversionWorkerService {
         originalSize: result.originalSize,
         convertedSize: result.convertedSize,
         compressionRatio: result.compressionRatio,
-        format: result.format,
+        format: result.format as SupportedFormatType,
       };
 
       jobItem.job.onComplete(fullResult);
@@ -161,7 +166,7 @@ export class ImageConversionWorkerService {
   /**
    * Handle conversion errors from worker
    */
-  private handleConversionError(payload: any): void {
+  private handleConversionError(payload: { jobId: string; error: { message: string; stack?: string } }): void {
     const { jobId, error } = payload;
     const jobItem = this.jobQueue.get(jobId);
 
@@ -183,7 +188,6 @@ export class ImageConversionWorkerService {
    * Handle worker errors
    */
   private handleWorkerError(error: ErrorEvent): void {
-    console.error("Worker encountered an error:", error);
 
     // Fail all active jobs
     for (const jobId of this.activeJobs) {
@@ -205,8 +209,8 @@ export class ImageConversionWorkerService {
     try {
       this.terminateWorker();
       this.initializeWorker();
-    } catch (error) {
-      console.error("Failed to restart worker:", error);
+    } catch (_error) {
+      // Failed to restart worker, continue with degraded functionality
     }
   }
 
@@ -318,7 +322,11 @@ export class ImageConversionWorkerService {
     const stats = { pending: 0, processing: 0, completed: 0, errors: 0 };
 
     for (const item of this.jobQueue.values()) {
-      stats[item.status]++;
+      if (item.status === "error") {
+        stats.errors++;
+      } else if (item.status === "pending" || item.status === "processing" || item.status === "completed") {
+        stats[item.status]++;
+      }
     }
 
     return stats;

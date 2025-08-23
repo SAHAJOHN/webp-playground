@@ -6,7 +6,6 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
-  Download,
   FileImage,
   Info,
 } from "lucide-react";
@@ -370,6 +369,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
               <div className="image-label">Original</div>
               <div className="image-wrapper">
                 {originalImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     ref={originalImageRef}
                     src={originalImageUrl}
@@ -398,6 +398,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
                     <span>Converting...</span>
                   </div>
                 ) : convertedImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     ref={convertedImageRef}
                     src={convertedImageUrl}

@@ -20,7 +20,7 @@ import {
   DownloadManager,
 } from "@/components";
 import { useSimpleImageConversion } from "@/hooks/conversion/useSimpleImageConversion";
-import type { ConversionSettingsType, SupportedFormatType } from "@/types";
+import type { ConversionSettingsType, SupportedFormatType, ConversionResultType } from "@/types";
 
 // Styled Components
 const MainContainerStyled = styled.div`
@@ -264,8 +264,6 @@ export default function Home() {
     clearJobs,
   } = useSimpleImageConversion();
 
-  const isDownloading = false;
-
   // Handle files selected from FileUpload component
   const handleFilesSelected = useCallback((files: File[]) => {
     setSelectedFiles(files);
@@ -296,6 +294,12 @@ export default function Home() {
   const jobsArray = simpleJobs;
   const resultsArray = simpleResults;
   const hasResults = resultsArray.length > 0;
+  
+  // Convert results array to Map for DownloadManager
+  const resultsMap = new Map<string, ConversionResultType>();
+  resultsArray.forEach((result, index) => {
+    resultsMap.set(`result-${index}`, result);
+  });
 
   return (
     <MainContainerStyled>
@@ -441,9 +445,9 @@ export default function Home() {
                 gap: "1.5rem",
               }}
             >
-              {resultsArray.map((result, index) => (
+              {resultsArray.map((result, idx) => (
                 <PreviewComparison
-                  key={`result-${index}`}
+                  key={`result-${idx}`}
                   originalFile={result.originalFile}
                   convertedBlob={result.convertedBlob}
                   isLoading={false}
@@ -452,32 +456,8 @@ export default function Home() {
               ))}
             </div>
             <DownloadManager
-              results={resultsArray}
-              isDownloading={isDownloading}
-              onDownloadSingle={(index) => {
-                // Simple download implementation
-                const result = resultsArray[index];
-                if (result) {
-                  const url = URL.createObjectURL(result.convertedBlob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `converted-${result.originalFile.name}`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }
-              }}
-              onDownloadAll={() => {
-                // Simple download all implementation
-                resultsArray.forEach((result, index) => {
-                  const url = URL.createObjectURL(result.convertedBlob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `converted-${result.originalFile.name}`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                });
-              }}
-              onClear={clearJobs}
+              results={resultsMap}
+              isDownloading={false}
             />
           </div>
         )}

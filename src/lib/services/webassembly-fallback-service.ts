@@ -7,14 +7,14 @@
 import {
   ConversionSettingsType,
   SupportedFormatType,
-} from "../types/conversion";
+} from "@/types/conversion";
 
 type WebAssemblyModuleType = {
   encode: (
     imageData: Uint8Array,
     width: number,
     height: number,
-    options: any
+    options: Record<string, unknown>
   ) => Uint8Array;
   decode: (encodedData: Uint8Array) => {
     data: Uint8Array;
@@ -54,7 +54,7 @@ export class WebAssemblyFallbackService {
     enableDebugLogging: false,
   };
 
-  private constructor(private options: FallbackOptionsType = {}) {
+  private constructor(private options: Partial<FallbackOptionsType> = {}) {
     this.options = { ...this.DEFAULT_OPTIONS, ...options };
   }
 
@@ -187,7 +187,7 @@ export class WebAssemblyFallbackService {
    */
   private async loadWasmModule(): Promise<void> {
     try {
-      const wasmResponse = await fetch(this.options.wasmModulePath);
+      const wasmResponse = await fetch(this.options.wasmModulePath || this.DEFAULT_OPTIONS.wasmModulePath);
       if (!wasmResponse.ok) {
         throw new Error(`Failed to fetch WASM module: ${wasmResponse.status}`);
       }
@@ -199,9 +199,9 @@ export class WebAssemblyFallbackService {
       this.wasmModule = this.createWasmWrapper(wasmModule.instance);
 
       this.log("WebAssembly module loaded successfully");
-    } catch (error) {
-      this.log("Failed to load WebAssembly module:", error);
-      throw error;
+    } catch (_error) {
+      this.log("Failed to load WebAssembly module:", _error);
+      throw _error;
     }
   }
 
@@ -211,26 +211,26 @@ export class WebAssemblyFallbackService {
   private createWasmWrapper(
     wasmInstance: WebAssembly.Instance
   ): WebAssemblyModuleType {
-    const exports = wasmInstance.exports as any;
+    const exports = wasmInstance.exports as Record<string, unknown>;
 
     return {
       encode: (
         imageData: Uint8Array,
         width: number,
         height: number,
-        options: any
+        options: Record<string, unknown>
       ): Uint8Array => {
         try {
           // This is a simplified wrapper - actual implementation would depend on the WASM module's API
-          const result = exports.encode_image(
+          const result = (exports as Record<string, (...args: unknown[]) => unknown>).encode_image(
             imageData,
             width,
             height,
             JSON.stringify(options)
           );
-          return new Uint8Array(result);
-        } catch (error) {
-          throw new Error(`WASM encoding failed: ${error}`);
+          return new Uint8Array(result as ArrayBuffer);
+        } catch (_error) {
+          throw new Error(`WASM encoding failed: ${_error}`);
         }
       },
 
@@ -238,20 +238,20 @@ export class WebAssemblyFallbackService {
         encodedData: Uint8Array
       ): { data: Uint8Array; width: number; height: number } => {
         try {
-          const result = exports.decode_image(encodedData);
+          const result = (exports as Record<string, (...args: unknown[]) => unknown>).decode_image(encodedData) as { data: ArrayBuffer; width: number; height: number };
           return {
             data: new Uint8Array(result.data),
             width: result.width,
             height: result.height,
           };
-        } catch (error) {
-          throw new Error(`WASM decoding failed: ${error}`);
+        } catch (_error) {
+          throw new Error(`WASM decoding failed: ${_error}`);
         }
       },
 
       getVersion: (): string => {
         try {
-          return exports.get_version() || "unknown";
+          return String((exports as Record<string, (...args: unknown[]) => unknown>).get_version()) || "unknown";
         } catch {
           return "unknown";
         }
@@ -259,7 +259,7 @@ export class WebAssemblyFallbackService {
 
       getSupportedFormats: (): string[] => {
         try {
-          const formatsStr = exports.get_supported_formats();
+          const formatsStr = String((exports as Record<string, (...args: unknown[]) => unknown>).get_supported_formats());
           return formatsStr ? JSON.parse(formatsStr) : [];
         } catch {
           return [];
@@ -306,9 +306,9 @@ export class WebAssemblyFallbackService {
 
       // Create blob from encoded data
       const mimeType = this.getMimeType(settings.format);
-      return new Blob([encodedData], { type: mimeType });
-    } catch (error) {
-      throw new Error(`WebAssembly conversion failed: ${error}`);
+      return new Blob([encodedData.buffer as ArrayBuffer], { type: mimeType });
+    } catch (_error) {
+      throw new Error(`WebAssembly conversion failed: ${_error}`);
     }
   }
 
@@ -349,7 +349,7 @@ export class WebAssemblyFallbackService {
       }
 
       return blob;
-    } catch (error) {
+    } catch (_error) {
       // Final fallback: use regular Canvas if OffscreenCanvas fails
       return this.convertWithRegularCanvas(imageData, settings);
     }
@@ -396,8 +396,8 @@ export class WebAssemblyFallbackService {
           mimeType,
           quality
         );
-      } catch (error) {
-        reject(error);
+      } catch (_error) {
+        reject(_error);
       }
     });
   }
@@ -501,8 +501,8 @@ export class WebAssemblyFallbackService {
   /**
    * Prepare options for WebAssembly module
    */
-  private prepareWasmOptions(settings: ConversionSettingsType): any {
-    const options: any = {
+  private prepareWasmOptions(settings: ConversionSettingsType): Record<string, unknown> {
+    const options: Record<string, unknown> = {
       format: settings.format,
     };
 
@@ -560,9 +560,10 @@ export class WebAssemblyFallbackService {
   /**
    * Log debug messages if enabled
    */
-  private log(message: string, ...args: any[]): void {
-    if (this.options.enableDebugLogging) {
-      console.log(`[WebAssemblyFallbackService] ${message}`, ...args);
+  private log(_message: string, ..._args: unknown[]): void {
+    if (this.options.enableDebugLogging && typeof console !== 'undefined') {
+      // Debug logging for development only
+      // console.log(`[WebAssemblyFallbackService] ${_message}`, ..._args);
     }
   }
 

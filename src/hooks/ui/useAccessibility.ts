@@ -30,7 +30,7 @@ export type UseAccessibilityReturnType = {
   createSkipLink: (targetId: string, label: string) => HTMLElement;
   isHighContrast: boolean;
   isReducedMotion: boolean;
-  focusRef: React.RefObject<HTMLElement>;
+  focusRef: React.RefObject<HTMLElement | null>;
   keyboardConfig: KeyboardNavigationConfigType;
   updateKeyboardConfig: (config: Partial<KeyboardNavigationConfigType>) => void;
 };
@@ -168,9 +168,9 @@ export const useKeyboardNavigation = (
   const { handleKeyboardNavigation } = useAccessibility();
 
   const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
+    (e: React.KeyboardEvent | KeyboardEvent) => {
       const newIndex = handleKeyboardNavigation(
-        e,
+        e as KeyboardEvent,
         elements,
         currentIndex,
         orientation

@@ -94,7 +94,7 @@ export class FileValidationService {
               );
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // In test environment, dimension checking might fail due to Image API limitations
           // Only add error if explicitly required
           if (rules.requireDimensions) {
@@ -116,7 +116,7 @@ export class FileValidationService {
         errors,
         fileInfo,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         isValid: false,
         errors: [ERROR_MESSAGES.FILE_CORRUPTED],
@@ -176,8 +176,8 @@ export class FileValidationService {
       }
 
       return null;
-    } catch (error) {
-      console.error("Error detecting file type:", error);
+    } catch (_error) {
+      // Error detecting file type - return null for unknown format
       return null;
     }
   }
@@ -235,7 +235,7 @@ export class FileValidationService {
       // Check for AVIF brand in the ftyp box
       const brand = String.fromCharCode(...headerBytes.slice(8, 12));
       return brand === "avif" || brand === "avis";
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -267,7 +267,7 @@ export class FileValidationService {
       }
 
       return false;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -346,7 +346,7 @@ export class FileValidationService {
     files: File[],
     rules: FileValidationRulesType = DEFAULT_VALIDATION_RULES
   ): Promise<FileInfoType[]> {
-    const validationPromises = files.map(async (file, index) => {
+    const validationPromises = files.map(async (file, _index) => {
       const result = await this.validateFile(file, rules);
 
       const validationErrors: ValidationErrorType[] = result.errors.map(
@@ -443,7 +443,7 @@ export class FileValidationService {
           severity: "high",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       errors.push({
         code: "SECURITY_CHECK_FAILED",
         message: "Unable to perform security validation",
@@ -486,7 +486,7 @@ export class FileValidationService {
       ];
 
       return dangerousPatterns.some((pattern) => pattern.test(lowerText));
-    } catch (error) {
+    } catch (_error) {
       return true; // Assume dangerous if we can't read it
     }
   }

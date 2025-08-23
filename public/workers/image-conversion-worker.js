@@ -72,7 +72,7 @@ const workerMemory = {
     if (typeof gc === "function") {
       try {
         gc();
-      } catch (e) {
+      } catch {
         // Ignore errors
       }
     }
@@ -568,7 +568,7 @@ async function benchmarkMemoryUsage(testData) {
   const memorySnapshots = [];
 
   for (let i = 0; i < iterations; i++) {
-    const imageData = createTestImageData(imageSize.width, imageSize.height);
+    createTestImageData(imageSize.width, imageSize.height);
 
     const memoryBefore = workerMemory.canvasMemoryEstimate;
     workerMemory.registerCanvas({
@@ -672,7 +672,7 @@ async function benchmarkChunkProcessing(testData) {
           imageSize.height - y * chunkSize
         );
 
-        const chunkImageData = createTestImageData(chunkWidth, chunkHeight);
+        createTestImageData(chunkWidth, chunkHeight);
 
         // Simulate processing time
         await new Promise((resolve) => setTimeout(resolve, 1));

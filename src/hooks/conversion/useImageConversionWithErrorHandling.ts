@@ -8,10 +8,7 @@ import {
   ErrorHandlingService,
 } from "@/lib/services";
 import { useNotificationHelpers } from "@/components/feedback/NotificationSystem";
-import {
-  useErrorHandling,
-  useBatchOperation,
-} from "@/hooks/utils/useErrorHandling";
+import { useErrorHandling } from "@/hooks/utils/useErrorHandling";
 import type {
   ConversionSettingsType,
   ConversionResultType,
@@ -110,27 +107,6 @@ export const useImageConversionWithErrorHandling = (
     },
   });
 
-  const batchOperation = useBatchOperation({
-    showNotifications,
-    onProgress: onBatchProgress,
-    onItemSuccess: (result, index) => {
-      if (showNotifications) {
-        const job = Array.from(jobs.values())[index];
-        if (job) {
-          showSuccess(
-            "Conversion Complete",
-            `${job.file.name} converted successfully`
-          );
-        }
-      }
-    },
-    onItemError: (error, item, index) => {
-      const processedError = ErrorHandlingService.processError(error, {
-        context: { fileName: (item as File).name, operation: "conversion" },
-      });
-      onJobError?.(generateJobId(), processedError);
-    },
-  });
 
   // Generate unique job ID
   const generateJobId = useCallback(() => {
@@ -165,7 +141,7 @@ export const useImageConversionWithErrorHandling = (
             return await ImageConversionService.convertImage(
               job.file,
               job.settings,
-              (progress, message) => {
+              (progress) => {
                 // Check if job was cancelled
                 if (abortController.signal.aborted) {
                   throw ErrorHandlingService.createStandardError(
@@ -240,7 +216,7 @@ export const useImageConversionWithErrorHandling = (
 
             setTimeout(() => {
               jobQueueRef.current.push(jobId);
-              processQueue();
+              // Process queue will be called by the effect
             }, retryDelay);
 
             if (showNotifications) {
@@ -516,7 +492,7 @@ export const useImageConversionWithErrorHandling = (
         async () => {
           await DownloadService.downloadSingleFile(result, options);
         },
-        { jobId, fileName: result.fileName, operation: "download" }
+        { jobId, fileName: result.originalFile.name, operation: "download" }
       );
 
       setIsDownloading(false);
@@ -526,7 +502,7 @@ export const useImageConversionWithErrorHandling = (
         if (showNotifications) {
           showSuccess(
             "Download Complete",
-            `${result.fileName} downloaded successfully`
+            `${result.originalFile.name} downloaded successfully`
           );
         }
       } else {
@@ -580,7 +556,7 @@ export const useImageConversionWithErrorHandling = (
 
               if (progressNotification) {
                 progressNotification.update(
-                  progress.overallProgress,
+                  progress.progress,
                   `Processing ${progress.currentFile || "files"}...`
                 );
               }
@@ -644,6 +620,13 @@ export const useImageConversionWithErrorHandling = (
       (job) => job.status === "processing"
     )?.file.name,
   };
+
+  // Process queue when there are pending jobs
+  useEffect(() => {
+    if (jobQueueRef.current.length > 0 && activeJobsRef.current.size < maxConcurrentJobs) {
+      processQueue();
+    }
+  }, [jobs, maxConcurrentJobs, processQueue]);
 
   // Update processing state when all jobs complete
   useEffect(() => {

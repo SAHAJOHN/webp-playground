@@ -48,10 +48,10 @@ export class DownloadService {
       setTimeout(() => {
         memoryService.revokeBlobUrl(url);
       }, 1000);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(
         `Failed to download file: ${
-          error instanceof Error ? error.message : "Unknown error"
+          _error instanceof Error ? _error.message : "Unknown error"
         }`
       );
     }
@@ -112,9 +112,9 @@ export class DownloadService {
         progress: 100,
         status: "completed",
       });
-    } catch (error) {
+    } catch (_error) {
       const downloadError =
-        error instanceof Error ? error : new Error("Unknown error");
+        _error instanceof Error ? _error : new Error("Unknown error");
       onProgress?.({
         totalFiles,
         processedFiles,
@@ -240,9 +240,9 @@ export class DownloadService {
       setTimeout(() => {
         memoryService.revokeBlobUrl(url);
       }, 1000);
-    } catch (error) {
+    } catch (_error) {
       const downloadError =
-        error instanceof Error ? error : new Error("Unknown error");
+        _error instanceof Error ? _error : new Error("Unknown error");
       onProgress?.({
         totalFiles: results.length,
         processedFiles: 0,
@@ -285,7 +285,7 @@ export class DownloadService {
     options: Partial<DownloadOptionsType> = {}
   ): string {
     const {
-      preserveNames = true,
+      // preserveNames = true,
       addTimestamp = false,
       customPrefix,
     } = options;
@@ -373,12 +373,12 @@ export class DownloadService {
   /**
    * Load JSZip library dynamically
    */
-  private static async loadJSZip(): Promise<any> {
+  private static async loadJSZip(): Promise<typeof import("jszip")> {
     try {
       // Try to import JSZip
       const JSZip = await import("jszip");
       return JSZip.default || JSZip;
-    } catch (error) {
+    } catch (_error) {
       throw new Error(
         "JSZip library is required for ZIP downloads. Please install it: npm install jszip"
       );

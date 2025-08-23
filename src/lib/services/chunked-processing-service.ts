@@ -4,10 +4,6 @@
  * to prevent memory issues and improve performance
  */
 
-import {
-  ConversionSettingsType,
-  SupportedFormatType,
-} from "../types/conversion";
 import { MemoryManagementService } from "./memory-management-service";
 
 type ChunkType = {
@@ -286,14 +282,14 @@ export class ChunkedProcessingService {
   ): Promise<ChunkProcessingResultType> {
     try {
       return await processingFunction(chunk);
-    } catch (error) {
+    } catch (_error) {
       return {
         chunkId: chunk.id,
         processedData: new ArrayBuffer(0),
         success: false,
         error:
-          error instanceof Error
-            ? error
+          _error instanceof Error
+            ? _error
             : new Error("Unknown chunk processing error"),
       };
     }

@@ -7,7 +7,7 @@
 import {
   SupportedFormatType,
   ConversionSettingsType,
-} from "../types/conversion";
+} from "@/types/conversion";
 
 type BrowserFeatureType = {
   canvas: boolean;
@@ -57,7 +57,7 @@ export class ProgressiveEnhancementService {
     enableDebugLogging: false,
   };
 
-  private constructor(private options: EnhancementOptionsType = {}) {
+  private constructor(private options: Partial<EnhancementOptionsType> = {}) {
     this.options = { ...this.DEFAULT_OPTIONS, ...options };
   }
 
@@ -394,13 +394,13 @@ export class ProgressiveEnhancementService {
   private async loadArrayIncludesPolyfill(): Promise<void> {
     if (!Array.prototype.includes) {
       Array.prototype.includes = function (
-        searchElement: any,
-        fromIndex?: number
+        searchElement: unknown,
+        _fromIndex?: number
       ): boolean {
         const O = Object(this);
         const len = parseInt(O.length) || 0;
         if (len === 0) return false;
-        const n = parseInt(fromIndex) || 0;
+        const n = _fromIndex !== undefined ? parseInt(_fromIndex.toString()) : 0;
         let k = n >= 0 ? n : Math.max(len + n, 0);
 
         while (k < len) {
@@ -444,7 +444,7 @@ export class ProgressiveEnhancementService {
         div.innerHTML = "Canvas not supported. Please use a modern browser.";
         div.style.cssText =
           "border: 1px solid #ccc; padding: 20px; text-align: center; background: #f9f9f9;";
-        return div as any;
+        return div as unknown as HTMLCanvasElement;
       }
       return originalCreateElement.call(document, tagName);
     };
@@ -484,13 +484,13 @@ export class ProgressiveEnhancementService {
   private setupPromiseFallback(): void {
     // Very basic Promise implementation
     if (typeof Promise === "undefined") {
-      (window as any).Promise = class BasicPromise {
-        constructor(executor: (resolve: Function, reject: Function) => void) {
+      (window as { Promise?: unknown }).Promise = class BasicPromise {
+        constructor(_executor: (resolve: (value?: unknown) => void, reject: (error?: unknown) => void) => void) {
           setTimeout(() => {
             try {
-              executor(
-                (value: any) => this.resolve(value),
-                (error: any) => this.reject(error)
+              _executor(
+                (value: unknown) => this.resolve(value),
+                (error: unknown) => this.reject(error)
               );
             } catch (error) {
               this.reject(error);
@@ -498,20 +498,20 @@ export class ProgressiveEnhancementService {
           }, 0);
         }
 
-        resolve(value: any) {
+        resolve(_value: unknown) {
           // Basic implementation
         }
 
-        reject(error: any) {
+        reject(_error: unknown) {
           // Basic implementation
         }
 
-        static resolve(value: any) {
+        static resolve(value: unknown) {
           return new BasicPromise((resolve) => resolve(value));
         }
 
-        static reject(error: any) {
-          return new BasicPromise((_, reject) => reject(error));
+        static reject(error: unknown) {
+          return new BasicPromise((_resolve, reject) => reject(error));
         }
       };
     }
@@ -703,9 +703,10 @@ export class ProgressiveEnhancementService {
   /**
    * Log debug messages if enabled
    */
-  private log(message: string, ...args: any[]): void {
-    if (this.options.enableDebugLogging) {
-      console.log(`[ProgressiveEnhancementService] ${message}`, ...args);
+  private log(_message: string, ..._args: unknown[]): void {
+    if (this.options.enableDebugLogging && typeof console !== 'undefined') {
+      // Debug logging for development only
+      // console.log(`[ProgressiveEnhancementService] ${_message}`, ..._args);
     }
   }
 

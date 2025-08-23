@@ -85,7 +85,15 @@ export const useImageConversion = (
       onDownloadComplete,
       onDownloadError,
     };
-  });
+  }, [
+    onJobComplete,
+    onJobError,
+    onBatchComplete,
+    onBatchProgress,
+    onDownloadProgress,
+    onDownloadComplete,
+    onDownloadError,
+  ]);
 
   const [state, setState] = useState<UseImageConversionStateType>({
     jobs: new Map(),
@@ -115,28 +123,15 @@ export const useImageConversion = (
 
   // Process a single job
   const processJob = useCallback(async (jobId: string) => {
-    console.log("processJob called for:", jobId);
 
     // Get the job details first and update status atomically
     let job: ConversionJobStateType | undefined;
 
     setState((prev) => {
-      console.log("processJob setState - checking job:", jobId);
-      console.log("Available jobs:", Array.from(prev.jobs.keys()));
-      console.log(
-        "Job statuses:",
-        Array.from(prev.jobs.values()).map((j) => `${j.id}: ${j.status}`)
-      );
-
       const currentJob = prev.jobs.get(jobId);
-      console.log(
-        "Found job:",
-        currentJob ? `${currentJob.id}: ${currentJob.status}` : "NOT FOUND"
-      );
 
       if (!currentJob || currentJob.status !== "pending") {
         job = undefined;
-        console.log("Job not found or not pending, returning prev state");
         return prev;
       }
 
@@ -148,7 +143,6 @@ export const useImageConversion = (
         startTime: Date.now(),
       });
 
-      console.log("Updated job to processing:", jobId);
       return {
         ...prev,
         jobs: updatedJobs,
@@ -156,7 +150,6 @@ export const useImageConversion = (
     });
 
     if (!job) {
-      console.log("Job not found after setState, creating error");
       const error = new Error("Job not found or not in pending status");
       setState((prev) => {
         const updatedJobs = new Map(prev.jobs);
@@ -183,7 +176,6 @@ export const useImageConversion = (
       return;
     }
 
-    console.log("Starting conversion for job:", jobId, "file:", job.file.name);
 
     try {
       // Create abort controller for this job
@@ -194,7 +186,7 @@ export const useImageConversion = (
       const result = await ImageConversionService.convertImage(
         job.file,
         job.settings,
-        (progress, message) => {
+        (progress) => {
           // Check if job was cancelled
           if (abortController.signal.aborted) {
             throw new Error("Job cancelled");
@@ -281,15 +273,6 @@ export const useImageConversion = (
 
   // Process jobs from queue
   const processQueue = useCallback(async () => {
-    console.log("processQueue called");
-    console.log(
-      "Active jobs:",
-      activeJobsRef.current.size,
-      "Max concurrent:",
-      maxConcurrentJobs
-    );
-    console.log("Queue length:", jobQueueRef.current.length);
-    console.log("Queue contents:", jobQueueRef.current);
 
     while (
       activeJobsRef.current.size < maxConcurrentJobs &&
@@ -298,25 +281,18 @@ export const useImageConversion = (
       const jobId = jobQueueRef.current.shift();
       if (!jobId) break;
 
-      console.log("Processing job from queue:", jobId);
       activeJobsRef.current.add(jobId);
       // Don't await here to allow concurrent processing
-      processJob(jobId).catch((error) => {
-        console.error("Process job error:", error);
+      processJob(jobId).catch((_error) => {
         activeJobsRef.current.delete(jobId);
       });
     }
 
-    console.log(
-      "processQueue finished, active jobs:",
-      activeJobsRef.current.size
-    );
   }, [maxConcurrentJobs, processJob]);
 
   // Start conversion for multiple files
   const convertFiles = useCallback(
     (files: File[], settings: ConversionSettingsType) => {
-      console.log("convertFiles called with", files.length, "files");
 
       const newJobs = new Map<string, ConversionJobStateType>();
       const newJobIds: string[] = [];
@@ -332,17 +308,10 @@ export const useImageConversion = (
         };
         newJobs.set(jobId, job);
         newJobIds.push(jobId);
-        console.log("Created job:", jobId, "for file:", file.name);
       });
 
       setState((prev) => {
         const updatedJobs = new Map([...prev.jobs, ...newJobs]);
-        console.log("Updated jobs map size:", updatedJobs.size);
-        console.log("All job IDs:", Array.from(updatedJobs.keys()));
-        console.log(
-          "All job statuses:",
-          Array.from(updatedJobs.values()).map((j) => `${j.id}: ${j.status}`)
-        );
 
         return {
           ...prev,
@@ -355,12 +324,9 @@ export const useImageConversion = (
 
       // Add jobs to queue
       jobQueueRef.current.push(...newJobIds);
-      console.log("Added to queue:", newJobIds);
-      console.log("Queue length:", jobQueueRef.current.length);
 
       // Start processing with a small delay to ensure state is updated
       setTimeout(() => {
-        console.log("Starting processQueue");
         processQueue();
       }, 0);
     },

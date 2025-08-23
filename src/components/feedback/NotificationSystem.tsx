@@ -5,7 +5,6 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useEffect,
 } from "react";
 import styled from "styled-components";
 import {
@@ -290,33 +289,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  const addNotification = useCallback(
-    (notification: Omit<NotificationDataType, "id">): string => {
-      const id = `notification-${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-      const newNotification: NotificationDataType = {
-        ...notification,
-        id,
-        duration:
-          notification.duration ??
-          (notification.type === "error" ? 8000 : 5000),
-      };
-
-      setNotifications((prev) => [...prev, newNotification]);
-
-      // Auto-remove notification after duration (unless persistent)
-      if (!newNotification.persistent && newNotification.duration > 0) {
-        setTimeout(() => {
-          removeNotification(id);
-        }, newNotification.duration);
-      }
-
-      return id;
-    },
-    []
-  );
-
   const removeNotification = useCallback((id: string) => {
     setNotifications((prev) => {
       const notification = prev.find((n) => n.id === id);
@@ -335,6 +307,33 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       return updatedNotifications;
     });
   }, []);
+
+  const addNotification = useCallback(
+    (notification: Omit<NotificationDataType, "id">): string => {
+      const id = `notification-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      const newNotification: NotificationDataType = {
+        ...notification,
+        id,
+        duration:
+          notification.duration ??
+          (notification.type === "error" ? 8000 : 5000),
+      };
+
+      setNotifications((prev) => [...prev, newNotification]);
+
+      // Auto-remove notification after duration (unless persistent)
+      if (!newNotification.persistent && newNotification.duration && newNotification.duration > 0) {
+        setTimeout(() => {
+          removeNotification(id);
+        }, newNotification.duration);
+      }
+
+      return id;
+    },
+    [removeNotification]
+  );
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);

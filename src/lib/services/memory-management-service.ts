@@ -178,14 +178,14 @@ export class MemoryManagementService {
     // Add browser memory info if available
     try {
       if (typeof window !== "undefined" && "performance" in window) {
-        const memory = (performance as any).memory;
+        const memory = (performance as { memory?: { usedJSHeapSize?: number; totalJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
         if (memory) {
           stats.usedJSHeapSize = memory.usedJSHeapSize;
           stats.totalJSHeapSize = memory.totalJSHeapSize;
           stats.jsHeapSizeLimit = memory.jsHeapSizeLimit;
         }
       }
-    } catch (error) {
+    } catch {
       // Ignore errors accessing performance.memory
     }
 
@@ -280,7 +280,7 @@ export class MemoryManagementService {
   /**
    * Cleanup blob URLs older than specified age
    */
-  private cleanupOldBlobUrls(maxAge: number): void {
+  private cleanupOldBlobUrls(_maxAge: number): void {
     // Note: We can't track creation time of blob URLs without additional metadata
     // For now, we'll clean up a portion of them
     const urlsToCleanup = Array.from(this.activeBlobUrls).slice(
@@ -317,24 +317,24 @@ export class MemoryManagementService {
     // Try different methods to trigger GC
     if (typeof window !== "undefined") {
       // Method 1: Use gc() if available (Chrome with --js-flags=--expose-gc)
-      if ("gc" in window && typeof (window as any).gc === "function") {
+      if ("gc" in window && typeof (window as { gc?: unknown }).gc === "function") {
         try {
-          (window as any).gc();
+          (window as { gc?: () => void }).gc?.();
           return;
-        } catch (error) {
+        } catch {
           // Ignore errors
         }
       }
 
       // Method 2: Create memory pressure to encourage GC
       try {
-        const tempArrays: any[] = [];
+        const tempArrays: unknown[][] = [];
         for (let i = 0; i < 100; i++) {
           tempArrays.push(new Array(10000).fill(0));
         }
         // Let arrays go out of scope
         tempArrays.length = 0;
-      } catch (error) {
+      } catch {
         // Ignore errors
       }
     }

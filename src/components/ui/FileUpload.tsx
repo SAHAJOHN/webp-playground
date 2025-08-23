@@ -345,9 +345,6 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
   const {
     accessibilityMode,
     announce,
-    handleKeyboardNavigation,
-    isHighContrast,
-    isReducedMotion,
   } = useAccessibility({
     announceChanges: true,
     skipLinkTarget: "upload-zone",
@@ -365,7 +362,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
     ) as HTMLElement[];
   };
 
-  const { currentIndex, onKeyDown } = useKeyboardNavigation(
+  const { onKeyDown } = useKeyboardNavigation(
     getFileItemElements(),
     "vertical"
   );
@@ -387,7 +384,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
         priority: validFiles < files.length ? "assertive" : "polite",
       });
     }
-  }, [files.length, fileInfos, announce]);
+  }, [files, fileInfos, announce]);
 
   // Announce validation completion
   useEffect(() => {
@@ -400,7 +397,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
         });
       }
     }
-  }, [isValidating, validationErrors, files.length, announce]);
+  }, [isValidating, validationErrors, files, announce]);
 
   // Format file size for display
   const formatFileSize = (bytes: number): string => {
@@ -549,7 +546,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
           >
             {files.map((file, index) => {
               const fileInfo = fileInfos[index];
-              const fileErrors = validationErrors.get(file.name) || [];
+              // const fileErrors = validationErrors.get(file.name) || [];
               const isValid = fileInfo?.isValid ?? true;
 
               return (
