@@ -37,11 +37,19 @@ export async function convertImageOnServer(
     formData.append("quality", settings.quality?.toString() || "80");
     formData.append("lossless", settings.lossless?.toString() || "false");
     formData.append("progressive", settings.progressive?.toString() || "false");
+    formData.append("interlace", settings.interlace?.toString() || "false");
+    formData.append("chromaSubsampling", settings.chromaSubsampling || "auto");
+    formData.append("mozjpeg", settings.mozjpeg?.toString() ?? "true");
+    formData.append("speed", settings.speed?.toString() || "4");
+    formData.append("alphaQuality", settings.alphaQuality?.toString() || "100");
+    formData.append("preset", settings.preset || "default");
+    formData.append("palette", settings.palette?.toString() || "false");
+    formData.append("colors", settings.colors?.toString() || "256");
+    formData.append("dithering", settings.dithering?.toString() || "1.0");
+    formData.append("effort", (settings.effort || options?.effort || 6).toString());
     
     // Add advanced options for WebP
     if (settings.format === "webp" && settings.lossless) {
-      formData.append("effort", (options?.effort || 6).toString());
-      
       // Handle near-lossless value
       const nearLosslessValue = settings.nearLossless ?? 100;
       if (nearLosslessValue < 100) {

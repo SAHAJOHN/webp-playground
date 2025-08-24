@@ -9,14 +9,21 @@ export type SupportedFormatType =
 export type ConversionSettingsType = {
   format: SupportedFormatType;
   quality: number; // 1-100 for lossy formats
-  lossless?: boolean; // For WebP
+  lossless?: boolean; // For WebP and AVIF
   nearLossless?: number; // For WebP lossless (0-100, 100 = true lossless)
-  compressionLevel?: number; // For PNG
+  compressionLevel?: number; // For PNG (0-9)
   progressive?: boolean; // For JPEG
-  speed?: number; // For AVIF (1-10)
-  colors?: number; // For GIF
-  dithering?: boolean; // For GIF
-  sizes?: number[]; // For ICO (e.g., [16, 32, 48])
+  interlace?: boolean; // For PNG
+  chromaSubsampling?: "4:4:4" | "4:2:2" | "4:2:0" | "auto"; // For JPEG
+  mozjpeg?: boolean; // For JPEG - use mozjpeg encoder
+  speed?: number; // For AVIF (0-10, 0=slowest/best, 10=fastest)
+  effort?: number; // For WebP and AVIF (0-10)
+  alphaQuality?: number; // For WebP with alpha channel (0-100)
+  smartSubsample?: boolean; // For WebP
+  preset?: "default" | "photo" | "picture" | "drawing" | "icon" | "text"; // For WebP
+  palette?: boolean; // For PNG - quantize to palette
+  colors?: number; // For PNG palette (2-256)
+  dithering?: number; // For PNG palette (0-1)
   useServer?: boolean; // Use server-side conversion for better compression
 };
 

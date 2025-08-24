@@ -19,6 +19,15 @@ export async function POST(request: NextRequest) {
     const nearLosslessValue = parseInt(formData.get("nearLosslessValue") as string) || 100;
     const effort = parseInt(formData.get("effort") as string) || 6;
     const progressive = formData.get("progressive") === "true";
+    const interlace = formData.get("interlace") === "true";
+    const chromaSubsampling = formData.get("chromaSubsampling") as string;
+    const mozjpeg = formData.get("mozjpeg") !== "false";
+    const speed = parseInt(formData.get("speed") as string) ?? 4;
+    const alphaQuality = parseInt(formData.get("alphaQuality") as string) || 100;
+    const preset = formData.get("preset") as string || "default";
+    const palette = formData.get("palette") === "true";
+    const colors = parseInt(formData.get("colors") as string) || 256;
+    const dithering = parseFloat(formData.get("dithering") as string) || 1.0;
 
     // Validate file
     if (!file) {
@@ -77,14 +86,22 @@ export async function POST(request: NextRequest) {
             .webp(webpOptions)
             .toBuffer();
         } else {
-          // WebP lossy
+          // WebP lossy with advanced options
+          const webpLossyOptions: any = {
+            quality: quality,
+            effort: effort,
+            smartSubsample: true, // Better color subsampling
+            reductionEffort: 6, // Maximum reduction effort
+            alphaQuality: alphaQuality, // Alpha channel quality
+          };
+          
+          // Apply preset if not default
+          if (preset !== "default") {
+            webpLossyOptions.preset = preset;
+          }
+          
           outputBuffer = await sharpInstance
-            .webp({
-              quality: quality,
-              effort: effort,
-              smartSubsample: true, // Better color subsampling
-              reductionEffort: 6, // Maximum reduction effort
-            })
+            .webp(webpLossyOptions)
             .toBuffer();
         }
         break;
@@ -92,36 +109,55 @@ export async function POST(request: NextRequest) {
       case "avif":
         outputBuffer = await sharpInstance
           .avif({
-            quality: quality,
+            quality: lossless ? 100 : quality,
             lossless: lossless,
-            effort: effort,
+            effort: effort || 4,
+            speed: speed, // 0-10, where 0 is slowest/best
             chromaSubsampling: lossless ? "4:4:4" : "4:2:0",
           })
           .toBuffer();
         break;
 
       case "png":
+        const pngOptions: any = {
+          compressionLevel: 9, // Maximum compression
+          quality: 100,
+          effort: 10, // Maximum effort for PNG
+          progressive: interlace, // Adam7 interlacing
+        };
+        
+        // Apply palette quantization if enabled
+        if (palette) {
+          pngOptions.palette = true;
+          pngOptions.colors = colors; // Number of colors in palette
+          pngOptions.dither = dithering; // Dithering amount
+        }
+        
         outputBuffer = await sharpInstance
-          .png({
-            compressionLevel: 9, // Maximum compression
-            quality: 100,
-            effort: 10, // Maximum effort for PNG
-            palette: true, // Use palette when possible for smaller files
-          })
+          .png(pngOptions)
           .toBuffer();
         break;
 
       case "jpeg":
+        const jpegOptions: any = {
+          quality: quality,
+          mozjpeg: mozjpeg, // Use mozjpeg encoder for better compression
+          progressive: progressive, // Enable progressive encoding
+          optimizeCoding: true,
+          optimizeScans: progressive, // Optimize scan layers for progressive
+          trellisQuantisation: true,
+        };
+        
+        // Handle chroma subsampling
+        if (chromaSubsampling && chromaSubsampling !== "auto") {
+          jpegOptions.chromaSubsampling = chromaSubsampling;
+        } else {
+          // Auto mode based on quality
+          jpegOptions.chromaSubsampling = quality >= 90 ? "4:4:4" : "4:2:0";
+        }
+        
         outputBuffer = await sharpInstance
-          .jpeg({
-            quality: quality,
-            mozjpeg: true, // Use mozjpeg encoder for better compression
-            progressive: progressive, // Enable progressive encoding
-            chromaSubsampling: quality >= 90 ? "4:4:4" : "4:2:0",
-            optimizeCoding: true,
-            optimizeScans: progressive, // Optimize scan layers for progressive
-            trellisQuantisation: true,
-          })
+          .jpeg(jpegOptions)
           .toBuffer();
         break;
 

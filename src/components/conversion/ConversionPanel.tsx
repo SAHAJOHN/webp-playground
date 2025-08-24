@@ -425,8 +425,10 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     const quality = settings.quality ?? 80;
     const progressPercent = quality;
     
-    // Disable quality slider for WebP in lossless mode
-    const isQualityDisabled = settings.format === "webp" && settings.lossless;
+    // Disable quality slider for lossless modes
+    const isQualityDisabled = 
+      (settings.format === "webp" && settings.lossless) ||
+      (settings.format === "avif" && settings.lossless);
 
     return (
       <div className="setting-item">
@@ -470,35 +472,103 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     );
   };
 
-  const renderCompressionLevel = () => {
+  const renderPNGOptions = () => {
     if (settings.format !== "png") return null;
 
     const compressionLevel = settings.compressionLevel ?? 6;
 
     return (
-      <div className="setting-item">
-        <div className="setting-label">
-          <span>Compression Level</span>
-          <span className="setting-value">{compressionLevel}</span>
+      <>
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Compression Level</span>
+            <span className="setting-value">{compressionLevel}</span>
+          </div>
+          <select
+            value={compressionLevel}
+            onChange={(e) => handleCompressionChange(Number(e.target.value))}
+            className="compression-select"
+            disabled={disabled || isProcessing}
+          >
+            {Array.from({ length: 10 }, (_, i) => (
+              <option key={i} value={i}>
+                Level {i}{" "}
+                {i === 0
+                  ? "(Fastest)"
+                  : i === 9
+                  ? "(Best compression)"
+                  : ""}
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          value={compressionLevel}
-          onChange={(e) => handleCompressionChange(Number(e.target.value))}
-          className="compression-select"
-          disabled={disabled || isProcessing}
-        >
-          {Array.from({ length: 10 }, (_, i) => (
-            <option key={i} value={i}>
-              Level {i}{" "}
-              {i === 0
-                ? "(No compression)"
-                : i === 9
-                ? "(Max compression)"
-                : ""}
-            </option>
-          ))}
-        </select>
-      </div>
+        
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Interlacing (Adam7)</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              {settings.interlace ? "Progressive display" : "Sequential"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={`toggle-button ${settings.interlace ? "active" : ""}`}
+            onClick={() => onSettingsChange({ ...settings, interlace: !settings.interlace })}
+            disabled={disabled || isProcessing}
+          >
+            {settings.interlace ? (
+              <ToggleRight size={16} />
+            ) : (
+              <ToggleLeft size={16} />
+            )}
+            {settings.interlace ? "Enabled" : "Disabled"}
+          </button>
+          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            {settings.interlace 
+              ? "Shows low-res preview first (larger file)"
+              : "Standard top-to-bottom loading"}
+          </p>
+        </div>
+        
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Palette Quantization</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              {settings.palette ? `${settings.colors || 256} colors` : "Full color"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={`toggle-button ${settings.palette ? "active" : ""}`}
+            onClick={() => onSettingsChange({ ...settings, palette: !settings.palette })}
+            disabled={disabled || isProcessing}
+          >
+            {settings.palette ? (
+              <ToggleRight size={16} />
+            ) : (
+              <ToggleLeft size={16} />
+            )}
+            {settings.palette ? "Enabled" : "Disabled"}
+          </button>
+          {settings.palette && (
+            <>
+              <input
+                type="range"
+                min="2"
+                max="256"
+                value={settings.colors || 256}
+                onChange={(e) => onSettingsChange({ ...settings, colors: Number(e.target.value) })}
+                className="quality-slider"
+                disabled={disabled || isProcessing}
+                style={{ marginTop: '0.5rem' }}
+              />
+              <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                Colors: {settings.colors || 256} (fewer colors = smaller file)
+              </p>
+            </>
+          )}
+        </div>
+      </>
     );
   };
 
@@ -576,6 +646,58 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             </button>
           </div>
         </div>
+        
+        {/* WebP Preset for lossy mode */}
+        {!settings.lossless && (
+          <div className="setting-item">
+            <div className="setting-label">
+              <span>Optimization Preset</span>
+              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+                {settings.preset || "default"}
+              </span>
+            </div>
+            <select
+              value={settings.preset || "default"}
+              onChange={(e) => onSettingsChange({ ...settings, preset: e.target.value as any })}
+              className="compression-select"
+              disabled={disabled || isProcessing}
+            >
+              <option value="default">Default</option>
+              <option value="photo">Photo (natural images)</option>
+              <option value="picture">Picture (portraits)</option>
+              <option value="drawing">Drawing (high contrast)</option>
+              <option value="icon">Icon (small colorful)</option>
+              <option value="text">Text (legibility)</option>
+            </select>
+            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+              Optimizes compression for specific content types
+            </p>
+          </div>
+        )}
+        
+        {/* Alpha Quality for images with transparency */}
+        {!settings.lossless && (
+          <div className="setting-item">
+            <div className="setting-label">
+              <span>Alpha Channel Quality</span>
+              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+                {settings.alphaQuality || 100}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={settings.alphaQuality || 100}
+              onChange={(e) => onSettingsChange({ ...settings, alphaQuality: Number(e.target.value) })}
+              className="quality-slider"
+              disabled={disabled || isProcessing}
+            />
+            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+              Quality of transparency channel (if present)
+            </p>
+          </div>
+        )}
         
         {/* Server/Client mode toggle for better compression */}
         {((settings.format === "webp" && settings.lossless) || 
@@ -741,32 +863,234 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     if (settings.format !== "jpeg") return null;
 
     return (
-      <div className="setting-item">
-        <div className="setting-label">
-          <span>Progressive JPEG</span>
-          <span className="setting-value" style={{ fontSize: '0.7rem' }}>
-            {settings.progressive ? "Better for web" : "Standard"}
-          </span>
+      <>
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Progressive JPEG</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              {settings.progressive ? "Better for web" : "Standard"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={`toggle-button ${settings.progressive ? "active" : ""}`}
+            onClick={handleProgressiveToggle}
+            disabled={disabled || isProcessing}
+          >
+            {settings.progressive ? (
+              <ToggleRight size={16} />
+            ) : (
+              <ToggleLeft size={16} />
+            )}
+            {settings.progressive ? "Enabled" : "Disabled"}
+          </button>
+          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            {settings.progressive 
+              ? "Shows low-quality preview first, then improves."
+              : "Loads from top to bottom."}
+          </p>
         </div>
-        <button
-          type="button"
-          className={`toggle-button ${settings.progressive ? "active" : ""}`}
-          onClick={handleProgressiveToggle}
-          disabled={disabled || isProcessing}
-        >
-          {settings.progressive ? (
-            <ToggleRight size={16} />
-          ) : (
-            <ToggleLeft size={16} />
-          )}
-          {settings.progressive ? "Enabled" : "Disabled"}
-        </button>
-        <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-          {settings.progressive 
-            ? "Shows low-quality preview first, then improves. Better for slow connections."
-            : "Loads from top to bottom. Better for fast connections or small images."}
-        </p>
-      </div>
+        
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Chroma Subsampling</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              {settings.chromaSubsampling || "auto"}
+            </span>
+          </div>
+          <select
+            value={settings.chromaSubsampling || "auto"}
+            onChange={(e) => onSettingsChange({ ...settings, chromaSubsampling: e.target.value as any })}
+            className="compression-select"
+            disabled={disabled || isProcessing}
+          >
+            <option value="auto">Auto (Quality based)</option>
+            <option value="4:4:4">4:4:4 (Best quality)</option>
+            <option value="4:2:2">4:2:2 (Balanced)</option>
+            <option value="4:2:0">4:2:0 (Smallest file)</option>
+          </select>
+          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            {settings.chromaSubsampling === "4:4:4" 
+              ? "No color compression - best for graphics"
+              : settings.chromaSubsampling === "4:2:0"
+              ? "Maximum compression - best for photos"
+              : "Automatic based on quality setting"}
+          </p>
+        </div>
+        
+        {useServerMode && (
+          <div className="setting-item">
+            <div className="setting-label">
+              <span>MozJPEG Encoder</span>
+              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+                10-15% smaller files
+              </span>
+            </div>
+            <button
+              type="button"
+              className={`toggle-button ${settings.mozjpeg !== false ? "active" : ""}`}
+              onClick={() => onSettingsChange({ ...settings, mozjpeg: settings.mozjpeg === false })}
+              disabled={disabled || isProcessing}
+            >
+              {settings.mozjpeg !== false ? (
+                <ToggleRight size={16} />
+              ) : (
+                <ToggleLeft size={16} />
+              )}
+              {settings.mozjpeg !== false ? "Enabled" : "Disabled"}
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const renderAVIFOptions = () => {
+    if (settings.format !== "avif") return null;
+
+    return (
+      <>
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Compression Mode</span>
+          </div>
+          <div className="toggle-container">
+            <button
+              type="button"
+              className={`toggle-button ${!settings.lossless ? "active" : ""}`}
+              onClick={() => onSettingsChange({ ...settings, lossless: false })}
+              disabled={disabled || isProcessing}
+            >
+              {!settings.lossless ? (
+                <ToggleRight size={16} />
+              ) : (
+                <ToggleLeft size={16} />
+              )}
+              Lossy
+            </button>
+            <button
+              type="button"
+              className={`toggle-button ${settings.lossless ? "active" : ""}`}
+              onClick={() => onSettingsChange({ ...settings, lossless: true })}
+              disabled={disabled || isProcessing}
+            >
+              {settings.lossless ? (
+                <ToggleRight size={16} />
+              ) : (
+                <ToggleLeft size={16} />
+              )}
+              Lossless
+            </button>
+          </div>
+        </div>
+        
+        {/* AVIF Speed/Quality trade-off */}
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Encoding Speed</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              {settings.speed ?? 4} {settings.speed === 0 ? "(Slowest/Best)" : settings.speed === 10 ? "(Fastest)" : ""}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            value={settings.speed ?? 4}
+            onChange={(e) => onSettingsChange({ ...settings, speed: Number(e.target.value) })}
+            className="quality-slider"
+            disabled={disabled || isProcessing}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => onSettingsChange({ ...settings, speed: 0 })}
+              disabled={disabled || isProcessing}
+              style={{
+                fontSize: '0.7rem',
+                padding: '2px 8px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                background: settings.speed === 0 ? '#3b82f6' : 'white',
+                color: settings.speed === 0 ? 'white' : '#6b7280',
+                cursor: 'pointer'
+              }}
+            >
+              Best Quality
+            </button>
+            <button
+              type="button"
+              onClick={() => onSettingsChange({ ...settings, speed: 4 })}
+              disabled={disabled || isProcessing}
+              style={{
+                fontSize: '0.7rem',
+                padding: '2px 8px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                background: settings.speed === 4 ? '#3b82f6' : 'white',
+                color: settings.speed === 4 ? 'white' : '#6b7280',
+                cursor: 'pointer'
+              }}
+            >
+              Balanced
+            </button>
+            <button
+              type="button"
+              onClick={() => onSettingsChange({ ...settings, speed: 10 })}
+              disabled={disabled || isProcessing}
+              style={{
+                fontSize: '0.7rem',
+                padding: '2px 8px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                background: settings.speed === 10 ? '#3b82f6' : 'white',
+                color: settings.speed === 10 ? 'white' : '#6b7280',
+                cursor: 'pointer'
+              }}
+            >
+              Fast
+            </button>
+          </div>
+          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            {settings.speed <= 2 
+              ? "Maximum compression, very slow encoding"
+              : settings.speed >= 8
+              ? "Fast encoding, larger file size"
+              : "Balanced speed and compression"}
+          </p>
+        </div>
+        
+        {/* AVIF Effort level */}
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Compression Effort</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              {settings.effort ?? 4}/9
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="9"
+            value={settings.effort ?? 4}
+            onChange={(e) => onSettingsChange({ ...settings, effort: Number(e.target.value) })}
+            className="quality-slider"
+            disabled={disabled || isProcessing}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Fast</span>
+            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Balanced</span>
+            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Best</span>
+          </div>
+          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            {settings.effort <= 2 
+              ? "Minimal optimization passes"
+              : settings.effort >= 7
+              ? "Maximum optimization, much slower"
+              : "Balanced optimization passes"}
+          </p>
+        </div>
+      </>
     );
   };
 
@@ -817,9 +1141,10 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
 
         <div className="settings-group">
           {renderQualitySlider()}
-          {renderCompressionLevel()}
+          {renderPNGOptions()}
           {renderWebPOptions()}
           {renderJPEGOptions()}
+          {renderAVIFOptions()}
         </div>
 
         {formatInfo && (

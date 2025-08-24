@@ -396,8 +396,16 @@ function getQualityValue(settings) {
     return settings.quality / 100; // Convert 1-100 to 0-1 for lossy WebP
   }
 
+  // AVIF
+  if (settings.format === "avif") {
+    if (settings.lossless) {
+      return 1.0; // Lossless AVIF
+    }
+    return settings.quality / 100; // Lossy AVIF
+  }
+  
   // Other lossy formats always use quality
-  const lossyFormats = ["jpeg", "avif"];
+  const lossyFormats = ["jpeg"];
   if (lossyFormats.includes(settings.format)) {
     return settings.quality / 100; // Convert 1-100 to 0-1
   }
