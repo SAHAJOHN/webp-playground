@@ -520,11 +520,39 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
 
   const [serverAvailable, setServerAvailable] = useState(false);
   const [useServerMode, setUseServerMode] = useState(true);
+  const [nearLosslessValue, setNearLosslessValue] = useState(settings.nearLossless || 100); // 100 = true lossless
 
   // Check if server conversion is available
   useEffect(() => {
     isServerConversionAvailable().then(setServerAvailable);
   }, []);
+  
+  // Initialize near-lossless value when settings change
+  useEffect(() => {
+    if (settings.format === "webp" && settings.lossless && settings.useServer !== false) {
+      // Initialize near-lossless to 100 if not set
+      if (settings.nearLossless === undefined) {
+        onSettingsChange({ ...settings, nearLossless: 100 });
+      }
+    }
+  }, [settings.format, settings.lossless]);
+
+  // Handle near-lossless change
+  const handleNearLosslessChange = useCallback(
+    (value: number) => {
+      setNearLosslessValue(value);
+      onSettingsChange({ ...settings, nearLossless: value });
+      
+      announce({
+        message: value === 100 
+          ? "True lossless mode" 
+          : `Near-lossless quality: ${value}%`,
+        priority: "polite",
+        delay: 500,
+      });
+    },
+    [settings, onSettingsChange, announce]
+  );
 
   const renderWebPOptions = () => {
     if (settings.format !== "webp") return null;
@@ -567,47 +595,147 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         
         {/* Server/Client mode toggle for lossless WebP */}
         {settings.lossless && serverAvailable && (
-          <div className="setting-item">
-            <div className="setting-label">
-              <span>Processing Mode</span>
-              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
-                {useServerMode ? "Better compression" : "Privacy mode"}
-              </span>
+          <>
+            <div className="setting-item">
+              <div className="setting-label">
+                <span>Processing Mode</span>
+                <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+                  {useServerMode ? "Better compression" : "Privacy mode"}
+                </span>
+              </div>
+              <div className="toggle-container">
+                <button
+                  type="button"
+                  className={`toggle-button ${useServerMode ? "active" : ""}`}
+                  onClick={() => {
+                    setUseServerMode(true);
+                    onSettingsChange({ ...settings, useServer: true });
+                  }}
+                  disabled={disabled || isProcessing}
+                  title="Server processing: Better compression using libwebp"
+                >
+                  <Server size={16} style={{ marginRight: 4 }} />
+                  Server
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-button ${!useServerMode ? "active" : ""}`}
+                  onClick={() => {
+                    setUseServerMode(false);
+                    onSettingsChange({ ...settings, useServer: false });
+                  }}
+                  disabled={disabled || isProcessing}
+                  title="Client processing: Privacy-focused, in-browser conversion"
+                >
+                  <Laptop size={16} style={{ marginRight: 4 }} />
+                  Client
+                </button>
+              </div>
+              {useServerMode && (
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  Using server-side libwebp for better compression
+                </p>
+              )}
             </div>
-            <div className="toggle-container">
-              <button
-                type="button"
-                className={`toggle-button ${useServerMode ? "active" : ""}`}
-                onClick={() => {
-                  setUseServerMode(true);
-                  onSettingsChange({ ...settings, useServer: true });
-                }}
-                disabled={disabled || isProcessing}
-                title="Server processing: Better compression using libwebp"
-              >
-                <Server size={16} style={{ marginRight: 4 }} />
-                Server
-              </button>
-              <button
-                type="button"
-                className={`toggle-button ${!useServerMode ? "active" : ""}`}
-                onClick={() => {
-                  setUseServerMode(false);
-                  onSettingsChange({ ...settings, useServer: false });
-                }}
-                disabled={disabled || isProcessing}
-                title="Client processing: Privacy-focused, in-browser conversion"
-              >
-                <Laptop size={16} style={{ marginRight: 4 }} />
-                Client
-              </button>
-            </div>
+            
+            {/* Near-lossless slider for server mode */}
             {useServerMode && (
-              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                Using server-side libwebp for 10-30% smaller files
-              </p>
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="near-lossless-slider">
+                    Near-Lossless Quality
+                    {nearLosslessValue < 100 && (
+                      <span style={{ fontSize: '0.7rem', marginLeft: '0.5rem', color: '#10b981' }}>
+                        (Smaller file)
+                      </span>
+                    )}
+                  </label>
+                  <span className="setting-value" aria-live="polite">
+                    {nearLosslessValue === 100 ? "True Lossless" : `${nearLosslessValue}%`}
+                  </span>
+                </div>
+                <div className="slider-container">
+                  <input
+                    id="near-lossless-slider"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={nearLosslessValue}
+                    onChange={(e) => handleNearLosslessChange(Number(e.target.value))}
+                    className="quality-slider"
+                    disabled={disabled || isProcessing}
+                    aria-label="Near-lossless quality setting"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={nearLosslessValue}
+                    aria-valuetext={nearLosslessValue === 100 ? "True lossless" : `${nearLosslessValue} percent quality`}
+                  />
+                  <div
+                    className="slider-track"
+                    style={{ "--progress": `${nearLosslessValue}%` } as React.CSSProperties}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleNearLosslessChange(100)}
+                    disabled={disabled || isProcessing}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '2px 8px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '4px',
+                      background: nearLosslessValue === 100 ? '#3b82f6' : 'white',
+                      color: nearLosslessValue === 100 ? 'white' : '#6b7280',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    True Lossless
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNearLosslessChange(80)}
+                    disabled={disabled || isProcessing}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '2px 8px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '4px',
+                      background: nearLosslessValue === 80 ? '#3b82f6' : 'white',
+                      color: nearLosslessValue === 80 ? 'white' : '#6b7280',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Balanced (80%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNearLosslessChange(60)}
+                    disabled={disabled || isProcessing}
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '2px 8px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '4px',
+                      background: nearLosslessValue === 60 ? '#3b82f6' : 'white',
+                      color: nearLosslessValue === 60 ? 'white' : '#6b7280',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Max Compression (60%)
+                  </button>
+                </div>
+                <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  {nearLosslessValue === 100 
+                    ? "Pixel-perfect quality, larger file size"
+                    : nearLosslessValue >= 80
+                    ? "Visually identical, 10-20% smaller file"
+                    : "Minor quality loss, 20-40% smaller file"}
+                </p>
+              </div>
             )}
-          </div>
+          </>
         )}
       </>
     );

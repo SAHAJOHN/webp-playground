@@ -45,7 +45,7 @@ export class ImageConversionService {
           const serverResult = await convertImageOnServer(file, settings, {
             useServer: true,
             effort: 6, // Maximum compression effort
-            nearLossless: false, // True lossless for maximum quality
+            nearLossless: settings.nearLossless !== undefined && settings.nearLossless < 100,
           });
           
           onProgress?.(100, "Server conversion complete");

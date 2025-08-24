@@ -13,6 +13,7 @@ export type ConversionSettingsType = {
   format: SupportedFormatType;
   quality: number; // 1-100 for lossy formats
   lossless?: boolean; // For WebP
+  nearLossless?: number; // For WebP lossless (0-100, 100 = true lossless)
   compressionLevel?: number; // For PNG
   progressive?: boolean; // For JPEG
   speed?: number; // For AVIF (1-10)

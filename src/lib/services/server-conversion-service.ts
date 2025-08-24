@@ -38,9 +38,18 @@ export async function convertImageOnServer(
     formData.append("lossless", settings.lossless?.toString() || "false");
     
     // Add advanced options for WebP
-    if (settings.format === "webp") {
+    if (settings.format === "webp" && settings.lossless) {
       formData.append("effort", (options?.effort || 6).toString());
-      formData.append("nearLossless", (options?.nearLossless || false).toString());
+      
+      // Handle near-lossless value
+      const nearLosslessValue = settings.nearLossless ?? 100;
+      if (nearLosslessValue < 100) {
+        formData.append("nearLossless", "true");
+        // Sharp expects near-lossless as a quality value for preprocessing
+        formData.append("nearLosslessValue", nearLosslessValue.toString());
+      } else {
+        formData.append("nearLossless", "false");
+      }
     }
 
     // Make API request

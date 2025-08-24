@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     const format = formData.get("format") as string;
     const quality = parseInt(formData.get("quality") as string) || 80;
     const lossless = formData.get("lossless") === "true";
-    const nearLossless = formData.get("nearLossless") === "true";
+    const nearLosslessEnabled = formData.get("nearLossless") === "true";
+    const nearLosslessValue = parseInt(formData.get("nearLosslessValue") as string) || 100;
     const effort = parseInt(formData.get("effort") as string) || 6;
 
     // Validate file
@@ -57,13 +58,22 @@ export async function POST(request: NextRequest) {
       case "webp":
         if (lossless) {
           // WebP lossless with maximum compression
+          const webpOptions: any = {
+            lossless: true,
+            effort: effort, // 0-6, where 6 is slowest/best compression
+            quality: 100, // For lossless, this doesn't affect quality but can affect compression
+          };
+          
+          // Apply near-lossless if enabled
+          if (nearLosslessEnabled && nearLosslessValue < 100) {
+            webpOptions.nearLossless = true;
+            // Sharp uses quality parameter for near-lossless preprocessing
+            // Lower values = more preprocessing = smaller file but slightly lower quality
+            webpOptions.quality = nearLosslessValue;
+          }
+          
           outputBuffer = await sharpInstance
-            .webp({
-              lossless: true,
-              nearLossless: nearLossless,
-              effort: effort, // 0-6, where 6 is slowest/best compression
-              quality: 100, // For lossless, this doesn't affect quality but can affect compression
-            })
+            .webp(webpOptions)
             .toBuffer();
         } else {
           // WebP lossy
