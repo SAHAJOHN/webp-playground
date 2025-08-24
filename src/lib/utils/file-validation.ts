@@ -66,7 +66,6 @@ export class FileValidationService {
       let dimensions: { width: number; height: number } | undefined;
       if (
         detectedType &&
-        detectedType !== "svg" &&
         rules.checkDimensions !== false
       ) {
         try {
@@ -145,16 +144,6 @@ export class FileValidationService {
         return "png";
       }
 
-      // Check GIF signature
-      if (this.matchesSignature(headerBytes, FILE_SIGNATURES.gif)) {
-        return "gif";
-      }
-
-      // Check ICO signature
-      if (this.matchesSignature(headerBytes, FILE_SIGNATURES.ico)) {
-        return "ico";
-      }
-
       // Check WebP signature (RIFF + WebP at offset 8)
       if (this.matchesSignature(headerBytes, FILE_SIGNATURES.webp)) {
         const webpSignature = headerBytes.slice(8, 12);
@@ -167,12 +156,6 @@ export class FileValidationService {
       // Check AVIF signature (more complex, check for ftyp box)
       if (await this.isAvifFile(file, headerBytes)) {
         return "avif";
-      }
-
-      // Check SVG (text-based)
-      const isSvg = await this.isSvgFile(file);
-      if (isSvg) {
-        return "svg";
       }
 
       return null;

@@ -253,6 +253,8 @@ export default function Home() {
       format: "webp" as SupportedFormatType,
       quality: 80,
       lossless: false,
+      progressive: true,
+      interlace: true,
     });
 
   // Simple image conversion hook for testing

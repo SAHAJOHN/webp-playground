@@ -2,14 +2,13 @@
 
 import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import styled from "styled-components";
-import { Settings, Sliders, ToggleLeft, ToggleRight, Server, Laptop } from "lucide-react";
+import { Settings, Sliders, ToggleLeft, ToggleRight } from "lucide-react";
 import { ConversionPanelPropsType } from "@/types/components";
 import { SupportedFormatType } from "@/types/conversion";
 import {
   useAccessibility,
   useKeyboardNavigation,
 } from "@/hooks/ui/useAccessibility";
-import { isServerConversionAvailable } from "@/lib/services/server-conversion-service";
 
 const ConversionPanelStyled = styled.div.withConfig({
   shouldForwardProp: (prop) => !["isProcessing"].includes(prop),
@@ -365,13 +364,14 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         // Set format-specific quality for PNG
         newSettings.quality = 100; // PNG doesn't use quality
         newSettings.lossless = undefined;
+        newSettings.interlace = newSettings.interlace ?? true;
       } else if (format === "webp") {
         newSettings.quality = newSettings.quality ?? 80;
         newSettings.lossless = newSettings.lossless ?? false;
         newSettings.compressionLevel = undefined;
       } else if (format === "jpeg") {
         newSettings.quality = newSettings.quality ?? 85;
-        newSettings.progressive = newSettings.progressive ?? false;
+        newSettings.progressive = newSettings.progressive ?? true;
         newSettings.compressionLevel = undefined;
         newSettings.lossless = undefined;
       } else if (format === "avif") {
@@ -572,18 +572,11 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     );
   };
 
-  const [serverAvailable, setServerAvailable] = useState(false);
-  const [useServerMode, setUseServerMode] = useState(true);
   const [nearLosslessValue, setNearLosslessValue] = useState(settings.nearLossless || 100); // 100 = true lossless
-
-  // Check if server conversion is available
-  useEffect(() => {
-    isServerConversionAvailable().then(setServerAvailable);
-  }, []);
   
   // Initialize near-lossless value when settings change
   useEffect(() => {
-    if (settings.format === "webp" && settings.lossless && settings.useServer !== false) {
+    if (settings.format === "webp" && settings.lossless) {
       // Initialize near-lossless to 100 if not set
       if (settings.nearLossless === undefined) {
         onSettingsChange({ ...settings, nearLossless: 100 });
@@ -658,7 +651,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             </div>
             <select
               value={settings.preset || "default"}
-              onChange={(e) => onSettingsChange({ ...settings, preset: e.target.value as any })}
+              onChange={(e) => onSettingsChange({ ...settings, preset: e.target.value as "default" | "photo" | "picture" | "drawing" | "icon" | "text" })}
               className="compression-select"
               disabled={disabled || isProcessing}
             >
@@ -699,65 +692,8 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           </div>
         )}
         
-        {/* Server/Client mode toggle for better compression */}
-        {((settings.format === "webp" && settings.lossless) || 
-          settings.format === "jpeg" || 
-          settings.format === "png" || 
-          settings.format === "avif") && 
-         serverAvailable && (
-          <>
-            <div className="setting-item">
-              <div className="setting-label">
-                <span>Processing Mode</span>
-                <span className="setting-value" style={{ fontSize: '0.7rem' }}>
-                  {useServerMode ? "Better compression" : "Privacy mode"}
-                </span>
-              </div>
-              <div className="toggle-container">
-                <button
-                  type="button"
-                  className={`toggle-button ${useServerMode ? "active" : ""}`}
-                  onClick={() => {
-                    setUseServerMode(true);
-                    onSettingsChange({ ...settings, useServer: true });
-                  }}
-                  disabled={disabled || isProcessing}
-                  title="Server processing: Better compression using libwebp"
-                >
-                  <Server size={16} style={{ marginRight: 4 }} />
-                  Server
-                </button>
-                <button
-                  type="button"
-                  className={`toggle-button ${!useServerMode ? "active" : ""}`}
-                  onClick={() => {
-                    setUseServerMode(false);
-                    onSettingsChange({ ...settings, useServer: false });
-                  }}
-                  disabled={disabled || isProcessing}
-                  title="Client processing: Privacy-focused, in-browser conversion"
-                >
-                  <Laptop size={16} style={{ marginRight: 4 }} />
-                  Client
-                </button>
-              </div>
-              {useServerMode && (
-                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                  {settings.format === "webp" && settings.lossless
-                    ? "Using server-side libwebp for better compression"
-                    : settings.format === "jpeg"
-                    ? "Using mozjpeg encoder for 10-15% smaller files"
-                    : settings.format === "png"
-                    ? "Using optimized PNG compression for smaller files"
-                    : settings.format === "avif"
-                    ? "Using server-side AVIF encoder for better quality"
-                    : "Using server-side processing for better compression"}
-                </p>
-              )}
-            </div>
-            
-            {/* Near-lossless slider for server mode WebP lossless only */}
-            {settings.format === "webp" && settings.lossless && useServerMode && (
+        {/* Near-lossless slider for WebP lossless only */}
+        {settings.format === "webp" && settings.lossless && (
               <div className="setting-item">
                 <div className="setting-label">
                   <label htmlFor="near-lossless-slider">
@@ -853,8 +789,6 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                 </p>
               </div>
             )}
-          </>
-        )}
       </>
     );
   };
@@ -900,7 +834,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           </div>
           <select
             value={settings.chromaSubsampling || "auto"}
-            onChange={(e) => onSettingsChange({ ...settings, chromaSubsampling: e.target.value as any })}
+            onChange={(e) => onSettingsChange({ ...settings, chromaSubsampling: e.target.value as "4:4:4" | "4:2:2" | "4:2:0" | "auto" })}
             className="compression-select"
             disabled={disabled || isProcessing}
           >
@@ -918,29 +852,27 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           </p>
         </div>
         
-        {useServerMode && (
-          <div className="setting-item">
-            <div className="setting-label">
-              <span>MozJPEG Encoder</span>
-              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
-                10-15% smaller files
-              </span>
-            </div>
-            <button
-              type="button"
-              className={`toggle-button ${settings.mozjpeg !== false ? "active" : ""}`}
-              onClick={() => onSettingsChange({ ...settings, mozjpeg: settings.mozjpeg === false })}
-              disabled={disabled || isProcessing}
-            >
-              {settings.mozjpeg !== false ? (
-                <ToggleRight size={16} />
-              ) : (
-                <ToggleLeft size={16} />
-              )}
-              {settings.mozjpeg !== false ? "Enabled" : "Disabled"}
-            </button>
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>MozJPEG Encoder</span>
+            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              10-15% smaller files
+            </span>
           </div>
-        )}
+          <button
+            type="button"
+            className={`toggle-button ${settings.mozjpeg !== false ? "active" : ""}`}
+            onClick={() => onSettingsChange({ ...settings, mozjpeg: settings.mozjpeg === false })}
+            disabled={disabled || isProcessing}
+          >
+            {settings.mozjpeg !== false ? (
+              <ToggleRight size={16} />
+            ) : (
+              <ToggleLeft size={16} />
+            )}
+            {settings.mozjpeg !== false ? "Enabled" : "Disabled"}
+          </button>
+        </div>
       </>
     );
   };
@@ -984,83 +916,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           </div>
         </div>
         
-        {/* AVIF Speed/Quality trade-off */}
-        <div className="setting-item">
-          <div className="setting-label">
-            <span>Encoding Speed</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
-              {settings.speed ?? 4} {settings.speed === 0 ? "(Slowest/Best)" : settings.speed === 10 ? "(Fastest)" : ""}
-            </span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            value={settings.speed ?? 4}
-            onChange={(e) => onSettingsChange({ ...settings, speed: Number(e.target.value) })}
-            className="quality-slider"
-            disabled={disabled || isProcessing}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <button
-              type="button"
-              onClick={() => onSettingsChange({ ...settings, speed: 0 })}
-              disabled={disabled || isProcessing}
-              style={{
-                fontSize: '0.7rem',
-                padding: '2px 8px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                background: settings.speed === 0 ? '#3b82f6' : 'white',
-                color: settings.speed === 0 ? 'white' : '#6b7280',
-                cursor: 'pointer'
-              }}
-            >
-              Best Quality
-            </button>
-            <button
-              type="button"
-              onClick={() => onSettingsChange({ ...settings, speed: 4 })}
-              disabled={disabled || isProcessing}
-              style={{
-                fontSize: '0.7rem',
-                padding: '2px 8px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                background: settings.speed === 4 ? '#3b82f6' : 'white',
-                color: settings.speed === 4 ? 'white' : '#6b7280',
-                cursor: 'pointer'
-              }}
-            >
-              Balanced
-            </button>
-            <button
-              type="button"
-              onClick={() => onSettingsChange({ ...settings, speed: 10 })}
-              disabled={disabled || isProcessing}
-              style={{
-                fontSize: '0.7rem',
-                padding: '2px 8px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                background: settings.speed === 10 ? '#3b82f6' : 'white',
-                color: settings.speed === 10 ? 'white' : '#6b7280',
-                cursor: 'pointer'
-              }}
-            >
-              Fast
-            </button>
-          </div>
-          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            {settings.speed <= 2 
-              ? "Maximum compression, very slow encoding"
-              : settings.speed >= 8
-              ? "Fast encoding, larger file size"
-              : "Balanced speed and compression"}
-          </p>
-        </div>
-        
-        {/* AVIF Effort level */}
+        {/* AVIF Effort level (controls compression quality and speed) */}
         <div className="setting-item">
           <div className="setting-label">
             <span>Compression Effort</span>
@@ -1078,16 +934,16 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             disabled={disabled || isProcessing}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Fast</span>
-            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Balanced</span>
-            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Best</span>
+            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Fast (0)</span>
+            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Balanced (4)</span>
+            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Best (9)</span>
           </div>
           <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            {settings.effort <= 2 
-              ? "Minimal optimization passes"
-              : settings.effort >= 7
-              ? "Maximum optimization, much slower"
-              : "Balanced optimization passes"}
+            {(settings.effort ?? 4) <= 2 
+              ? "Fast encoding, larger file size"
+              : (settings.effort ?? 4) >= 7
+              ? "Best compression, very slow encoding"
+              : "Balanced speed and compression"}
           </p>
         </div>
       </>

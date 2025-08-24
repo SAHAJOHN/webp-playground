@@ -36,8 +36,8 @@ export async function convertImageOnServer(
     formData.append("format", settings.format);
     formData.append("quality", settings.quality?.toString() || "80");
     formData.append("lossless", settings.lossless?.toString() || "false");
-    formData.append("progressive", settings.progressive?.toString() || "false");
-    formData.append("interlace", settings.interlace?.toString() || "false");
+    formData.append("progressive", settings.progressive?.toString() ?? "true");
+    formData.append("interlace", settings.interlace?.toString() ?? "true");
     formData.append("chromaSubsampling", settings.chromaSubsampling || "auto");
     formData.append("mozjpeg", settings.mozjpeg?.toString() ?? "true");
     formData.append("speed", settings.speed?.toString() || "4");
@@ -131,33 +131,13 @@ export function shouldUseServerConversion(
     return false;
   }
 
-  // Always use server for WebP lossless (better compression) unless user disabled it
-  if (settings.format === "webp" && settings.lossless) {
-    return true;
-  }
-
-  // Use server for AVIF (better encoder)
-  if (settings.format === "avif") {
-    return true;
-  }
-  
-  // Use server for JPEG with high quality (mozjpeg is better)
-  if (settings.format === "jpeg" && (settings.quality ?? 80) >= 80) {
-    return true;
-  }
-  
-  // Use server for PNG (better compression algorithms)
-  if (settings.format === "png") {
-    return true;
-  }
-
-  // Use server for large files (> 3MB)
-  if (file.size > 3 * 1024 * 1024) {
-    return true;
-  }
-
-  // Use client for small files
-  return false;
+  // Always use server processing for all formats to get best compression with Sharp
+  // Sharp provides superior compression algorithms:
+  // - libwebp for WebP (10-20% better than Canvas API)
+  // - mozjpeg for JPEG (10-15% better compression)
+  // - libpng with maximum compression
+  // - libavif for AVIF (not available in browser)
+  return true;
 }
 
 /**

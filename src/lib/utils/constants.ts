@@ -6,33 +6,24 @@ import type { SupportedFormatType, FileValidationRulesType } from "@/types";
 export const SUPPORTED_FORMATS: SupportedFormatType[] = [
   "jpeg",
   "png",
-  "gif",
   "webp",
   "avif",
-  "svg",
-  "ico",
 ];
 
 // MIME type mappings
 export const MIME_TYPE_MAP: Record<SupportedFormatType, string[]> = {
   jpeg: ["image/jpeg", "image/jpg"],
   png: ["image/png"],
-  gif: ["image/gif"],
   webp: ["image/webp"],
   avif: ["image/avif"],
-  svg: ["image/svg+xml"],
-  ico: ["image/x-icon", "image/vnd.microsoft.icon"],
 };
 
 // File extension mappings
 export const EXTENSION_MAP: Record<SupportedFormatType, string[]> = {
   jpeg: [".jpg", ".jpeg"],
   png: [".png"],
-  gif: [".gif"],
   webp: [".webp"],
   avif: [".avif"],
-  svg: [".svg"],
-  ico: [".ico"],
 };
 
 // Default validation rules
@@ -45,7 +36,7 @@ export const DEFAULT_VALIDATION_RULES: FileValidationRulesType = {
 
 // Default conversion settings by format
 export const DEFAULT_CONVERSION_SETTINGS = {
-  jpeg: { quality: 85, progressive: false },
+  jpeg: { quality: 85, progressive: true },
   png: { compressionLevel: 6 },
   webp: { quality: 80, lossless: false },
   avif: { quality: 80, speed: 6 },

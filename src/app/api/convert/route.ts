@@ -4,8 +4,6 @@ import sharp from "sharp";
 // Maximum file size: 50MB
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-// Supported input formats
-const SUPPORTED_FORMATS = ["jpeg", "jpg", "png", "gif", "webp", "avif", "tiff", "svg"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +20,6 @@ export async function POST(request: NextRequest) {
     const interlace = formData.get("interlace") === "true";
     const chromaSubsampling = formData.get("chromaSubsampling") as string;
     const mozjpeg = formData.get("mozjpeg") !== "false";
-    const speed = parseInt(formData.get("speed") as string) ?? 4;
     const alphaQuality = parseInt(formData.get("alphaQuality") as string) || 100;
     const preset = formData.get("preset") as string || "default";
     const palette = formData.get("palette") === "true";
@@ -68,9 +65,14 @@ export async function POST(request: NextRequest) {
       case "webp":
         if (lossless) {
           // WebP lossless with maximum compression
-          const webpOptions: any = {
+          const webpOptions: {
+            lossless: boolean;
+            effort: number;
+            quality: number;
+            nearLossless?: boolean;
+          } = {
             lossless: true,
-            effort: effort, // 0-6, where 6 is slowest/best compression
+            effort: Math.min(effort, 6), // WebP only supports 0-6, clamp to max 6
             quality: 100, // For lossless, this doesn't affect quality but can affect compression
           };
           
@@ -87,9 +89,16 @@ export async function POST(request: NextRequest) {
             .toBuffer();
         } else {
           // WebP lossy with advanced options
-          const webpLossyOptions: any = {
+          const webpLossyOptions: {
+            quality: number;
+            effort: number;
+            smartSubsample: boolean;
+            reductionEffort: number;
+            alphaQuality: number;
+            preset?: "default" | "photo" | "picture" | "drawing" | "icon" | "text";
+          } = {
             quality: quality,
-            effort: effort,
+            effort: Math.min(effort, 6), // WebP only supports 0-6, clamp to max 6
             smartSubsample: true, // Better color subsampling
             reductionEffort: 6, // Maximum reduction effort
             alphaQuality: alphaQuality, // Alpha channel quality
@@ -97,7 +106,7 @@ export async function POST(request: NextRequest) {
           
           // Apply preset if not default
           if (preset !== "default") {
-            webpLossyOptions.preset = preset;
+            webpLossyOptions.preset = preset as "photo" | "picture" | "drawing" | "icon" | "text";
           }
           
           outputBuffer = await sharpInstance
@@ -112,14 +121,21 @@ export async function POST(request: NextRequest) {
             quality: lossless ? 100 : quality,
             lossless: lossless,
             effort: effort || 4,
-            speed: speed, // 0-10, where 0 is slowest/best
             chromaSubsampling: lossless ? "4:4:4" : "4:2:0",
           })
           .toBuffer();
         break;
 
       case "png":
-        const pngOptions: any = {
+        const pngOptions: {
+          compressionLevel: number;
+          quality: number;
+          effort: number;
+          progressive: boolean;
+          palette?: boolean;
+          colors?: number;
+          dither?: number;
+        } = {
           compressionLevel: 9, // Maximum compression
           quality: 100,
           effort: 10, // Maximum effort for PNG
@@ -139,7 +155,15 @@ export async function POST(request: NextRequest) {
         break;
 
       case "jpeg":
-        const jpegOptions: any = {
+        const jpegOptions: {
+          quality: number;
+          mozjpeg: boolean;
+          progressive: boolean;
+          optimizeCoding: boolean;
+          optimizeScans: boolean;
+          trellisQuantisation: boolean;
+          chromaSubsampling?: string;
+        } = {
           quality: quality,
           mozjpeg: mozjpeg, // Use mozjpeg encoder for better compression
           progressive: progressive, // Enable progressive encoding
@@ -172,7 +196,7 @@ export async function POST(request: NextRequest) {
     const outputInfo = await sharp(outputBuffer).metadata();
 
     // Return the converted image
-    return new NextResponse(outputBuffer, {
+    return new NextResponse(outputBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": `image/${format}`,
@@ -206,7 +230,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Add OPTIONS method for CORS preflight
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
