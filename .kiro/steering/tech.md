@@ -1,109 +1,90 @@
-# Technology Stack
+# Technical Implementation
 
-## Current State
+## Current Tech Stack
 
-Next.js 15 application with TypeScript, Tailwind CSS, and ESLint configured.
-
-## Tech Stack
-
-### Frontend Framework
-
-- **Next.js 15** with App Router
-- **React 18** for UI components
-- **TypeScript** for type safety
-- **Tailwind CSS** for styling
-- **styled-components** for component styling
+### Core Framework
+- **Next.js 15** with App Router and API routes
+- **React 19** with TypeScript
+- **Sharp 0.34.3** for server-side image processing
+- **Tailwind CSS 4** + styled-components for UI
 - **Lucide React** for icons
 
-### Build System & Package Management
+### Dual Processing Architecture
 
-- **Yarn** for package management
-- **Next.js** built-in bundling and optimization
-- **Turbopack** (optional, recommended for faster builds)
+#### Client-Side (Privacy Mode)
+- **Canvas API** for image processing
+- **Web Workers** for non-blocking conversion
+- **File/Blob APIs** for local file handling
+- **JSZip** for batch downloads
+
+#### Server-Side (Performance Mode)
+- **Sharp/libvips** for advanced compression
+- **API route** at `/api/convert` 
+- **libwebp** for near-lossless WebP (80% quality = visually identical, 20% smaller)
+- **mozjpeg** for optimized JPEG (10-15% better compression)
+- **libavif** for AVIF format support
+
+### Key Services
+
+#### Conversion Services
+- **image-conversion-service.ts**: Main conversion orchestration
+- **server-conversion-service.ts**: Sharp integration with format-specific optimizations
+- **image-conversion-worker.js**: Client-side Web Worker processing
+
+#### Supporting Services  
+- **download-service.ts**: Batch zip creation with JSZip
+- **memory-management-service.ts**: Resource cleanup and optimization
+- **error-handling-service.ts**: Graceful error recovery
+
+### Processing Mode Logic
+
+#### Auto-Selection Rules
+```typescript
+// Server-side preferred for:
+- WebP lossless (libwebp compression advantage)
+- AVIF all modes (no browser support)  
+- JPEG quality ≥80 (mozjpeg benefits)
+- PNG all modes (better algorithms)
+- Files >3MB (memory management)
+
+// Client-side fallback for privacy or server failure
+```
+
+### Format-Specific Optimizations
+
+#### JPEG Settings
+- Quality slider (1-100)
+- Progressive encoding toggle  
+- Chroma subsampling (4:4:4, 4:2:2, 4:2:0, Auto)
+- MozJPEG optimization (server-side)
+
+#### PNG Settings  
+- Compression level (0-9)
+- Adam7 interlacing
+- Palette quantization (2-256 colors)
+- Dithering control
+
+#### WebP Settings
+- Lossy/Lossless mode toggle
+- Near-lossless slider (server-side, 0-100)
+- Optimization presets (photo, drawing, icon, text)  
+- Alpha channel quality (0-100)
+
+#### AVIF Settings
+- Lossy/Lossless mode toggle
+- Encoding speed (0-10)
+- Compression effort (0-9)
+- Server-only implementation
 
 ### Development Tools
+- **Yarn** package management
+- **Turbopack** for fast builds
+- **ESLint 9** with Next.js configuration  
+- **TypeScript 5** with strict mode
 
-- **ESLint** with Next.js configuration
-- **TypeScript** compiler
-- **PostCSS** for CSS processing
-
-### Image Conversion Implementation
-
-Current client-side conversion stack:
-
-- **Canvas API** for browser-based image processing
-- **Web Workers** for non-blocking conversion (`public/workers/image-conversion-worker.js`)
-- **JSZip** for batch download functionality
-- **File API** and **Blob API** for file handling
-- **Progressive enhancement** with fallbacks for older browsers
-
-## Common Commands
-
-```bash
-# Package management
-yarn install         # Install dependencies
-yarn add <package>   # Add new dependency
-yarn remove <package> # Remove dependency
-
-# Development
-yarn dev            # Start development server with Turbopack (localhost:3000)
-yarn build          # Build for production with Turbopack
-yarn start          # Start production server
-yarn lint           # Run ESLint
-```
-
-## Current Dependencies
-
-### Production Dependencies
-
-- **jszip**: Batch file download functionality
-- **lucide-react**: Icon library
-- **next**: React framework
-- **react** & **react-dom**: React library
-- **styled-components**: CSS-in-JS styling
-
-### Development Dependencies
-
-- **@tailwindcss/postcss**: Tailwind CSS integration
-- **eslint** & **eslint-config-next**: Code linting
-- **tailwindcss**: Utility-first CSS framework
-- **typescript**: Type safety
-- **@types/\***: TypeScript type definitions
-
-## Project Configuration
-
-- Uses `src/` directory structure with organized subfolders
-- Import alias `@/*` configured for `src/` directory
-- App Router (not Pages Router)
-- TypeScript strict mode enabled
-- Turbopack enabled for faster builds
-- No testing framework (removed for playground simplicity)
-- Clean, organized architecture with logical separation of concerns
-
-## Coding Conventions
-
-### Component Styling
-
-- Use **styled-components** for component styling
-- Suffix styled components with `Styled` (e.g., `ButtonStyled`, `ContainerStyled`)
-- Use TypeScript generics for props and nested class styling
-- Example:
-
-```typescript
-const ButtonStyled = styled.button<ButtonPropsType>`
-  .button-text {
-    color: white;
-  }
-`;
-```
-
-### TypeScript Types
-
-- Use `type` declarations instead of `interface`
-- Suffix types with `Type` (e.g., `UserType`, `ConversionSettingsType`)
-- Example: `type UserType = { name: string; email: string; }`
-
-### Icons
-
-- Use **Lucide React** for all icons
-- Import specific icons: `import { Upload, Download, Settings } from 'lucide-react'`
+### Performance Optimizations
+- Web Workers prevent UI blocking
+- Chunked processing for large files
+- Memory cleanup after conversions
+- Progressive enhancement with fallbacks
+- Smart caching of conversion results
