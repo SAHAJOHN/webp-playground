@@ -3,11 +3,8 @@
 export type SupportedFormatType =
   | "jpeg"
   | "png"
-  | "gif"
   | "webp"
-  | "avif"
-  | "svg"
-  | "ico";
+  | "avif";
 
 export type ConversionSettingsType = {
   format: SupportedFormatType;

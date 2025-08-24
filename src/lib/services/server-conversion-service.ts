@@ -36,6 +36,7 @@ export async function convertImageOnServer(
     formData.append("format", settings.format);
     formData.append("quality", settings.quality?.toString() || "80");
     formData.append("lossless", settings.lossless?.toString() || "false");
+    formData.append("progressive", settings.progressive?.toString() || "false");
     
     // Add advanced options for WebP
     if (settings.format === "webp" && settings.lossless) {
@@ -127,17 +128,27 @@ export function shouldUseServerConversion(
     return true;
   }
 
-  // Use server for large files (> 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    return true;
-  }
-
   // Use server for AVIF (better encoder)
   if (settings.format === "avif") {
     return true;
   }
+  
+  // Use server for JPEG with high quality (mozjpeg is better)
+  if (settings.format === "jpeg" && (settings.quality ?? 80) >= 80) {
+    return true;
+  }
+  
+  // Use server for PNG (better compression algorithms)
+  if (settings.format === "png") {
+    return true;
+  }
 
-  // Use client for small files and basic formats
+  // Use server for large files (> 3MB)
+  if (file.size > 3 * 1024 * 1024) {
+    return true;
+  }
+
+  // Use client for small files
   return false;
 }
 

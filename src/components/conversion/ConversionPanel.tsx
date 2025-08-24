@@ -320,8 +320,6 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     "png",
     "webp",
     "avif",
-    "gif",
-    "ico",
   ];
 
   const {
@@ -353,9 +351,6 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
       png: "Lossless compression, best for graphics with transparency. Supports compression levels 0-9.",
       webp: "Modern format with excellent compression. Supports both lossy and lossless modes.",
       avif: "Next-gen format with superior compression. Supports quality and speed settings.",
-      gif: "Legacy format for simple animations. Limited to 256 colors with optional dithering.",
-      ico: "Windows icon format. Supports multiple sizes in a single file.",
-      svg: "Vector format, no conversion settings needed.",
     };
     return info[settings.format] || "";
   }, [settings.format]);
@@ -382,17 +377,6 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
       } else if (format === "avif") {
         newSettings.quality = newSettings.quality ?? 75;
         newSettings.speed = newSettings.speed ?? 6;
-        newSettings.compressionLevel = undefined;
-        newSettings.lossless = undefined;
-      } else if (format === "gif") {
-        newSettings.colors = newSettings.colors ?? 256;
-        newSettings.dithering = newSettings.dithering ?? false;
-        newSettings.quality = 100; // GIF doesn't use quality
-        newSettings.compressionLevel = undefined;
-        newSettings.lossless = undefined;
-      } else if (format === "ico") {
-        newSettings.sizes = newSettings.sizes ?? [16, 32, 48];
-        newSettings.quality = 100; // ICO doesn't use quality
         newSettings.compressionLevel = undefined;
         newSettings.lossless = undefined;
       }
@@ -593,8 +577,12 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           </div>
         </div>
         
-        {/* Server/Client mode toggle for lossless WebP */}
-        {settings.lossless && serverAvailable && (
+        {/* Server/Client mode toggle for better compression */}
+        {((settings.format === "webp" && settings.lossless) || 
+          settings.format === "jpeg" || 
+          settings.format === "png" || 
+          settings.format === "avif") && 
+         serverAvailable && (
           <>
             <div className="setting-item">
               <div className="setting-label">
@@ -633,13 +621,21 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
               </div>
               {useServerMode && (
                 <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                  Using server-side libwebp for better compression
+                  {settings.format === "webp" && settings.lossless
+                    ? "Using server-side libwebp for better compression"
+                    : settings.format === "jpeg"
+                    ? "Using mozjpeg encoder for 10-15% smaller files"
+                    : settings.format === "png"
+                    ? "Using optimized PNG compression for smaller files"
+                    : settings.format === "avif"
+                    ? "Using server-side AVIF encoder for better quality"
+                    : "Using server-side processing for better compression"}
                 </p>
               )}
             </div>
             
-            {/* Near-lossless slider for server mode */}
-            {useServerMode && (
+            {/* Near-lossless slider for server mode WebP lossless only */}
+            {settings.format === "webp" && settings.lossless && useServerMode && (
               <div className="setting-item">
                 <div className="setting-label">
                   <label htmlFor="near-lossless-slider">
@@ -748,6 +744,9 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
       <div className="setting-item">
         <div className="setting-label">
           <span>Progressive JPEG</span>
+          <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            {settings.progressive ? "Better for web" : "Standard"}
+          </span>
         </div>
         <button
           type="button"
@@ -762,6 +761,11 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           )}
           {settings.progressive ? "Enabled" : "Disabled"}
         </button>
+        <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+          {settings.progressive 
+            ? "Shows low-quality preview first, then improves. Better for slow connections."
+            : "Loads from top to bottom. Better for fast connections or small images."}
+        </p>
       </div>
     );
   };

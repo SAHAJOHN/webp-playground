@@ -375,11 +375,8 @@ function getMimeType(format) {
   const mimeTypes = {
     jpeg: "image/jpeg",
     png: "image/png",
-    gif: "image/gif",
     webp: "image/webp",
     avif: "image/avif",
-    svg: "image/svg+xml",
-    ico: "image/x-icon",
   };
 
   return mimeTypes[format];

@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     const nearLosslessEnabled = formData.get("nearLossless") === "true";
     const nearLosslessValue = parseInt(formData.get("nearLosslessValue") as string) || 100;
     const effort = parseInt(formData.get("effort") as string) || 6;
+    const progressive = formData.get("progressive") === "true";
 
     // Validate file
     if (!file) {
@@ -115,8 +116,10 @@ export async function POST(request: NextRequest) {
           .jpeg({
             quality: quality,
             mozjpeg: true, // Use mozjpeg encoder for better compression
+            progressive: progressive, // Enable progressive encoding
             chromaSubsampling: quality >= 90 ? "4:4:4" : "4:2:0",
             optimizeCoding: true,
+            optimizeScans: progressive, // Optimize scan layers for progressive
             trellisQuantisation: true,
           })
           .toBuffer();
@@ -144,6 +147,14 @@ export async function POST(request: NextRequest) {
         "X-Original-Format": metadata.format || "unknown",
         "X-Image-Width": (outputInfo.width || 0).toString(),
         "X-Image-Height": (outputInfo.height || 0).toString(),
+        "X-Progressive": (format === "jpeg" && progressive).toString(),
+        "X-Encoding-Info": format === "jpeg" 
+          ? (progressive ? "Progressive JPEG with optimized scans" : "Baseline JPEG")
+          : format === "webp" && lossless && nearLosslessEnabled
+          ? `Near-lossless WebP (${nearLosslessValue}%)`
+          : format === "webp" && lossless
+          ? "Lossless WebP"
+          : `${format.toUpperCase()} encoded`,
       },
     });
   } catch (error) {
