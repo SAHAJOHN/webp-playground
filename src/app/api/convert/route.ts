@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Initialize sharp instance
-    let sharpInstance = sharp(buffer);
+    const sharpInstance = sharp(buffer);
 
     // Get image metadata
     const metadata = await sharpInstance.metadata();
-    
+
     // Configure output based on format
     let outputBuffer: Buffer;
-    
+
     switch (format) {
       case "webp":
         if (lossless) {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
             .toBuffer();
         }
         break;
-        
+
       case "avif":
         outputBuffer = await sharpInstance
           .avif({
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
           })
           .toBuffer();
         break;
-        
+
       case "png":
         outputBuffer = await sharpInstance
           .png({
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
           })
           .toBuffer();
         break;
-        
+
       case "jpeg":
         outputBuffer = await sharpInstance
           .jpeg({
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
           })
           .toBuffer();
         break;
-        
+
       default:
         return NextResponse.json(
           { error: "Unsupported format" },
@@ -139,9 +139,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Conversion error:", error);
     return NextResponse.json(
-      { 
-        error: "Conversion failed", 
-        details: error instanceof Error ? error.message : "Unknown error" 
+      {
+        error: "Conversion failed",
+        details: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     );
