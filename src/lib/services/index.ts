@@ -8,3 +8,4 @@ export * from "./image-conversion-worker-service";
 export * from "./memory-management-service";
 export * from "./progressive-enhancement-service";
 export * from "./webassembly-fallback-service";
+export * from "./server-conversion-service";

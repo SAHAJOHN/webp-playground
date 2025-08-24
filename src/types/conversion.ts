@@ -19,6 +19,7 @@ export type ConversionSettingsType = {
   colors?: number; // For GIF
   dithering?: boolean; // For GIF
   sizes?: number[]; // For ICO (e.g., [16, 32, 48])
+  useServer?: boolean; // Use server-side conversion for better compression
 };
 
 export type ConversionJobType = {

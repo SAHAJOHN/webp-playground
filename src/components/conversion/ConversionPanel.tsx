@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import styled from "styled-components";
-import { Settings, Sliders, ToggleLeft, ToggleRight } from "lucide-react";
+import { Settings, Sliders, ToggleLeft, ToggleRight, Server, Laptop } from "lucide-react";
 import { ConversionPanelPropsType } from "@/types/components";
 import { SupportedFormatType } from "@/types/conversion";
 import {
   useAccessibility,
   useKeyboardNavigation,
 } from "@/hooks/ui/useAccessibility";
+import { isServerConversionAvailable } from "@/lib/services/server-conversion-service";
 
 const ConversionPanelStyled = styled.div.withConfig({
   shouldForwardProp: (prop) => !["isProcessing"].includes(prop),
@@ -517,43 +518,98 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     );
   };
 
+  const [serverAvailable, setServerAvailable] = useState(false);
+  const [useServerMode, setUseServerMode] = useState(true);
+
+  // Check if server conversion is available
+  useEffect(() => {
+    isServerConversionAvailable().then(setServerAvailable);
+  }, []);
+
   const renderWebPOptions = () => {
     if (settings.format !== "webp") return null;
 
     return (
-      <div className="setting-item">
-        <div className="setting-label">
-          <span>Compression Mode</span>
+      <>
+        <div className="setting-item">
+          <div className="setting-label">
+            <span>Compression Mode</span>
+          </div>
+          <div className="toggle-container">
+            <button
+              type="button"
+              className={`toggle-button ${!settings.lossless ? "active" : ""}`}
+              onClick={() => onSettingsChange({ ...settings, lossless: false })}
+              disabled={disabled || isProcessing}
+            >
+              {!settings.lossless ? (
+                <ToggleRight size={16} />
+              ) : (
+                <ToggleLeft size={16} />
+              )}
+              Lossy
+            </button>
+            <button
+              type="button"
+              className={`toggle-button ${settings.lossless ? "active" : ""}`}
+              onClick={() => onSettingsChange({ ...settings, lossless: true })}
+              disabled={disabled || isProcessing}
+            >
+              {settings.lossless ? (
+                <ToggleRight size={16} />
+              ) : (
+                <ToggleLeft size={16} />
+              )}
+              Lossless
+            </button>
+          </div>
         </div>
-        <div className="toggle-container">
-          <button
-            type="button"
-            className={`toggle-button ${!settings.lossless ? "active" : ""}`}
-            onClick={() => onSettingsChange({ ...settings, lossless: false })}
-            disabled={disabled || isProcessing}
-          >
-            {!settings.lossless ? (
-              <ToggleRight size={16} />
-            ) : (
-              <ToggleLeft size={16} />
+        
+        {/* Server/Client mode toggle for lossless WebP */}
+        {settings.lossless && serverAvailable && (
+          <div className="setting-item">
+            <div className="setting-label">
+              <span>Processing Mode</span>
+              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+                {useServerMode ? "Better compression" : "Privacy mode"}
+              </span>
+            </div>
+            <div className="toggle-container">
+              <button
+                type="button"
+                className={`toggle-button ${useServerMode ? "active" : ""}`}
+                onClick={() => {
+                  setUseServerMode(true);
+                  onSettingsChange({ ...settings, useServer: true });
+                }}
+                disabled={disabled || isProcessing}
+                title="Server processing: Better compression using libwebp"
+              >
+                <Server size={16} style={{ marginRight: 4 }} />
+                Server
+              </button>
+              <button
+                type="button"
+                className={`toggle-button ${!useServerMode ? "active" : ""}`}
+                onClick={() => {
+                  setUseServerMode(false);
+                  onSettingsChange({ ...settings, useServer: false });
+                }}
+                disabled={disabled || isProcessing}
+                title="Client processing: Privacy-focused, in-browser conversion"
+              >
+                <Laptop size={16} style={{ marginRight: 4 }} />
+                Client
+              </button>
+            </div>
+            {useServerMode && (
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                Using server-side libwebp for 10-30% smaller files
+              </p>
             )}
-            Lossy
-          </button>
-          <button
-            type="button"
-            className={`toggle-button ${settings.lossless ? "active" : ""}`}
-            onClick={() => onSettingsChange({ ...settings, lossless: true })}
-            disabled={disabled || isProcessing}
-          >
-            {settings.lossless ? (
-              <ToggleRight size={16} />
-            ) : (
-              <ToggleLeft size={16} />
-            )}
-            Lossless
-          </button>
-        </div>
-      </div>
+          </div>
+        )}
+      </>
     );
   };
 

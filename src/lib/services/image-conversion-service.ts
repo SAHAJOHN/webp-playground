@@ -8,6 +8,7 @@ import { MemoryManagementService } from "./memory-management-service";
 import { ChunkedProcessingService } from "./chunked-processing-service";
 import { WebAssemblyFallbackService } from "./webassembly-fallback-service";
 import { ProgressiveEnhancementService } from "./progressive-enhancement-service";
+import { convertImageOnServer, shouldUseServerConversion } from "./server-conversion-service";
 
 export class ImageConversionService {
   private static readonly MAX_CANVAS_SIZE = 32767; // Maximum canvas dimension
@@ -35,6 +36,36 @@ export class ImageConversionService {
     );
 
     try {
+      // Check if server-side conversion should be used
+      if (shouldUseServerConversion(file, settings)) {
+        console.log("Using server-side conversion for better compression");
+        onProgress?.(0, "Using server for better compression...");
+        
+        try {
+          const serverResult = await convertImageOnServer(file, settings, {
+            useServer: true,
+            effort: 6, // Maximum compression effort
+            nearLossless: false, // True lossless for maximum quality
+          });
+          
+          onProgress?.(100, "Server conversion complete");
+          
+          return {
+            originalFile: file,
+            convertedBlob: serverResult.convertedBlob,
+            originalSize: serverResult.originalSize,
+            convertedSize: serverResult.convertedSize,
+            compressionRatio: serverResult.compressionRatio,
+            format: serverResult.format,
+          };
+        } catch (serverError) {
+          console.warn("Server conversion failed, falling back to client:", serverError);
+          onProgress?.(0, "Server unavailable, using client conversion...");
+          // Fall through to client-side conversion
+        }
+      }
+
+      // Client-side conversion
       onProgress?.(0, "Starting conversion...");
 
       // Validate input file

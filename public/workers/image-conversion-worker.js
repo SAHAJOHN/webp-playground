@@ -270,30 +270,98 @@ async function loadImageToCanvas(file, jobId) {
 }
 
 /**
- * Convert canvas to specified format
+ * Convert canvas to specified format with optimizations
  */
 async function convertCanvasToFormat(canvas, settings, jobId) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
       const mimeType = getMimeType(settings.format);
-      const quality = getQualityValue(settings);
+      let quality = getQualityValue(settings);
 
       reportProgress(jobId, 70, `Converting to ${settings.format}...`);
 
-      canvas
-        .convertToBlob({
-          type: mimeType,
-          quality: quality,
-        })
-        .then((blob) => {
-          if (blob) {
-            reportProgress(jobId, 85, "Blob created successfully");
-            resolve(blob);
-          } else {
-            reject(new Error(`Failed to convert to ${settings.format}`));
+      // For WebP lossless, try multiple encoding approaches
+      if (settings.format === "webp" && settings.lossless) {
+        // First, ensure we're using the highest quality settings
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          // Disable image smoothing for pixel-perfect conversion
+          ctx.imageSmoothingEnabled = false;
+          ctx.imageSmoothingQuality = "high";
+        }
+
+        // Try with explicit lossless parameters if supported
+        let blob = null;
+        
+        // Method 1: Use quality = 1.0 (standard approach)
+        try {
+          blob = await canvas.convertToBlob({
+            type: mimeType,
+            quality: 1.0,
+          });
+        } catch (e) {
+          console.warn("Standard lossless WebP conversion failed:", e);
+        }
+
+        // Method 2: Try without quality parameter (some browsers handle this better)
+        if (!blob || blob.size === 0) {
+          try {
+            blob = await canvas.convertToBlob({
+              type: mimeType,
+            });
+          } catch (e) {
+            console.warn("WebP conversion without quality failed:", e);
           }
-        })
-        .catch(reject);
+        }
+
+        // Method 3: Force PNG first, then convert to WebP for better quality
+        if (!blob || settings.forceHighQuality) {
+          try {
+            // First get PNG (lossless)
+            const pngBlob = await canvas.convertToBlob({
+              type: "image/png",
+            });
+            
+            // Load PNG and reconvert to WebP
+            const img = await createImageBitmap(pngBlob);
+            const newCanvas = new OffscreenCanvas(img.width, img.height);
+            const newCtx = newCanvas.getContext("2d");
+            if (newCtx) {
+              newCtx.imageSmoothingEnabled = false;
+              newCtx.drawImage(img, 0, 0);
+              blob = await newCanvas.convertToBlob({
+                type: mimeType,
+                quality: 1.0,
+              });
+            }
+          } catch (e) {
+            console.warn("PNG to WebP conversion failed:", e);
+          }
+        }
+
+        if (blob) {
+          reportProgress(jobId, 85, "Lossless WebP created successfully");
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to create lossless WebP"));
+        }
+      } else {
+        // Standard conversion for other formats
+        canvas
+          .convertToBlob({
+            type: mimeType,
+            quality: quality,
+          })
+          .then((blob) => {
+            if (blob) {
+              reportProgress(jobId, 85, "Blob created successfully");
+              resolve(blob);
+            } else {
+              reject(new Error(`Failed to convert to ${settings.format}`));
+            }
+          })
+          .catch(reject);
+      }
     } catch (error) {
       reject(error);
     }
@@ -324,8 +392,8 @@ function getQualityValue(settings) {
   // Special handling for WebP - check lossless mode
   if (settings.format === "webp") {
     if (settings.lossless) {
-      // For lossless WebP, use quality = 1.0
-      // Firefox 105+ and some other browsers use this to trigger lossless encoding
+      // For lossless WebP, always use quality = 1.0
+      // This ensures maximum quality preservation
       return 1.0;
     }
     return settings.quality / 100; // Convert 1-100 to 0-1 for lossy WebP
