@@ -2,25 +2,25 @@
 
 ## Project Overview
 
-**webp-playground** is an advanced Next.js image conversion tool with dual processing modes (client/server) supporting JPEG, PNG, WebP, and AVIF formats with comprehensive compression settings.
+**webp-playground** is a professional Next.js image converter using server-side Sharp for superior compression.
 
 ### Key Features
-- **Dual processing**: Client-side (privacy) or server-side (performance) 
-- **Advanced compression**: Near-lossless WebP, MozJPEG, format-specific optimizations
-- **Smart auto-selection**: Intelligent mode switching based on format and file size
-- **Professional UI**: Drag & drop, real-time preview, batch downloads
+- **Server-only processing**: Sharp/libvips for best compression (10-20% better)
+- **Format support**: JPEG, PNG, WebP, AVIF with advanced settings
+- **Batch processing**: Multi-file upload with ZIP downloads
+- **Real-time preview**: Before/after comparisons
 
 ### Core Architecture
-- **Next.js 15** with App Router and API routes
-- **Sharp/libvips** for server-side processing (10-40% better compression)
-- **Canvas API + Web Workers** for client-side processing
-- **TypeScript** with organized component structure
+- **Next.js 15** with App Router
+- **Sharp 0.34.3** for all image processing
+- **React 19** with TypeScript 5
+- **Tailwind CSS 4** + styled-components
 
 ## Development Guidelines
 
 ### File Conventions
 - PascalCase for components: `FileUpload.tsx`
-- camelCase for utilities: `fileUtils.ts` 
+- camelCase for utilities: `fileUtils.ts`
 - Suffix styled components: `ButtonStyled`, `ContainerStyled`
 - Suffix types: `UserType`, `ConversionSettingsType`
 
@@ -41,69 +41,61 @@ type ConversionSettingsType = {
 };
 ```
 
-### Import Organization
-```typescript
-// Use organized imports
-import { ImageConversionService, DownloadService } from "@/lib/services";
-import { useFileUpload } from "@/hooks/ui"; 
-import { FileUpload } from "@/components/ui";
-import { ErrorBoundary } from "@/components/feedback";
-```
-
 ## Project Structure
 
 ```
 src/
 ├── app/                 # Next.js App Router + API routes
-├── components/          # Organized by purpose
-│   ├── conversion/      # ConversionPanel, DownloadManager, PreviewComparison  
-│   ├── feedback/        # ErrorBoundary, LoadingStates, ProgressIndicator
+├── components/          # UI components
+│   ├── conversion/      # ConversionPanel, DownloadManager
+│   ├── feedback/        # ErrorBoundary, LoadingStates
 │   └── ui/              # FileUpload, basic components
 ├── hooks/               # Custom React hooks
-│   ├── conversion/      # Image conversion logic
-│   ├── ui/              # UI interactions  
-│   └── utils/           # Error handling
 ├── lib/                 # Services and utilities
-│   ├── services/        # Business logic (image-conversion, server-conversion, download)
-│   ├── utils/           # Constants, validation
-│   └── components/      # styled-components registry
+│   ├── services/        # Business logic
+│   └── utils/           # Constants, validation
 └── types/               # TypeScript definitions
 ```
 
-## Format-Specific Implementation
+## Format-Specific Settings
 
-### JPEG Settings
-- Quality (1-100), Progressive, Chroma subsampling, MozJPEG (server)
+### JPEG
+- Quality (1-100)
+- Progressive (default: enabled)
+- Chroma subsampling (4:4:4, 4:2:2, 4:2:0, auto)
+- MozJPEG encoder (10-15% better)
 
-### PNG Settings  
-- Compression level (0-9), Interlacing, Palette quantization, Dithering
+### PNG
+- Compression level (0-9)
+- Interlacing/Adam7 (default: enabled)
+- Palette quantization (2-256 colors)
+- Dithering (0-1)
 
-### WebP Settings
-- Lossy/Lossless toggle, Near-lossless (server, 0-100), Optimization presets, Alpha quality
+### WebP
+- Lossy/Lossless toggle
+- Near-lossless (0-100%, lossless only)
+- Presets (default, photo, picture, drawing, icon, text)
+- Alpha quality (0-100)
+- Effort (0-6, clamped from UI 0-9)
 
-### AVIF Settings
-- Lossy/Lossless toggle, Encoding speed (0-10), Compression effort (0-9), Server-only
+### AVIF
+- Lossy/Lossless toggle
+- Effort (0-9, controls speed/quality)
+- Server-exclusive format
 
 ## Key Services
 
-### Conversion Logic
-- **image-conversion-service.ts**: Main orchestration
-- **server-conversion-service.ts**: Sharp integration  
-- **image-conversion-worker.js**: Client-side Web Worker
-
-### Auto-Selection Logic
-```typescript
-// Server-side preferred for:
-- WebP lossless (libwebp advantage)
-- AVIF all modes (no browser support)
-- JPEG quality ≥80 (mozjpeg benefits)  
-- PNG all modes (better algorithms)
-- Files >3MB (memory management)
-```
+### Active Services
+- **image-conversion-service.ts**: Calls server API
+- **server-conversion-service.ts**: Sharp integration
+- **download-service.ts**: Batch ZIP downloads
+- **memory-management-service.ts**: Blob URL cleanup
+- **error-handling-service.ts**: Error recovery
+- **accessibility-service.ts**: A11y features
 
 ## Development Commands
 ```bash
-yarn dev     # Development server (localhost:3000)
+yarn dev     # Development server
 yarn build   # Production build
 yarn lint    # ESLint
 ```
@@ -111,22 +103,22 @@ yarn lint    # ESLint
 ## AI Assistant Guidelines
 
 ### Code Quality
-1. Maintain TypeScript throughout with proper types
-2. Use hooks and functional components exclusively
-3. Implement accessibility (ARIA, keyboard navigation)
-4. Follow organized folder structure
+1. Maintain TypeScript with proper types
+2. Use functional components and hooks
+3. Implement accessibility (ARIA, keyboard)
+4. Follow existing folder structure
 
-### Implementation Priorities  
-1. **Never create new files** unless absolutely necessary
-2. **Always prefer editing** existing files in the codebase
-3. **Test both modes**: Verify client and server processing
-4. **Performance first**: Consider memory usage and mode selection
-5. **Privacy option**: Always maintain client-side capability
+### Implementation Priorities
+1. **Never create new files** unless necessary
+2. **Always prefer editing** existing files
+3. **Test server processing** with Sharp
+4. **Performance first**: Memory management
+5. **Compression quality**: Use Sharp settings
 
 ### Component Development
 1. Use styled-components with `Styled` suffix
-2. Use Lucide React icons consistently
-3. Wrap with error boundaries where needed
-4. Provide clear loading states
+2. Use Lucide React icons
+3. Add error boundaries where needed
+4. Provide loading states
 
-This is an experimental playground project with production-ready compression capabilities and clean architecture standards.
+This is a production-ready image converter with server-side Sharp for optimal compression.

@@ -1,44 +1,43 @@
 # Product Features
 
-## Current Capabilities
+## Current State
 
-**webp-playground** is a Next.js image conversion tool with dual processing modes and comprehensive format optimization.
+**webp-playground** is a professional Next.js image converter using server-side Sharp for superior compression.
 
 ### Supported Formats
-- **JPEG**: Quality, progressive, chroma subsampling, MozJPEG
-- **PNG**: Compression levels, interlacing, palette quantization, dithering  
-- **WebP**: Lossy/lossless modes, near-lossless, optimization presets, alpha quality
-- **AVIF**: Lossy/lossless modes, encoding speed, compression effort
+- **JPEG**: Progressive (default on), chroma subsampling, MozJPEG encoder
+- **PNG**: Interlacing/Adam7 (default on), palette quantization, dithering  
+- **WebP**: Lossy/lossless, near-lossless (0-100%), presets, alpha quality
+- **AVIF**: Lossy/lossless, compression effort (0-9)
 
-### Processing Modes
-- **Client-side**: Canvas API, Web Workers, privacy-focused
-- **Server-side**: Sharp/libvips, advanced compression, 10-40% better results
-- **Auto mode selection**: Intelligent switching based on format and file size
+### Processing Architecture
+- **Server-only processing**: Sharp/libvips for all conversions
+- **No client-side fallback**: Ensures consistent, best compression
+- **API route**: `/api/convert` handles all image processing
+
+### Compression Benefits
+- **WebP**: libwebp 10-20% better than Canvas API
+- **JPEG**: MozJPEG 10-15% smaller files
+- **PNG**: Maximum compression with libpng
+- **AVIF**: Only available server-side
 
 ### Key Features
-- Drag & drop file upload interface
-- Real-time conversion with progress indicators  
-- Batch processing with zip downloads
-- Format-specific settings panels
-- Before/after file size comparison
-- Manual or automatic processing mode selection
+- Drag & drop multi-file upload
+- Real-time progress tracking
+- Batch processing with ZIP downloads
+- Format-specific optimization panels
+- Before/after size comparison
+- Memory management via blob URL cleanup
 
-### Advanced Compression
-- **Near-lossless WebP**: 80% quality produces visually identical images, 20% smaller files
-- **MozJPEG**: 10-15% better JPEG compression (server-side)
-- **Smart defaults**: Automatic optimization based on format and content type
-- **Memory management**: Chunked processing for large files
-
-### Auto Mode Selection Logic
-- WebP lossless: Always server (better compression)
-- AVIF: Always server (no browser support)
-- JPEG Q≥80: Server (MozJPEG benefits)
-- PNG: Always server (better algorithms)
-- Files >3MB: Server (performance)
+### Default Settings
+- **Progressive JPEG**: Enabled by default
+- **PNG Interlacing**: Enabled by default  
+- **WebP Quality**: 80 (lossy), 100 (lossless)
+- **AVIF Effort**: 4 (balanced speed/quality)
 
 ### User Experience
-- Professional UI with Lucide React icons
+- Clean UI with Lucide React icons
 - Responsive design with Tailwind CSS
-- Error boundaries and graceful fallbacks
-- Accessibility features throughout
-- Clear visual feedback for processing mode
+- Error boundaries for stability
+- Accessibility hooks and ARIA support
+- Visual feedback during processing

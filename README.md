@@ -1,53 +1,34 @@
 # webp-playground
 
-A modern, experimental Next.js application for advanced image format conversion with both client-side and server-side processing capabilities. Convert between multiple image formats (JPEG, PNG, WebP, AVIF) with comprehensive control over compression settings and optimization parameters.
+A professional Next.js image converter using server-side Sharp for superior compression. Convert between JPEG, PNG, WebP, and AVIF formats with advanced optimization settings.
 
 ## ✨ Key Features
 
-- 🔒 **Dual Processing Modes**: Choose between privacy-focused client-side or powerful server-side processing
-- 🚀 **Advanced Format Support**: JPEG, PNG, WebP, and AVIF with full control over format-specific settings
-- 📱 **Responsive design**: Mobile-first UI with Tailwind CSS and styled-components
-- ⚡ **Performance optimized**: Web Workers for non-blocking conversion
-- 🎛️ **Batch processing**: Convert and download multiple files at once
-- 📊 **File comparison**: Compare original vs converted file sizes
-- 🎨 **Professional UI**: Clean interface with Lucide React icons
-- ♿ **Accessible**: Built with accessibility standards in mind
+- 🚀 **Server-side Processing**: Sharp/libvips for best compression (10-20% smaller files)
+- 📁 **Format Support**: JPEG, PNG, WebP, AVIF with format-specific optimizations
+- 📦 **Batch Processing**: Convert multiple files and download as ZIP
+- 📊 **Size Comparison**: Real-time before/after file size display
+- 🎨 **Modern UI**: Clean interface with Tailwind CSS and Lucide icons
+- ♿ **Accessible**: Full keyboard navigation and ARIA support
 
 ## 🛠️ Technology Stack
 
-### Frontend Framework
-- **Next.js 15** with App Router and Turbopack
-- **React 18** (React 19 compatible) with TypeScript
-- **Tailwind CSS 4** for utility-first styling
-- **styled-components 6** for component styling
-- **Lucide React** for consistent iconography
+- **Next.js 15** with App Router
+- **Sharp 0.34.3** for image processing
+- **React 19** with TypeScript 5
+- **Tailwind CSS 4** + styled-components
+- **Lucide React** for icons
 
-### Image Processing
-
-#### Client-side
-- **Canvas API** for browser-based image processing
-- **Web Workers** for non-blocking conversion operations
-- **File API** and **Blob API** for client-side file handling
-- **Progressive enhancement** with browser compatibility fallbacks
-
-#### Server-side
-- **Sharp** (libvips) for advanced image processing
-- **libwebp** for superior WebP compression
-- **mozjpeg** for optimized JPEG encoding
-- **libavif** for next-gen AVIF format
-- **JSZip** for batch download functionality
-
-### Development Tools
-- **TypeScript 5** for type safety
-- **ESLint 9** with Next.js configuration
-- **Yarn** for package management
-- **PostCSS** for CSS processing
+### Image Processing Backends
+- **libwebp** for WebP (10-20% better than browser)
+- **mozjpeg** for JPEG (10-15% smaller files)
+- **libpng** for PNG (maximum compression)
+- **libavif** for AVIF (server-exclusive)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js 18+ 
+- Node.js 18+
 - Yarn package manager
 
 ### Installation
@@ -64,332 +45,146 @@ yarn install
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Open [http://localhost:3000](http://localhost:3000) to start converting images.
 
-### Available Scripts
+### Commands
 
 ```bash
-yarn dev          # Start development server with Turbopack
-yarn build        # Build for production with Turbopack
-yarn start        # Start production server
-yarn lint         # Run ESLint
+yarn dev      # Development server
+yarn build    # Production build
+yarn start    # Production server
+yarn lint     # Run ESLint
 ```
 
-## 📁 Project Structure
+## 📋 Format Settings Guide
 
-```
-webp-playground/
-├── public/
-│   ├── workers/              # Web Workers for image processing
-│   └── *.svg                # Static SVG assets
-├── src/
-│   ├── app/                 # Next.js App Router
-│   │   ├── globals.css      # Global styles
-│   │   ├── layout.tsx       # Root layout
-│   │   └── page.tsx         # Main application
-│   ├── components/          # Organized React components
-│   │   ├── conversion/      # Image conversion components
-│   │   ├── feedback/        # User feedback & status components
-│   │   └── ui/              # Basic UI components
-│   ├── hooks/               # Custom React hooks
-│   │   ├── conversion/      # Image conversion logic
-│   │   ├── ui/              # UI interaction hooks
-│   │   └── utils/           # Utility hooks
-│   ├── lib/                 # Services and utilities
-│   │   ├── services/        # Business logic services
-│   │   ├── utils/           # Utility functions
-│   │   └── components/      # React utilities
-│   └── types/               # TypeScript type definitions
-├── next.config.ts           # Next.js configuration
-├── tailwind.config.ts       # Tailwind CSS configuration
-└── tsconfig.json           # TypeScript configuration
-```
+### JPEG Settings
 
-## 💡 Usage
+| Setting | Options | Default | Recommendation |
+|---------|---------|---------|----------------|
+| **Quality** | 1-100 | 85 | 85-90 for photos, 75-85 for web |
+| **Progressive** | On/Off | **On** | Enable for better perceived loading |
+| **Chroma Subsampling** | 4:4:4, 4:2:2, 4:2:0, Auto | Auto | Auto or 4:2:0 for photos |
 
-### Basic Conversion
+### PNG Settings
 
-1. **Upload files**: Drag and drop image files or click to select
-2. **Choose format**: Select your target format (WebP, AVIF, etc.)
-3. **Adjust settings**: Configure quality and compression options
-4. **Convert**: Process files with real-time progress feedback
-5. **Download**: Get individual files or batch download as ZIP
+| Setting | Options | Default | Recommendation |
+|---------|---------|---------|----------------|
+| **Compression** | 0-9 | 9 | 9 for production |
+| **Interlacing** | On/Off | **On** | Enable for large images |
+| **Palette** | 2-256 colors | Off | Use for simple graphics |
+| **Dithering** | 0-1 | 0 | 0.5-1 for smooth gradients |
 
-### Supported Formats
+### WebP Settings
 
-| Format | Input | Output | Client-side | Server-side |
-|--------|-------|--------|-------------|-------------|
-| JPEG   | ✅    | ✅     | ✅          | ✅ (mozjpeg) |
-| PNG    | ✅    | ✅     | ✅          | ✅ (optimized) |
-| WebP   | ✅    | ✅     | ⚠️ (basic)  | ✅ (libwebp) |
-| AVIF   | ✅    | ✅     | ❌          | ✅ (libavif) |
+| Setting | Options | Default | Recommendation |
+|---------|---------|---------|----------------|
+| **Mode** | Lossy/Lossless | Lossy | Lossy for photos, Lossless for graphics |
+| **Quality** | 1-100 (lossy) | 80 | 80-85 for general use |
+| **Near-lossless** | 0-100% (lossless) | 100% | 80-95% for smaller files |
+| **Preset** | default, photo, picture, drawing, icon, text | default | Match to content |
+| **Alpha Quality** | 0-100 | 100 | 90-100 for transparency |
+| **Effort** | 0-9 (clamped to 0-6) | 6 | 6 for best compression |
 
-### Performance Features
+### AVIF Settings
 
-- **Web Workers**: Heavy processing doesn't block the UI
-- **Memory management**: Automatic cleanup for large files  
-- **Chunked processing**: Handle multiple files efficiently
-- **Progressive enhancement**: Works across different browsers
+| Setting | Options | Default | Recommendation |
+|---------|---------|---------|----------------|
+| **Mode** | Lossy/Lossless | Lossy | Lossy for most cases |
+| **Quality** | 1-100 | 50 | 50-70 (more efficient than JPEG) |
+| **Effort** | 0-9 | 4 | 4-6 for balance, 9 for max compression |
 
-## 🏗️ Architecture
+## 🎯 Usage Examples
 
-### Clean Architecture
+### Basic Workflow
+1. **Upload**: Drag & drop or click to select images
+2. **Configure**: Choose format and adjust settings
+3. **Convert**: Process with real-time progress
+4. **Download**: Individual files or batch ZIP
 
-The project follows a clean, organized architecture:
-
-- **Components**: Organized by purpose (conversion, feedback, ui)
-- **Hooks**: Grouped by functionality (conversion, ui, utils) 
-- **Services**: Business logic separated from UI components
-- **Types**: Centralized TypeScript definitions
-
-### Code Conventions
-
-- **Styled Components**: Suffix with `Styled` (e.g., `ButtonStyled`)
-- **TypeScript Types**: Suffix with `Type` (e.g., `UserType`) 
-- **Icons**: Use Lucide React for consistency
-- **Imports**: Organized with `@/` alias for clean structure
-
-## 📋 Comprehensive Settings Guide
-
-### 🖼️ JPEG Settings
-
-#### Quality (1-100)
-- **Purpose**: Controls lossy compression level
-- **Effect**: Lower = smaller file but more artifacts, Higher = larger file but better quality
-- **Recommendation**: 85-90 for photos, 75-85 for web images
-- **File Size Impact**: ~50% reduction at quality 85
-
-#### Progressive JPEG
-- **Purpose**: Changes how image loads in browsers
-- **Effect**: 
-  - **Enabled**: Shows blurry full image first, then sharpens (better for slow connections)
-  - **Disabled**: Loads top-to-bottom sequentially
-- **File Size Impact**: +2-5% larger but better perceived performance
-- **Recommendation**: Enable for images >10KB on websites
-
-#### Chroma Subsampling
-- **Options**: 4:4:4, 4:2:2, 4:2:0, Auto
-- **Purpose**: Reduces color information to save space
-- **Effect**:
-  - **4:4:4**: No color reduction (best for graphics/text)
-  - **4:2:0**: Maximum color reduction (best for photos)
-  - **Auto**: Chooses based on quality setting
-- **File Size Impact**: 10-20% reduction with 4:2:0
-- **Recommendation**: Auto or 4:2:0 for photos, 4:4:4 for screenshots
-
-#### MozJPEG Encoder (Server-side)
-- **Purpose**: Uses Mozilla's optimized JPEG encoder
-- **Effect**: 10-15% smaller files with same visual quality
-- **Recommendation**: Always enable when available
-
-### 🎨 PNG Settings
-
-#### Compression Level (0-9)
-- **Purpose**: Controls zlib compression effort
-- **Effect**: Higher = smaller file but slower encoding
-- **File Size Impact**: Level 9 can be 10-30% smaller than level 0
-- **Recommendation**: Level 9 for production, Level 6 for development
-
-#### Interlacing (Adam7)
-- **Purpose**: Progressive loading for PNG
-- **Effect**: Shows low-res preview while loading
-- **File Size Impact**: +10-20% larger file
-- **Recommendation**: Only for large images on slow connections
-
-#### Palette Quantization
-- **Purpose**: Reduces colors to create smaller indexed PNG
-- **Effect**: Converts to palette mode with specified colors (2-256)
-- **File Size Impact**: Can reduce by 50-70% for simple images
-- **Recommendation**: Great for logos, icons, simple graphics
-- **Note**: Will reduce quality for photos
-
-### 🌐 WebP Settings
-
-#### Compression Mode
-- **Lossy**: Variable quality with artifacts
-- **Lossless**: Perfect quality, larger files
-- **File Size**: Lossy is 25-35% smaller than JPEG, Lossless is 26% smaller than PNG
-
-#### Quality (Lossy mode, 1-100)
-- **Purpose**: Controls compression level
-- **Effect**: Similar to JPEG but 25-35% smaller at same quality
-- **Recommendation**: 80-85 for general use
-
-#### Near-Lossless (Lossless mode, 0-100)
-- **Purpose**: Preprocessing to allow minimal quality loss for better compression
-- **Effect**:
-  - **100**: True lossless (perfect quality)
-  - **80**: Visually identical, 10-20% smaller
-  - **60**: Minor quality loss, 20-40% smaller
-- **File Size Impact**: Significant reduction with minimal visual impact
-- **Recommendation**: 80-95 for best balance
-
-#### Optimization Preset (Lossy mode)
-- **Options**: Default, Photo, Picture, Drawing, Icon, Text
-- **Purpose**: Optimizes encoder for specific content types
-- **Effect**: Tunes internal parameters for content characteristics
-- **Recommendation**: Match to your image type
-
-#### Alpha Channel Quality (0-100)
-- **Purpose**: Controls transparency compression
-- **Effect**: Lower values reduce transparency quality
-- **Recommendation**: 100 for logos, 90 for general use
-
-### 🚀 AVIF Settings
-
-#### Compression Mode
-- **Lossy**: Variable quality, smallest files
-- **Lossless**: Perfect quality, larger files
-- **File Size**: 50% smaller than JPEG, 30% smaller than WebP
-
-#### Quality (Lossy mode, 1-100)
-- **Purpose**: Controls compression level
-- **Effect**: More efficient than WebP/JPEG
-- **Recommendation**: 60-75 (lower than JPEG due to better efficiency)
-
-#### Encoding Speed (0-10)
-- **Purpose**: Trade-off between encoding time and compression
-- **Effect**:
-  - **0**: Slowest encoding (10-30s), smallest file
-  - **4**: Balanced (2-5s), good compression
-  - **10**: Fastest (<1s), larger file
-- **File Size Impact**: Speed 0 can be 40% smaller than Speed 10
-- **Recommendation**: Speed 0-2 for production, 4-6 for preview
-- **Note**: Does NOT affect decoding/display speed
-
-#### Compression Effort (0-9)
-- **Purpose**: Number of optimization passes
-- **Effect**: Higher = more attempts to find best compression
-- **Works with Speed**: Speed chooses algorithm, Effort optimizes it
-- **Recommendation**: 4-6 for balance, 9 for maximum compression
-
-## 🎯 Usage Recommendations
-
-### By Use Case
+### Recommended Settings by Use Case
 
 | Use Case | Format | Settings |
 |----------|--------|----------|
-| **Photography Portfolio** | JPEG | Quality 90, Progressive, 4:4:4, MozJPEG |
-| **Blog Images** | WebP | Lossy, Quality 80, Photo preset |
+| **Web Photos** | WebP | Lossy, Quality 80-85 |
+| **Product Images** | JPEG | Quality 90, Progressive on |
 | **Screenshots** | PNG | Compression 9, No interlacing |
-| **Icons/Logos** | WebP | Lossless, Near-lossless 95 |
-| **Modern Websites** | AVIF | Quality 65, Speed 2, Effort 6 |
-| **Social Media** | JPEG | Quality 85, Progressive, Auto chroma |
-| **Archives** | PNG/WebP | Lossless, Maximum compression |
+| **Icons/Logos** | WebP | Lossless, Near-lossless 95% |
+| **Modern Web** | AVIF | Quality 60-70, Effort 6 |
 
 ### File Size Comparison
 
-| Original PNG (1MB) | Format | Settings | Result |
-|--------------------|--------|----------|--------|
-| 1000 KB | JPEG | Q85, MozJPEG | ~250 KB |
-| 1000 KB | PNG | Level 9 | ~800 KB |
-| 1000 KB | WebP Lossy | Q85 | ~180 KB |
-| 1000 KB | WebP Lossless | NL80 | ~600 KB |
-| 1000 KB | AVIF | Q70, Speed 2 | ~120 KB |
+| Original | Format | Typical Reduction |
+|----------|--------|-------------------|
+| PNG 1MB | JPEG | 70-75% smaller |
+| PNG 1MB | WebP Lossy | 80-85% smaller |
+| PNG 1MB | WebP Lossless | 30-40% smaller |
+| PNG 1MB | AVIF | 85-90% smaller |
+| JPEG 1MB | WebP | 25-35% smaller |
+| JPEG 1MB | AVIF | 45-55% smaller |
 
-### Server vs Client Processing
+## 🏗️ Project Structure
 
-| Feature | Client-side | Server-side |
-|---------|------------|-------------|
-| **Privacy** | ✅ No upload | ⚠️ File uploaded |
-| **Speed** | Fast for small files | Fast for all sizes |
-| **Compression** | Basic | Advanced (10-40% better) |
-| **Settings** | Limited | Full control |
-| **Browser Support** | Varies | Consistent |
-
-**When to use Server-side:**
-- WebP lossless (always)
-- AVIF (always - poor browser support)
-- Large files (>3MB)
-- Need best compression
-- Batch processing
-
-**When to use Client-side:**
-- Privacy critical
-- Small files (<1MB)
-- Quick preview
-- No server available
+```
+src/
+├── app/              # Next.js App Router
+│   └── api/          # Server API routes
+├── components/       # React components
+│   ├── conversion/   # ConversionPanel, DownloadManager
+│   ├── feedback/     # ErrorBoundary, LoadingStates
+│   └── ui/           # FileUpload, basic UI
+├── hooks/            # Custom React hooks
+├── lib/              # Core logic
+│   ├── services/     # Business logic
+│   └── utils/        # Utilities
+└── types/            # TypeScript types
+```
 
 ## 💡 Pro Tips
 
-### Optimizing for Web Performance
+### Best Compression
+- **Photos**: AVIF > WebP > JPEG
+- **Graphics**: WebP Lossless > PNG
+- **Transparency**: WebP/PNG only
+- **Animation**: Not supported (use video)
 
-1. **Use modern formats**: AVIF > WebP > JPEG/PNG
-2. **Enable server processing**: 10-40% better compression
-3. **Progressive/Interlaced**: Only for images >10KB
-4. **Near-lossless WebP**: Use 80-95 for imperceptible quality loss
-5. **AVIF Speed**: Use 0-2 for production (worth the wait)
-6. **Batch process**: Convert multiple images with consistent settings
+### Performance Tips
+1. Use AVIF for modern browsers (50% smaller than JPEG)
+2. Enable Progressive JPEG for better perceived performance
+3. Use Near-lossless WebP at 80-95% for imperceptible quality loss
+4. Batch process similar images with consistent settings
 
-### Format Selection Guide
+### Common Pitfalls
+- ❌ Don't use PNG for photos (3-5x larger)
+- ❌ Don't use JPEG quality 100 (95 is visually identical)
+- ❌ Don't ignore AVIF (best compression available)
+- ❌ Don't disable Progressive/Interlacing for large images
 
-```
-Photography? → JPEG (Q85-90) or AVIF (Q65-75)
-Transparency needed? → PNG or WebP Lossless
-Maximum compatibility? → JPEG
-Maximum compression? → AVIF
-Balance? → WebP
-```
+## 🔧 Development
 
-### Common Mistakes to Avoid
+### Code Style
+- TypeScript with strict mode
+- Functional components with hooks
+- styled-components with `Styled` suffix
+- Types with `Type` suffix
 
-1. ❌ Using PNG for photos (use JPEG/WebP/AVIF)
-2. ❌ JPEG quality 100 (95 is visually identical, much smaller)
-3. ❌ Ignoring modern formats (AVIF/WebP save 30-50%)
-4. ❌ Client-side for large files (use server for >3MB)
-5. ❌ Same settings for all images (adjust per content type)
-
-## 🔧 Configuration
-
-### Next.js Configuration
-
-```typescript
-// next.config.ts
-const nextConfig: NextConfig = {
-  compiler: {
-    styledComponents: true, // Enable styled-components
-  },
-};
-```
-
-### Import Alias
-
-The project uses `@/` as an alias for the `src/` directory:
-
-```typescript
-import { FileUpload } from "@/components/ui";
-import { useImageConversion } from "@/hooks/conversion";
-```
-
-## 🤝 Contributing
-
-This is an experimental playground project that encourages:
-
-- 🧪 Rapid prototyping of new features
-- 🎨 UI/UX experimentation  
-- ⚡ Performance optimization testing
-- 🆕 New image format support
-
-### Development Guidelines
-
-1. **Type Safety**: Use TypeScript throughout
-2. **Component Patterns**: Follow styled-components conventions
-3. **Performance**: Consider memory usage and Web Workers
-4. **Accessibility**: Maintain ARIA labels and keyboard navigation
-5. **Privacy**: Keep all processing client-side
+### Key Services
+- `image-conversion-service.ts` - Main conversion orchestration
+- `server-conversion-service.ts` - Sharp integration
+- `download-service.ts` - Batch ZIP downloads
+- `memory-management-service.ts` - Blob URL cleanup
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
+- [Sharp](https://sharp.pixelplumbing.com/) - High-performance image processing
 - [Next.js](https://nextjs.org/) - React framework
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
-- [styled-components](https://styled-components.com/) - CSS-in-JS
-- [Lucide React](https://lucide.dev/) - Beautiful icons
-- [JSZip](https://stuk.github.io/jszip/) - Client-side ZIP generation
+- [Lucide](https://lucide.dev/) - Beautiful icons
 
 ---
 
-**Note**: This is an experimental playground project focused on client-side image conversion. All file processing happens locally in your browser for maximum privacy and performance.
+**Note**: All image processing happens server-side using Sharp for optimal compression and quality.
