@@ -15,15 +15,9 @@ export class ImageConversionService {
     settings: ConversionSettingsType,
     onProgress?: (progress: number, message?: string) => void
   ): Promise<ConversionResultType> {
-    console.log(
-      "ImageConversionService.convertImage called:",
-      file.name,
-      settings
-    );
 
     try {
       // Always use server-side conversion with Sharp for best compression
-      console.log("Using server-side Sharp for superior compression");
       onProgress?.(0, "Processing with Sharp...");
       
       const serverResult = await convertImageOnServer(file, settings, {
@@ -43,7 +37,6 @@ export class ImageConversionService {
         format: serverResult.format as SupportedFormatType,
       };
     } catch (error) {
-      console.error("ImageConversionService error:", error);
       throw new Error(
         `Conversion failed: ${
           error instanceof Error ? error.message : "Unknown error"

@@ -22,7 +22,6 @@ export const useSimpleImageConversion = () => {
 
   const convertFiles = useCallback(
     async (files: File[], settings: ConversionSettingsType) => {
-      console.log("🚀 Starting conversion of", files.length, "files");
 
       // Create jobs
       const newJobs: SimpleJobType[] = files.map((file, index) => ({
@@ -39,7 +38,6 @@ export const useSimpleImageConversion = () => {
       // Process each job
       for (const job of newJobs) {
         try {
-          console.log("🔄 Processing job:", job.id, "for file:", job.file.name);
 
           // Update job to processing
           setJobs((prev) =>
@@ -53,14 +51,12 @@ export const useSimpleImageConversion = () => {
             job.file,
             job.settings,
             (progress) => {
-              console.log("📊 Progress for", job.id, ":", progress);
               setJobs((prev) =>
                 prev.map((j) => (j.id === job.id ? { ...j, progress } : j))
               );
             }
           );
 
-          console.log("✅ Conversion completed for:", job.id);
 
           // Update job to completed
           setJobs((prev) =>
@@ -97,7 +93,6 @@ export const useSimpleImageConversion = () => {
       }
 
       setIsProcessing(false);
-      console.log("🏁 All conversions completed");
     },
     []
   );

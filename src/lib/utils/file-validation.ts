@@ -16,7 +16,6 @@ import {
 
 export class FileValidationService {
   private static readonly MAX_HEADER_BYTES = 32; // Read first 32 bytes for magic number detection
-  private static readonly SVG_SIGNATURES = ["<svg", "<?xml"];
   private static readonly AVIF_SIGNATURES = ["ftyp", "avif", "avis"];
 
   /**
@@ -218,38 +217,6 @@ export class FileValidationService {
       // Check for AVIF brand in the ftyp box
       const brand = String.fromCharCode(...headerBytes.slice(8, 12));
       return brand === "avif" || brand === "avis";
-    } catch (_error) {
-      return false;
-    }
-  }
-
-  /**
-   * Detects SVG files by checking text content
-   */
-  private static async isSvgFile(file: File): Promise<boolean> {
-    try {
-      // Check MIME type first as a quick check
-      if (file.type === "image/svg+xml") {
-        // Read first 1KB to confirm it's really SVG
-        const slice = file.slice(0, 1024);
-
-        // Use FileReader for better compatibility in test environment
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const text = reader.result as string;
-            const lowerText = text.toLowerCase().trim();
-            const isSvg = this.SVG_SIGNATURES.some((signature) =>
-              lowerText.startsWith(signature.toLowerCase())
-            );
-            resolve(isSvg);
-          };
-          reader.onerror = () => resolve(false);
-          reader.readAsText(slice);
-        });
-      }
-
-      return false;
     } catch (_error) {
       return false;
     }

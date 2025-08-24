@@ -39,20 +39,14 @@ export const DEFAULT_CONVERSION_SETTINGS = {
   jpeg: { quality: 85, progressive: true },
   png: { compressionLevel: 6 },
   webp: { quality: 80, lossless: false },
-  avif: { quality: 80, speed: 6 },
-  gif: { colors: 256, dithering: false },
-  ico: { sizes: [16, 32, 48] },
-  svg: {}, // SVG doesn't need quality settings
+  avif: { quality: 80, effort: 4 },
 };
 
 // Magic number signatures for file type detection
 export const FILE_SIGNATURES: Record<string, number[]> = {
   jpeg: [0xff, 0xd8, 0xff],
   png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-  gif: [0x47, 0x49, 0x46, 0x38],
   webp: [0x52, 0x49, 0x46, 0x46], // RIFF header, WebP signature at offset 8
-  ico: [0x00, 0x00, 0x01, 0x00],
-  // SVG is text-based, detected by content
   // AVIF uses ftyp box, more complex detection needed
 };
 
