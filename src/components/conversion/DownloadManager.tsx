@@ -190,7 +190,7 @@ export const DownloadManager: React.FC<DownloadManagerPropsType> = ({
       const options: Partial<DownloadOptionsType> = {
         format,
         preserveNames: true,
-        addTimestamp: true,
+        addTimestamp: false,
       };
 
       if (format === "zip") {
