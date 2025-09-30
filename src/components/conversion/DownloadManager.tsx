@@ -28,6 +28,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
     background: rgba(50, 130, 184, 0.15);
     backdrop-filter: blur(10px);
       margin-top: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .download-header {

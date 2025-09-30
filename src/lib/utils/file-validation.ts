@@ -441,3 +441,6 @@ export class FileValidationService {
     }
   }
 }
+
+// Export for convenience
+export { DEFAULT_VALIDATION_RULES };

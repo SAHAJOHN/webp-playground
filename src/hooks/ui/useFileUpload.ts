@@ -1,7 +1,7 @@
 // Custom hook for file upload with drag & drop and validation
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { FileValidationService, DEFAULT_VALIDATION_RULES } from "@/lib/utils";
+import { FileValidationService, DEFAULT_VALIDATION_RULES } from "@/lib/utils/file-validation";
 import type {
   UploadStateType,
   FileInfoType,

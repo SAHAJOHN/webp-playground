@@ -26,6 +26,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
     backdrop-filter: blur(10px);
     opacity: ${(props) => (props.isLoading ? 0.6 : 1)};
     transition: all 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .preview-header {

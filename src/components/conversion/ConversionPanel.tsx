@@ -9,6 +9,13 @@ import {
   useAccessibility,
   useKeyboardNavigation,
 } from "@/hooks/ui/useAccessibility";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ConversionPanelStyled = styled.div.withConfig({
   shouldForwardProp: (prop) => !["isProcessing"].includes(prop),
@@ -500,23 +507,27 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             <span>Compression Level</span>
             <span className="setting-value">{compressionLevel}</span>
           </div>
-          <select
-            value={compressionLevel}
-            onChange={(e) => handleCompressionChange(Number(e.target.value))}
-            className="compression-select"
+          <Select
+            value={compressionLevel.toString()}
+            onValueChange={(value) => handleCompressionChange(Number(value))}
             disabled={disabled || isProcessing}
           >
-            {Array.from({ length: 10 }, (_, i) => (
-              <option key={i} value={i}>
-                Level {i}{" "}
-                {i === 0
-                  ? "(Fastest)"
-                  : i === 9
-                  ? "(Best compression)"
-                  : ""}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="compression-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 10 }, (_, i) => (
+                <SelectItem key={i} value={i.toString()}>
+                  Level {i}{" "}
+                  {i === 0
+                    ? "(Fastest)"
+                    : i === 9
+                    ? "(Best compression)"
+                    : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="setting-item">
@@ -665,19 +676,23 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                 {settings.preset || "default"}
               </span>
             </div>
-            <select
+            <Select
               value={settings.preset || "default"}
-              onChange={(e) => onSettingsChange({ ...settings, preset: e.target.value as "default" | "photo" | "picture" | "drawing" | "icon" | "text" })}
-              className="compression-select"
+              onValueChange={(value) => onSettingsChange({ ...settings, preset: value as "default" | "photo" | "picture" | "drawing" | "icon" | "text" })}
               disabled={disabled || isProcessing}
             >
-              <option value="default">Default</option>
-              <option value="photo">Photo (natural images)</option>
-              <option value="picture">Picture (portraits)</option>
-              <option value="drawing">Drawing (high contrast)</option>
-              <option value="icon">Icon (small colorful)</option>
-              <option value="text">Text (legibility)</option>
-            </select>
+              <SelectTrigger className="compression-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="photo">Photo (natural images)</SelectItem>
+                <SelectItem value="picture">Picture (portraits)</SelectItem>
+                <SelectItem value="drawing">Drawing (high contrast)</SelectItem>
+                <SelectItem value="icon">Icon (small colorful)</SelectItem>
+                <SelectItem value="text">Text (legibility)</SelectItem>
+              </SelectContent>
+            </Select>
             <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
               Optimizes compression for specific content types
             </p>
@@ -818,17 +833,21 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
               {settings.chromaSubsampling || "auto"}
             </span>
           </div>
-          <select
+          <Select
             value={settings.chromaSubsampling || "auto"}
-            onChange={(e) => onSettingsChange({ ...settings, chromaSubsampling: e.target.value as "4:4:4" | "4:2:2" | "4:2:0" | "auto" })}
-            className="compression-select"
+            onValueChange={(value) => onSettingsChange({ ...settings, chromaSubsampling: value as "4:4:4" | "4:2:2" | "4:2:0" | "auto" })}
             disabled={disabled || isProcessing}
           >
-            <option value="auto">Auto (Quality based)</option>
-            <option value="4:4:4">4:4:4 (Best quality)</option>
-            <option value="4:2:2">4:2:2 (Balanced)</option>
-            <option value="4:2:0">4:2:0 (Smallest file)</option>
-          </select>
+            <SelectTrigger className="compression-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">Auto (Quality based)</SelectItem>
+              <SelectItem value="4:4:4">4:4:4 (Best quality)</SelectItem>
+              <SelectItem value="4:2:2">4:2:2 (Balanced)</SelectItem>
+              <SelectItem value="4:2:0">4:2:0 (Smallest file)</SelectItem>
+            </SelectContent>
+          </Select>
           <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
             {settings.chromaSubsampling === "4:4:4"
               ? "No color compression - best for graphics"
