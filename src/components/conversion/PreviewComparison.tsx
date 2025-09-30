@@ -120,25 +120,49 @@ const PreviewComparisonStyled = styled.div.withConfig({
     position: relative;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 20px;
-    overflow: hidden;
+    overflow: auto;
     background: rgba(27, 38, 44, 0.5);
     min-height: 300px;
+    max-height: 600px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     backdrop-filter: blur(10px);
-  }
-
-  .image-display {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    transition: transform 0.3s ease;
     cursor: grab;
 
     &:active {
       cursor: grabbing;
     }
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(27, 38, 44, 0.5);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(50, 130, 184, 0.5);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(50, 130, 184, 0.7);
+      }
+    }
+  }
+
+  .image-display {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    transition: none;
+    user-select: none;
+    pointer-events: none;
+    transform-origin: top left;
   }
 
   .loading-placeholder {
@@ -292,6 +316,11 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
   const [imageError, setImageError] = useState<string | null>(null);
   const originalImageRef = useRef<HTMLImageElement>(null);
   const convertedImageRef = useRef<HTMLImageElement>(null);
+  const originalWrapperRef = useRef<HTMLDivElement>(null);
+  const convertedWrapperRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
 
   // Create object URLs for images
   useEffect(() => {
@@ -321,6 +350,41 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
 
   const handleZoomReset = () => {
     setZoomLevel(100);
+    // Reset scroll position
+    if (originalWrapperRef.current) {
+      originalWrapperRef.current.scrollLeft = 0;
+      originalWrapperRef.current.scrollTop = 0;
+    }
+    if (convertedWrapperRef.current) {
+      convertedWrapperRef.current.scrollLeft = 0;
+      convertedWrapperRef.current.scrollTop = 0;
+    }
+  };
+
+  // Pan handlers
+  const handleMouseDown = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement>) => {
+    if (!wrapperRef.current || zoomLevel <= 100) return;
+
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+    setScrollStart({
+      x: wrapperRef.current.scrollLeft,
+      y: wrapperRef.current.scrollTop,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement>) => {
+    if (!isDragging || !wrapperRef.current) return;
+
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+
+    wrapperRef.current.scrollLeft = scrollStart.x - dx;
+    wrapperRef.current.scrollTop = scrollStart.y - dy;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   // Image error handling
@@ -379,7 +443,14 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
           <div className="images-container">
             <div className="image-section">
               <div className="image-label">Original</div>
-              <div className="image-wrapper">
+              <div
+                ref={originalWrapperRef}
+                className="image-wrapper"
+                onMouseDown={(e) => handleMouseDown(e, originalWrapperRef)}
+                onMouseMove={(e) => handleMouseMove(e, originalWrapperRef)}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
                 {originalImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -403,7 +474,14 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
 
             <div className="image-section">
               <div className="image-label">Converted</div>
-              <div className="image-wrapper">
+              <div
+                ref={convertedWrapperRef}
+                className="image-wrapper"
+                onMouseDown={(e) => handleMouseDown(e, convertedWrapperRef)}
+                onMouseMove={(e) => handleMouseMove(e, convertedWrapperRef)}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
                 {isLoading ? (
                   <div className="loading-placeholder">
                     <div className="loading-spinner" />
