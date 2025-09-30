@@ -1,6 +1,6 @@
 // Custom hook for file upload with drag & drop and validation
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { FileValidationService, DEFAULT_VALIDATION_RULES } from "@/lib/utils";
 import type {
   UploadStateType,
@@ -32,6 +32,7 @@ export const useFileUpload = (options: UseFileUploadOptionsType = {}) => {
 
   const [isValidating, setIsValidating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previousFilesRef = useRef<File[]>([]);
 
   // Handle file selection from input or drag & drop
   const handleFileSelect = useCallback(
@@ -196,6 +197,19 @@ export const useFileUpload = (options: UseFileUploadOptionsType = {}) => {
       fileInputRef.current.value = "";
     }
   }, []);
+
+  // Notify parent component when files change
+  useEffect(() => {
+    // Only notify if files actually changed (not just reference)
+    const filesChanged =
+      state.files.length !== previousFilesRef.current.length ||
+      state.files.some((file, index) => file !== previousFilesRef.current[index]);
+
+    if (filesChanged && onFilesSelected) {
+      onFilesSelected(state.files);
+      previousFilesRef.current = state.files;
+    }
+  }, [state.files, onFilesSelected]);
 
   // Open file picker
   const openFilePicker = useCallback(() => {

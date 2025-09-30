@@ -22,155 +22,186 @@ import {
 import { useSimpleImageConversion } from "@/hooks/conversion/useSimpleImageConversion";
 import type { ConversionSettingsType, SupportedFormatType, ConversionResultType } from "@/types";
 
-// Styled Components
+// Styled Components with Dark Theme
 const MainContainerStyled = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: #1B262C;
+  position: relative;
 
-  .header {
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  /* Subtle gradient overlay */
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(15, 76, 117, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(50, 130, 184, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
   }
 
   .content-wrapper {
-    max-width: 1200px;
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
   }
 
-  .upload-section {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    border: 1px solid #e2e8f0;
-  }
-
-  .settings-section {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    border: 1px solid #e2e8f0;
-  }
-
-  .processing-section {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    border: 1px solid #e2e8f0;
-  }
-
+  .upload-section,
+  .settings-section,
+  .processing-section,
   .results-section {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    border: 1px solid #e2e8f0;
+    background: rgba(15, 76, 117, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid rgba(50, 130, 184, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .section-title {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #BBE1FA;
+    margin-bottom: 2rem;
+    letter-spacing: -0.02em;
+
+    svg {
+      color: #3282B8;
+    }
   }
 
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
   }
 
   .feature-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    font-size: 0.875rem;
-    color: #64748b;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(50, 130, 184, 0.15);
+    border-radius: 20px;
+    border: 1px solid rgba(187, 225, 250, 0.2);
+    font-size: 0.95rem;
+    color: #BBE1FA;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    svg {
+      color: #3282B8;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: rgba(50, 130, 184, 0.25);
+      border-color: rgba(187, 225, 250, 0.4);
+      transform: translateY(-2px);
+    }
   }
 
   .action-buttons {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-top: 1.5rem;
+    margin-top: 24px;
   }
 
   .action-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.2s;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
     cursor: pointer;
     border: none;
-    font-size: 0.875rem;
-  }
+    letter-spacing: 0.01em;
 
-  .action-button.primary {
-    background: #3b82f6;
-    color: white;
-  }
+    &.primary {
+      background: linear-gradient(135deg, #3282B8 0%, #0F4C75 100%);
+      color: #BBE1FA;
+      box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
 
-  .action-button.primary:hover:not(:disabled) {
-    background: #2563eb;
-  }
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #4292C8 0%, #1F5C85 100%);
+        box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
+        transform: translateY(-2px);
+      }
+    }
 
-  .action-button.secondary {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-  }
+    &.secondary {
+      background: rgba(50, 130, 184, 0.2);
+      color: #BBE1FA;
+      border: 1px solid rgba(187, 225, 250, 0.3);
 
-  .action-button.secondary:hover:not(:disabled) {
-    background: #e2e8f0;
-  }
+      &:hover:not(:disabled) {
+        background: rgba(50, 130, 184, 0.3);
+        border-color: rgba(187, 225, 250, 0.5);
+      }
+    }
 
-  .action-button.danger {
-    background: #ef4444;
-    color: white;
-  }
+    &.danger {
+      background: rgba(220, 38, 38, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(220, 38, 38, 0.3);
 
-  .action-button.danger:hover:not(:disabled) {
-    background: #dc2626;
-  }
+      &:hover:not(:disabled) {
+        background: rgba(220, 38, 38, 0.3);
+        border-color: rgba(220, 38, 38, 0.5);
+      }
+    }
 
-  .action-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   }
 
   .empty-state {
     text-align: center;
-    padding: 3rem 1rem;
-    color: #64748b;
+    padding: 4rem 2rem;
+    color: #3282B8;
   }
 
   .empty-state-icon {
-    margin: 0 auto 1rem;
-    width: 4rem;
-    height: 4rem;
-    color: #cbd5e1;
+    margin: 0 auto 1.5rem;
+    width: 5rem;
+    height: 5rem;
+    color: rgba(50, 130, 184, 0.4);
+  }
+
+  .empty-state h3 {
+    color: #BBE1FA;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state p {
+    color: #3282B8;
+    font-size: 1rem;
+    line-height: 1.6;
   }
 
   @media (max-width: 768px) {
     .content-wrapper {
       padding: 1rem;
-      gap: 1rem;
+      gap: 1.5rem;
     }
 
     .upload-section,
@@ -178,10 +209,16 @@ const MainContainerStyled = styled.div`
     .processing-section,
     .results-section {
       padding: 1.5rem;
+      border-radius: 20px;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
     }
 
     .feature-grid {
       grid-template-columns: 1fr;
+      gap: 1rem;
     }
 
     .action-buttons {
@@ -190,15 +227,23 @@ const MainContainerStyled = styled.div`
 
     .action-button {
       justify-content: center;
+      width: 100%;
     }
   }
 `;
 
 const HeaderStyled = styled.header`
+  position: relative;
+  z-index: 10;
+  background: rgba(27, 38, 44, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(50, 130, 184, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+
   .header-content {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 1.5rem 1rem;
+    padding: 2rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -207,40 +252,53 @@ const HeaderStyled = styled.header`
   .logo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
+    gap: 1rem;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #BBE1FA;
+    letter-spacing: -0.03em;
   }
 
   .logo-icon {
-    width: 2rem;
-    height: 2rem;
-    color: #3b82f6;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #3282B8;
+    filter: drop-shadow(0 0 8px rgba(50, 130, 184, 0.5));
   }
 
   .privacy-badge {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #ecfdf5;
-    color: #059669;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid #d1fae5;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(50, 130, 184, 0.2);
+    color: #BBE1FA;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid rgba(187, 225, 250, 0.3);
+    letter-spacing: 0.01em;
+
+    svg {
+      color: #3282B8;
+    }
   }
 
   @media (max-width: 768px) {
     .header-content {
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.5rem;
       text-align: center;
+      padding: 1.5rem 1rem;
     }
 
     .logo {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
+    }
+
+    .logo-icon {
+      width: 2rem;
+      height: 2rem;
     }
   }
 `;
@@ -269,7 +327,12 @@ export default function Home() {
   // Handle files selected from FileUpload component
   const handleFilesSelected = useCallback((files: File[]) => {
     setSelectedFiles(files);
-  }, []);
+
+    // Clear jobs if no files selected
+    if (files.length === 0) {
+      clearJobs();
+    }
+  }, [clearJobs]);
 
   // Handle conversion start
   const handleStartConversion = useCallback(() => {
@@ -286,17 +349,11 @@ export default function Home() {
     []
   );
 
-  // Handle clear files
-  const handleClearFiles = useCallback(() => {
-    setSelectedFiles([]);
-    clearJobs();
-  }, [clearJobs]);
-
   // Get job arrays for display
   const jobsArray = simpleJobs;
   const resultsArray = simpleResults;
   const hasResults = resultsArray.length > 0;
-  
+
   // Convert results array to Map for DownloadManager
   const resultsMap = new Map<string, ConversionResultType>();
   resultsArray.forEach((result, index) => {
@@ -358,18 +415,6 @@ export default function Home() {
             maxFiles={10}
             disabled={isProcessing}
           />
-          {selectedFiles.length > 0 && (
-            <div className="action-buttons">
-              <button
-                className="action-button secondary"
-                onClick={handleClearFiles}
-                disabled={isProcessing}
-              >
-                <Trash2 size={16} />
-                Clear Files
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Conversion Settings Section */}

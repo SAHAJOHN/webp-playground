@@ -21,151 +21,187 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   .download-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    background: #f8fafc;
+    gap: 1.5rem;
+    padding: 2rem;
+    border: 1px solid rgba(50, 130, 184, 0.2);
+    border-radius: 24px;
+    background: rgba(50, 130, 184, 0.15);
+    backdrop-filter: blur(10px);
   }
 
   .download-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(50, 130, 184, 0.2);
   }
 
   .download-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #BBE1FA;
+    letter-spacing: -0.02em;
   }
 
   .download-count {
-    font-size: 0.875rem;
-    color: #6b7280;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #3282B8;
+    padding: 0.5rem 1rem;
+    background: rgba(50, 130, 184, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(50, 130, 184, 0.3);
   }
 
   .download-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
     flex-wrap: wrap;
   }
 
   .download-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    background: white;
-    color: #374151;
-    font-size: 0.875rem;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border: 2px solid rgba(50, 130, 184, 0.3);
+    border-radius: 16px;
+    background: rgba(15, 76, 117, 0.5);
+    color: #BBE1FA;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    opacity: ${(props) => (props.$isDownloading ? 0.6 : 1)};
+    transition: all 0.3s ease;
+    opacity: ${(props) => (props.$isDownloading ? 0.5 : 1)};
     pointer-events: ${(props) => (props.$isDownloading ? "none" : "auto")};
+    letter-spacing: 0.01em;
+
+    svg {
+      color: #3282B8;
+    }
   }
 
-  .download-button:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
+  .download-button:hover:not(:disabled) {
+    background: rgba(50, 130, 184, 0.3);
+    border-color: rgba(50, 130, 184, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
   }
 
   .download-button.primary {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
+    background: linear-gradient(135deg, #3282B8 0%, #0F4C75 100%);
+    color: #BBE1FA;
+    border-color: #3282B8;
+    box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
   }
 
-  .download-button.primary:hover {
-    background: #2563eb;
-    border-color: #2563eb;
+  .download-button.primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6A9484 0%, #1F4A4A 100%);
+    box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
   }
 
   .download-button:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
     pointer-events: none;
   }
 
   .progress-container {
-    margin-top: 0.5rem;
+    margin-top: 1rem;
   }
 
   .progress-bar {
     width: 100%;
-    height: 0.5rem;
-    background: #e5e7eb;
-    border-radius: 0.25rem;
+    height: 10px;
+    background: rgba(15, 76, 117, 0.5);
+    border-radius: 8px;
     overflow: hidden;
   }
 
   .progress-fill {
     height: 100%;
-    background: #3b82f6;
+    background: linear-gradient(90deg, #3282B8 0%, #BBE1FA 100%);
     transition: width 0.3s ease;
+    box-shadow: 0 0 12px rgba(50, 130, 184, 0.5);
   }
 
   .progress-text {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: rgba(187, 225, 250, 0.8);
+    margin-top: 0.75rem;
+    font-weight: 500;
   }
 
   .individual-downloads {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e5e7eb;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(50, 130, 184, 0.2);
   }
 
   .individual-download {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
+    padding: 1.25rem;
+    background: rgba(15, 76, 117, 0.4);
+    border: 1px solid rgba(50, 130, 184, 0.3);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+
+    &:hover {
+      background: rgba(15, 76, 117, 0.5);
+      border-color: rgba(50, 130, 184, 0.5);
+    }
   }
 
   .file-info {
     display: flex;
     flex-direction: column;
-    gap: 0.125rem;
+    gap: 0.5rem;
+    flex: 1;
   }
 
   .file-name {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #1f2937;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #BBE1FA;
   }
 
   .file-details {
-    font-size: 0.75rem;
-    color: #6b7280;
+    font-size: 0.85rem;
+    color: rgba(187, 225, 250, 0.7);
+    font-family: 'SF Mono', 'Monaco', monospace;
   }
 
   .download-single-button {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.25rem;
-    background: white;
-    color: #374151;
-    font-size: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: 2px solid rgba(50, 130, 184, 0.3);
+    border-radius: 12px;
+    background: rgba(50, 130, 184, 0.2);
+    color: #BBE1FA;
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-  }
+    transition: all 0.3s ease;
 
-  .download-single-button:hover {
-    background: #f3f4f6;
+    svg {
+      color: #3282B8;
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba(50, 130, 184, 0.3);
+      border-color: rgba(50, 130, 184, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
+    }
   }
 `;
 

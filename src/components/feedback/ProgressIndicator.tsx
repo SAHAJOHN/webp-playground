@@ -11,48 +11,49 @@ const ProgressIndicatorStyled = styled.div<{
   .progress-container {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    background: white;
-    transition: all 0.2s ease;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(50, 130, 184, 0.3);
+    border-radius: 16px;
+    background: rgba(15, 76, 117, 0.4);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
   }
 
   .progress-container:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-color: rgba(50, 130, 184, 0.5);
+    background: rgba(15, 76, 117, 0.5);
   }
 
   .progress-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .progress-info {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex: 1;
     min-width: 0;
   }
 
   .status-icon {
     flex-shrink: 0;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
     color: ${(props) => {
       switch (props.status) {
         case "completed":
-          return "#10b981";
+          return "#3282B8";
         case "error":
           return "#ef4444";
         case "processing":
-          return "#3b82f6";
+          return "#BBE1FA";
         default:
-          return "#6b7280";
+          return "rgba(187, 225, 250, 0.5)";
       }
     }};
   }
@@ -71,8 +72,9 @@ const ProgressIndicatorStyled = styled.div<{
   }
 
   .file-name {
-    font-weight: 500;
-    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #BBE1FA;
     truncate: true;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -80,9 +82,10 @@ const ProgressIndicatorStyled = styled.div<{
   }
 
   .progress-percentage {
-    font-size: 0.875rem;
-    color: #6b7280;
-    font-family: monospace;
+    font-size: 0.9rem;
+    color: #3282B8;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-weight: 700;
     flex-shrink: 0;
   }
 
@@ -90,32 +93,33 @@ const ProgressIndicatorStyled = styled.div<{
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border: none;
-    background: transparent;
-    color: #6b7280;
-    border-radius: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     flex-shrink: 0;
   }
 
-  .cancel-button:hover {
-    background: #f3f4f6;
-    color: #374151;
+  .cancel-button:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    transform: scale(1.05);
   }
 
   .cancel-button:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
   }
 
   .progress-bar-container {
     width: 100%;
-    height: 0.5rem;
-    background: #f1f5f9;
-    border-radius: 0.25rem;
+    height: 10px;
+    background: rgba(15, 76, 117, 0.5);
+    border-radius: 8px;
     overflow: hidden;
   }
 
@@ -124,24 +128,28 @@ const ProgressIndicatorStyled = styled.div<{
     background: ${(props) => {
       switch (props.status) {
         case "completed":
-          return "linear-gradient(90deg, #10b981, #059669)";
+          return "linear-gradient(90deg, #3282B8, #BBE1FA)";
         case "error":
           return "linear-gradient(90deg, #ef4444, #dc2626)";
         case "processing":
-          return "linear-gradient(90deg, #3b82f6, #2563eb)";
+          return "linear-gradient(90deg, #3282B8, #BBE1FA)";
         default:
-          return "#e2e8f0";
+          return "rgba(50, 130, 184, 0.3)";
       }
     }};
     width: ${(props) =>
       props.status === "pending" ? "0%" : "var(--progress)"};
     transition: width 0.3s ease;
-    border-radius: 0.25rem;
+    border-radius: 8px;
+    box-shadow: ${(props) =>
+      props.status === "processing" || props.status === "completed"
+        ? "0 0 12px rgba(50, 130, 184, 0.5)"
+        : "none"};
   }
 
   .progress-bar.indeterminate {
     width: 100%;
-    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    background: linear-gradient(90deg, transparent, #3282B8, transparent);
     animation: indeterminate 1.5s ease-in-out infinite;
   }
 

@@ -14,103 +14,88 @@ const ConversionPanelStyled = styled.div.withConfig({
   shouldForwardProp: (prop) => !["isProcessing"].includes(prop),
 })<{ isProcessing: boolean }>`
   .settings-panel {
-    opacity: ${(props) => (props.isProcessing ? 0.6 : 1)};
+    opacity: ${(props) => (props.isProcessing ? 0.5 : 1)};
     pointer-events: ${(props) => (props.isProcessing ? "none" : "auto")};
-    transition: opacity 0.3s ease;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  }
-
-  .panel-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    font-size: 1.125rem;
-    color: #1f2937;
+    transition: all 0.3s ease;
   }
 
   .format-selection {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .format-label {
     display: block;
-    font-weight: 500;
-    font-size: 0.875rem;
-    color: #374151;
-    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #BBE1FA;
+    margin-bottom: 1rem;
+    letter-spacing: 0.01em;
   }
 
   .format-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
   }
 
   .format-button {
-    padding: 0.5rem 0.75rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.5rem;
-    background: white;
-    color: #6b7280;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: 1rem;
+    border: 2px solid rgba(50, 130, 184, 0.3);
+    border-radius: 16px;
+    background: rgba(15, 76, 117, 0.3);
+    color: rgba(187, 225, 250, 0.7);
+    font-size: 0.9rem;
+    font-weight: 700;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-align: center;
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 56px;
+    min-width: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
+    letter-spacing: 0.05em;
+    backdrop-filter: blur(10px);
   }
 
   .format-button:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
-  }
-
-  .format-button:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
+    border-color: rgba(50, 130, 184, 0.5);
+    background: rgba(15, 76, 117, 0.5);
+    color: #BBE1FA;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
   }
 
   .format-button.active {
-    border-color: #3b82f6;
-    background: #eff6ff;
-    color: #1d4ed8;
+    border-color: #3282B8;
+    background: linear-gradient(135deg, rgba(50, 130, 184, 0.3) 0%, rgba(15, 76, 117, 0.5) 100%);
+    color: #BBE1FA;
+    box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
   }
 
   .format-button:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
   }
 
   .format-button[data-accessibility-mode="high-contrast"] {
     border-width: 3px;
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #1B262C;
+    color: #BBE1FA;
   }
 
   .format-button[data-accessibility-mode="high-contrast"].active {
-    background-color: #000080;
-    color: #ffffff;
-    border-color: #ffffff;
+    background-color: #0F4C75;
+    color: #BBE1FA;
+    border-color: #3282B8;
   }
 
   .format-button[data-accessibility-mode="high-contrast"]:focus {
-    outline: 3px solid #ffff00;
-    outline-offset: 2px;
   }
 
   .settings-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .settings-group:last-child {
@@ -118,7 +103,7 @@ const ConversionPanelStyled = styled.div.withConfig({
   }
 
   .setting-item {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .setting-item:last-child {
@@ -129,153 +114,199 @@ const ConversionPanelStyled = styled.div.withConfig({
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-weight: 500;
-    font-size: 0.875rem;
-    color: #374151;
-    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #BBE1FA;
+    margin-bottom: 1rem;
   }
 
   .setting-value {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-family: monospace;
-  }
-
-  .slider-container {
-    position: relative;
+    font-size: 0.85rem;
+    color: #3282B8;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    font-weight: 600;
   }
 
   .quality-slider {
     width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: #e5e7eb;
-    outline: none;
+    height: 8px;
+    border-radius: 8px;
+    background: rgba(15, 76, 117, 0.5);
     appearance: none;
     cursor: pointer;
+    transition: all 0.3s ease;
   }
-
-  .quality-slider:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 4px;
-  }
-
   .quality-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: linear-gradient(135deg, #3282B8 0%, #BBE1FA 100%);
     cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 3px solid #1B262C;
+    box-shadow: 0 4px 12px rgba(50, 130, 184, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .quality-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(50, 130, 184, 0.6);
   }
 
   .quality-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: linear-gradient(135deg, #3282B8 0%, #BBE1FA 100%);
     cursor: pointer;
-    border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 3px solid #1B262C;
+    box-shadow: 0 4px 12px rgba(50, 130, 184, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .quality-slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(50, 130, 184, 0.6);
   }
 
   .quality-slider[data-accessibility-mode="high-contrast"] {
-    height: 8px;
-    background: #000000;
-    border: 2px solid #ffffff;
+    height: 10px;
+    background: #1B262C;
+    border: 2px solid #3282B8;
   }
 
   .quality-slider[data-accessibility-mode="high-contrast"]::-webkit-slider-thumb {
-    background: #ffff00;
-    border: 2px solid #000000;
-    width: 24px;
-    height: 24px;
+    background: #3282B8;
+    border: 3px solid #BBE1FA;
+    width: 28px;
+    height: 28px;
   }
 
   .quality-slider[data-accessibility-mode="high-contrast"]::-moz-range-thumb {
-    background: #ffff00;
-    border: 2px solid #000000;
-    width: 24px;
-    height: 24px;
+    background: #3282B8;
+    border: 3px solid #BBE1FA;
+    width: 28px;
+    height: 28px;
   }
 
-  .slider-track {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(
-      to right,
-      #3b82f6 0%,
-      #3b82f6 var(--progress, 0%),
-      #e5e7eb var(--progress, 0%),
-      #e5e7eb 100%
-    );
-    border-radius: 3px;
-    transform: translateY(-50%);
-    pointer-events: none;
+  .preset-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .preset-button {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 2px solid rgba(50, 130, 184, 0.3);
+    border-radius: 12px;
+    background: rgba(15, 76, 117, 0.3);
+    color: rgba(187, 225, 250, 0.7);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+
+    &:hover:not(:disabled) {
+      border-color: rgba(50, 130, 184, 0.5);
+      background: rgba(15, 76, 117, 0.5);
+      color: #BBE1FA;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
+    }
+
+    &.active {
+      border-color: #3282B8;
+      background: linear-gradient(135deg, rgba(50, 130, 184, 0.4) 0%, rgba(15, 76, 117, 0.6) 100%);
+      color: #BBE1FA;
+      box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
   }
 
   .toggle-container {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .toggle-button {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    background: white;
-    color: #6b7280;
-    font-size: 0.875rem;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: 2px solid rgba(50, 130, 184, 0.3);
+    border-radius: 14px;
+    background: rgba(15, 76, 117, 0.3);
+    color: rgba(187, 225, 250, 0.7);
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
   }
 
   .toggle-button:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
+    border-color: rgba(50, 130, 184, 0.5);
+    background: rgba(15, 76, 117, 0.5);
+    color: #BBE1FA;
+    transform: translateY(-1px);
   }
 
   .toggle-button.active {
-    border-color: #3b82f6;
-    background: #eff6ff;
-    color: #1d4ed8;
+    border-color: #3282B8;
+    background: linear-gradient(135deg, rgba(50, 130, 184, 0.3) 0%, rgba(15, 76, 117, 0.5) 100%);
+    color: #BBE1FA;
+    box-shadow: 0 4px 12px rgba(50, 130, 184, 0.3);
   }
 
   .compression-select {
     width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    background: white;
-    color: #374151;
-    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(50, 130, 184, 0.3);
+    border-radius: 14px;
+    background: rgba(15, 76, 117, 0.3);
+    color: #BBE1FA;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: border-color 0.2s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
   }
 
   .compression-select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3282B8;
+    background: rgba(15, 76, 117, 0.5);
+  }
+
+  .compression-select:hover {
+    border-color: rgba(50, 130, 184, 0.5);
+    background: rgba(15, 76, 117, 0.5);
   }
 
   .format-info {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: #f8fafc;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    color: #64748b;
-    line-height: 1.4;
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background: rgba(50, 130, 184, 0.15);
+    border-radius: 16px;
+    border: 1px solid rgba(50, 130, 184, 0.2);
+    font-size: 0.85rem;
+    color: rgba(187, 225, 250, 0.9);
+    line-height: 1.6;
+    backdrop-filter: blur(10px);
+
+    svg {
+      vertical-align: middle;
+      color: #3282B8;
+    }
   }
 
   .sr-only {
@@ -291,18 +322,29 @@ const ConversionPanelStyled = styled.div.withConfig({
   }
 
   @media (max-width: 640px) {
-    .settings-panel {
-      padding: 1rem;
-    }
 
     .format-grid {
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-      gap: 0.375rem;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
     }
 
     .format-button {
-      padding: 0.375rem 0.5rem;
-      font-size: 0.75rem;
+      padding: 0.75rem;
+      font-size: 0.85rem;
+      min-height: 48px;
+    }
+
+    .setting-label {
+      font-size: 0.9rem;
+    }
+
+    .toggle-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .toggle-button {
+      justify-content: center;
     }
   }
 `;
@@ -423,51 +465,40 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     if (!["jpeg", "webp", "avif"].includes(settings.format)) return null;
 
     const quality = settings.quality ?? 80;
-    const progressPercent = quality;
-    
+
     // Disable quality slider for lossless modes
-    const isQualityDisabled = 
+    const isQualityDisabled =
       (settings.format === "webp" && settings.lossless) ||
       (settings.format === "avif" && settings.lossless);
 
     return (
       <div className="setting-item">
         <div className="setting-label">
-          <label htmlFor={`quality-slider-${settings.format}`}>
-            Quality {isQualityDisabled && "(N/A in lossless mode)"}
-          </label>
-          <span className="setting-value" aria-live="polite">
+          <span>Quality {isQualityDisabled && "(N/A in lossless mode)"}</span>
+          <span className="setting-value">
             {isQualityDisabled ? "—" : `${quality}%`}
           </span>
         </div>
-        <div className="slider-container">
-          <input
-            id={`quality-slider-${settings.format}`}
-            type="range"
-            min="1"
-            max="100"
-            value={quality}
-            onChange={(e) => handleQualityChange(Number(e.target.value))}
-            className="quality-slider"
-            data-accessibility-mode={accessibilityMode}
-            disabled={disabled || isProcessing || isQualityDisabled}
-            aria-label={`Quality setting for ${settings.format.toUpperCase()} format${isQualityDisabled ? " (disabled in lossless mode)" : ""}`}
-            aria-valuemin={1}
-            aria-valuemax={100}
-            aria-valuenow={quality}
-            aria-valuetext={isQualityDisabled ? "Not applicable in lossless mode" : `${quality} percent`}
-            style={isQualityDisabled ? { opacity: 0.5 } : undefined}
-          />
-          <div
-            className="slider-track"
-            style={
-              { 
-                "--progress": `${progressPercent}%`,
-                opacity: isQualityDisabled ? 0.5 : 1 
-              } as React.CSSProperties
-            }
-          />
-        </div>
+        <input
+          id={`quality-slider-${settings.format}`}
+          type="range"
+          min="1"
+          max="100"
+          value={quality}
+          onChange={(e) => handleQualityChange(Number(e.target.value))}
+          className="quality-slider"
+          data-accessibility-mode={accessibilityMode}
+          disabled={disabled || isProcessing || isQualityDisabled}
+          aria-label={`Quality setting for ${settings.format.toUpperCase()} format${isQualityDisabled ? " (disabled in lossless mode)" : ""}`}
+          aria-valuemin={1}
+          aria-valuemax={100}
+          aria-valuenow={quality}
+        />
+        <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+          {isQualityDisabled
+            ? "Quality setting is not applicable in lossless mode"
+            : "Higher quality = larger file size"}
+        </p>
       </div>
     );
   };
@@ -502,7 +533,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             ))}
           </select>
         </div>
-        
+
         <div className="setting-item">
           <div className="setting-label">
             <span>Interlacing (Adam7)</span>
@@ -523,13 +554,13 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             )}
             {settings.interlace ? "Enabled" : "Disabled"}
           </button>
-          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            {settings.interlace 
+          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+            {settings.interlace
               ? "Shows low-res preview first (larger file)"
               : "Standard top-to-bottom loading"}
           </p>
         </div>
-        
+
         <div className="setting-item">
           <div className="setting-label">
             <span>Palette Quantization</span>
@@ -562,7 +593,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                 disabled={disabled || isProcessing}
                 style={{ marginTop: '0.5rem' }}
               />
-              <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.25rem' }}>
                 Colors: {settings.colors || 256} (fewer colors = smaller file)
               </p>
             </>
@@ -573,7 +604,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
   };
 
   const [nearLosslessValue, setNearLosslessValue] = useState(settings.nearLossless || 100); // 100 = true lossless
-  
+
   // Initialize near-lossless value when settings change
   useEffect(() => {
     if (settings.format === "webp" && settings.lossless) {
@@ -589,10 +620,10 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     (value: number) => {
       setNearLosslessValue(value);
       onSettingsChange({ ...settings, nearLossless: value });
-      
+
       announce({
-        message: value === 100 
-          ? "True lossless mode" 
+        message: value === 100
+          ? "True lossless mode"
           : `Near-lossless quality: ${value}%`,
         priority: "polite",
         delay: 500,
@@ -639,7 +670,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             </button>
           </div>
         </div>
-        
+
         {/* WebP Preset for lossy mode */}
         {!settings.lossless && (
           <div className="setting-item">
@@ -662,12 +693,12 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
               <option value="icon">Icon (small colorful)</option>
               <option value="text">Text (legibility)</option>
             </select>
-            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
               Optimizes compression for specific content types
             </p>
           </div>
         )}
-        
+
         {/* Alpha Quality for images with transparency */}
         {!settings.lossless && (
           <div className="setting-item">
@@ -686,12 +717,12 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
               className="quality-slider"
               disabled={disabled || isProcessing}
             />
-            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
               Quality of transparency channel (if present)
             </p>
           </div>
         )}
-        
+
         {/* Near-lossless slider for WebP lossless only */}
         {settings.format === "webp" && settings.lossless && (
               <div className="setting-item">
@@ -708,42 +739,28 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                     {nearLosslessValue === 100 ? "True Lossless" : `${nearLosslessValue}%`}
                   </span>
                 </div>
-                <div className="slider-container">
-                  <input
-                    id="near-lossless-slider"
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={nearLosslessValue}
-                    onChange={(e) => handleNearLosslessChange(Number(e.target.value))}
-                    className="quality-slider"
-                    disabled={disabled || isProcessing}
-                    aria-label="Near-lossless quality setting"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={nearLosslessValue}
-                    aria-valuetext={nearLosslessValue === 100 ? "True lossless" : `${nearLosslessValue} percent quality`}
-                  />
-                  <div
-                    className="slider-track"
-                    style={{ "--progress": `${nearLosslessValue}%` } as React.CSSProperties}
-                  />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                <input
+                  id="near-lossless-slider"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={nearLosslessValue}
+                  onChange={(e) => handleNearLosslessChange(Number(e.target.value))}
+                  className="quality-slider"
+                  disabled={disabled || isProcessing}
+                  aria-label="Near-lossless quality setting"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={nearLosslessValue}
+                  aria-valuetext={nearLosslessValue === 100 ? "True lossless" : `${nearLosslessValue} percent quality`}
+                />
+                <div className="preset-buttons">
                   <button
                     type="button"
                     onClick={() => handleNearLosslessChange(100)}
                     disabled={disabled || isProcessing}
-                    style={{
-                      fontSize: '0.7rem',
-                      padding: '2px 8px',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '4px',
-                      background: nearLosslessValue === 100 ? '#3b82f6' : 'white',
-                      color: nearLosslessValue === 100 ? 'white' : '#6b7280',
-                      cursor: 'pointer'
-                    }}
+                    className={`preset-button ${nearLosslessValue === 100 ? 'active' : ''}`}
                   >
                     True Lossless
                   </button>
@@ -751,15 +768,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                     type="button"
                     onClick={() => handleNearLosslessChange(80)}
                     disabled={disabled || isProcessing}
-                    style={{
-                      fontSize: '0.7rem',
-                      padding: '2px 8px',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '4px',
-                      background: nearLosslessValue === 80 ? '#3b82f6' : 'white',
-                      color: nearLosslessValue === 80 ? 'white' : '#6b7280',
-                      cursor: 'pointer'
-                    }}
+                    className={`preset-button ${nearLosslessValue === 80 ? 'active' : ''}`}
                   >
                     Balanced (80%)
                   </button>
@@ -767,21 +776,13 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                     type="button"
                     onClick={() => handleNearLosslessChange(60)}
                     disabled={disabled || isProcessing}
-                    style={{
-                      fontSize: '0.7rem',
-                      padding: '2px 8px',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '4px',
-                      background: nearLosslessValue === 60 ? '#3b82f6' : 'white',
-                      color: nearLosslessValue === 60 ? 'white' : '#6b7280',
-                      cursor: 'pointer'
-                    }}
+                    className={`preset-button ${nearLosslessValue === 60 ? 'active' : ''}`}
                   >
                     Max Compression (60%)
                   </button>
                 </div>
-                <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                  {nearLosslessValue === 100 
+                <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+                  {nearLosslessValue === 100
                     ? "Pixel-perfect quality, larger file size"
                     : nearLosslessValue >= 80
                     ? "Visually identical, 10-20% smaller file"
@@ -818,13 +819,13 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             )}
             {settings.progressive ? "Enabled" : "Disabled"}
           </button>
-          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            {settings.progressive 
+          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+            {settings.progressive
               ? "Shows low-quality preview first, then improves."
               : "Loads from top to bottom."}
           </p>
         </div>
-        
+
         <div className="setting-item">
           <div className="setting-label">
             <span>Chroma Subsampling</span>
@@ -843,15 +844,15 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             <option value="4:2:2">4:2:2 (Balanced)</option>
             <option value="4:2:0">4:2:0 (Smallest file)</option>
           </select>
-          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            {settings.chromaSubsampling === "4:4:4" 
+          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+            {settings.chromaSubsampling === "4:4:4"
               ? "No color compression - best for graphics"
               : settings.chromaSubsampling === "4:2:0"
               ? "Maximum compression - best for photos"
               : "Automatic based on quality setting"}
           </p>
         </div>
-        
+
         <div className="setting-item">
           <div className="setting-label">
             <span>MozJPEG Encoder</span>
@@ -915,7 +916,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             </button>
           </div>
         </div>
-        
+
         {/* AVIF Effort level (controls compression quality and speed) */}
         <div className="setting-item">
           <div className="setting-label">
@@ -934,12 +935,12 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             disabled={disabled || isProcessing}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Fast (0)</span>
-            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Balanced (4)</span>
-            <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>Best (9)</span>
+            <span style={{ fontSize: '0.65rem', color: 'rgba(187, 225, 250, 0.5)' }}>Fast (0)</span>
+            <span style={{ fontSize: '0.65rem', color: 'rgba(187, 225, 250, 0.5)' }}>Balanced (4)</span>
+            <span style={{ fontSize: '0.65rem', color: 'rgba(187, 225, 250, 0.5)' }}>Best (9)</span>
           </div>
-          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            {(settings.effort ?? 4) <= 2 
+          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+            {(settings.effort ?? 4) <= 2
               ? "Fast encoding, larger file size"
               : (settings.effort ?? 4) >= 7
               ? "Best compression, very slow encoding"
@@ -953,11 +954,6 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
   return (
     <ConversionPanelStyled isProcessing={isProcessing} className={className}>
       <div className="settings-panel">
-        <div className="panel-header">
-          <Settings size={20} />
-          Conversion Settings
-        </div>
-
         <div className="format-selection">
           <label className="format-label" id="format-selection-label">
             Output Format
