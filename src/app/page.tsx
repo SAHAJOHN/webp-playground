@@ -309,6 +309,7 @@ export default function Home() {
     results: simpleResults,
     convertFiles,
     clearJobs,
+    cancelJob,
   } = useSimpleImageConversion();
 
   // Handle files selected from FileUpload component
@@ -336,8 +337,8 @@ export default function Home() {
     []
   );
 
-  // Get job arrays for display
-  const jobsArray = simpleJobs;
+  // Get job arrays for display (filter out cancelled jobs)
+  const jobsArray = simpleJobs.filter((job) => job.status !== "cancelled");
   const resultsArray = simpleResults;
   const hasResults = resultsArray.length > 0;
 
@@ -445,9 +446,7 @@ export default function Home() {
                   progress={job.progress}
                   fileName={job.file.name}
                   status={job.status}
-                  onCancel={() => {
-                    // Cancel individual job if needed
-                  }}
+                  onCancel={() => cancelJob(job.id)}
                 />
               ))}
             </div>
