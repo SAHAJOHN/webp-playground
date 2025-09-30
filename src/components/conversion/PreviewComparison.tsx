@@ -169,7 +169,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .size-comparison {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     padding: 24px;
     background: rgba(50, 130, 184, 0.15);
     border-radius: 20px;
@@ -194,7 +194,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .size-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 16px;
   }
 
   .size-stat {

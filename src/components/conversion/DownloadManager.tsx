@@ -88,19 +88,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
   }
-
-  .download-button.primary {
-    background: linear-gradient(135deg, #3282B8 0%, #0F4C75 100%);
-    color: #BBE1FA;
-    border-color: #3282B8;
-    box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
-  }
-
-  .download-button.primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #6A9484 0%, #1F4A4A 100%);
-    box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
-  }
-
+    
   .download-button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -296,7 +284,7 @@ export const DownloadManager: React.FC<DownloadManagerPropsType> = ({
         {hasResults && (
           <div className="download-actions">
             <button
-              className="download-button primary"
+              className="download-button"
               onClick={() => handleDownloadAll("zip")}
               disabled={isDownloading}
             >
