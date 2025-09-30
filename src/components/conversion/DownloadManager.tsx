@@ -64,7 +64,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px 32px;
+    padding: 16px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
     background: rgba(15, 76, 117, 0.5);
@@ -133,7 +133,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px;
+    padding: 16px;
     background: rgba(15, 76, 117, 0.4);
     border: 1px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
@@ -149,7 +149,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   .file-info {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     flex: 1;
   }
 

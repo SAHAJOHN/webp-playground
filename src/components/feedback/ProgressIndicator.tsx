@@ -82,7 +82,7 @@ const ProgressIndicatorStyled = styled.div<{
   }
 
   .progress-percentage {
-    font-size: 14px;
+    font-size: 12px;
     color: #3282B8;
     font-family: 'SF Mono', 'Monaco', monospace;
     font-weight: 700;

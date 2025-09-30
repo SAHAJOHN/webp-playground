@@ -194,7 +194,6 @@ const MainContainerStyled = styled.div`
       justify-content: center;
       width: 100%;
     }
-  }
 `;
 
 const HeaderStyled = styled.header`
@@ -249,8 +248,6 @@ const HeaderStyled = styled.header`
     }
   }
 
-  
-
     .logo {
       font-size: 24px;
     }
@@ -258,7 +255,6 @@ const HeaderStyled = styled.header`
     .logo-icon {
       width: 32px;
       height: 32px;
-    }
   }
 `;
 

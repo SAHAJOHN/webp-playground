@@ -35,7 +35,7 @@ export type PreviewComparisonPropsType = {
 export type ProgressIndicatorPropsType = {
   progress: number;
   fileName: string;
-  status: "pending" | "processing" | "completed" | "error";
+  status: "pending" | "processing" | "completed" | "error" | "cancelled";
   onCancel?: () => void;
   className?: string;
 };
