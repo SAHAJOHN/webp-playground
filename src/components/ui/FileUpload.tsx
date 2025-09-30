@@ -255,8 +255,8 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .status-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 
   .status-icon.valid {
@@ -271,12 +271,11 @@ const FileUploadContainerStyled = styled.div.withConfig({
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.3);
     cursor: pointer;
-    padding: 8px;
     border-radius: 12px;
     color: #fca5a5;
     transition: all 0.3s ease;
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 24px;
+    min-width: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
