@@ -2,7 +2,7 @@
 'use client';
 import React from "react";
 import styled from "styled-components";
-import { X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { X, CheckCircle, AlertCircle, Loader2, Clock } from "lucide-react";
 import type { ProgressIndicatorPropsType } from "@/types/components";
 
 const ProgressIndicatorStyled = styled.div<{
@@ -11,7 +11,7 @@ const ProgressIndicatorStyled = styled.div<{
   .progress-container {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     padding: 16px;
     border: 1px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
@@ -190,6 +190,8 @@ export const ProgressIndicator: React.FC<ProgressIndicatorPropsType> = ({
         return <AlertCircle className="status-icon" />;
       case "processing":
         return <Loader2 className="status-icon spinning" />;
+      case "pending":
+        return <Clock className="status-icon" />;
       default:
         return <div className="status-icon" />;
     }
