@@ -60,12 +60,14 @@ function SelectContent({
   className,
   children,
   position = "popper",
+  sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
+        sideOffset={sideOffset}
         className={cn(
           "relative z-50 max-h-(--radix-select-content-available-height) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
           // Width matches trigger
