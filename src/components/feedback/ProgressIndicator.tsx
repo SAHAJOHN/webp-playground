@@ -42,8 +42,8 @@ const ProgressIndicatorStyled = styled.div<{
 
   .status-icon {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     color: ${(props) => {
       switch (props.status) {
         case "completed":

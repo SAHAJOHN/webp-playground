@@ -90,7 +90,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
     font-size: 14px;
     font-weight: 600;
     color: #BBE1FA;
-    min-width: 64px;
+    min-width: 48px;
     text-align: center;
     font-family: 'SF Mono', 'Monaco', monospace;
   }
