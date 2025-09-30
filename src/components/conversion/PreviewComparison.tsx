@@ -361,6 +361,18 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
     }
   };
 
+  // Synchronized scroll handler
+  const syncScroll = (scrollLeft: number, scrollTop: number) => {
+    if (originalWrapperRef.current) {
+      originalWrapperRef.current.scrollLeft = scrollLeft;
+      originalWrapperRef.current.scrollTop = scrollTop;
+    }
+    if (convertedWrapperRef.current) {
+      convertedWrapperRef.current.scrollLeft = scrollLeft;
+      convertedWrapperRef.current.scrollTop = scrollTop;
+    }
+  };
+
   // Pan handlers
   const handleMouseDown = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement>) => {
     if (!wrapperRef.current || zoomLevel <= 100) return;
@@ -379,12 +391,30 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
     const dx = e.clientX - dragStart.x;
     const dy = e.clientY - dragStart.y;
 
-    wrapperRef.current.scrollLeft = scrollStart.x - dx;
-    wrapperRef.current.scrollTop = scrollStart.y - dy;
+    const newScrollLeft = scrollStart.x - dx;
+    const newScrollTop = scrollStart.y - dy;
+
+    // Sync both wrappers
+    syncScroll(newScrollLeft, newScrollTop);
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  // Wheel scroll handler for synchronized scrolling
+  const handleWheel = (e: React.WheelEvent) => {
+    if (zoomLevel <= 100) return;
+
+    e.preventDefault();
+
+    const wrapper = originalWrapperRef.current || convertedWrapperRef.current;
+    if (!wrapper) return;
+
+    const newScrollLeft = wrapper.scrollLeft + e.deltaX;
+    const newScrollTop = wrapper.scrollTop + e.deltaY;
+
+    syncScroll(newScrollLeft, newScrollTop);
   };
 
   // Image error handling
@@ -450,6 +480,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
                 onMouseMove={(e) => handleMouseMove(e, originalWrapperRef)}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
               >
                 {originalImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -481,6 +512,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
                 onMouseMove={(e) => handleMouseMove(e, convertedWrapperRef)}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
               >
                 {isLoading ? (
                   <div className="loading-placeholder">
