@@ -21,34 +21,35 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   .download-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    padding: 2rem;
+    gap: 24px;
+    padding: 24px;
     border: 1px solid rgba(50, 130, 184, 0.2);
     border-radius: 24px;
     background: rgba(50, 130, 184, 0.15);
     backdrop-filter: blur(10px);
+      margin-top: 24px;
   }
 
   .download-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 1rem;
+    padding-bottom: 16px;
     border-bottom: 1px solid rgba(50, 130, 184, 0.2);
   }
 
   .download-title {
-    font-size: 1.5rem;
+    font-size: 24px;
     font-weight: 700;
     color: #BBE1FA;
     letter-spacing: -0.02em;
   }
 
   .download-count {
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 600;
     color: #3282B8;
-    padding: 0.5rem 1rem;
+    padding: 8px 16px;
     background: rgba(50, 130, 184, 0.2);
     border-radius: 12px;
     border: 1px solid rgba(50, 130, 184, 0.3);
@@ -56,20 +57,19 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
 
   .download-actions {
     display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+    gap: 16px;
   }
 
   .download-button {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
+    gap: 12px;
+    padding: 16px 32px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
     background: rgba(15, 76, 117, 0.5);
     color: #BBE1FA;
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -108,7 +108,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   }
 
   .progress-container {
-    margin-top: 1rem;
+    margin-top: 16px;
   }
 
   .progress-bar {
@@ -127,18 +127,17 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   }
 
   .progress-text {
-    font-size: 0.85rem;
+    font-size: 13px;
     color: rgba(187, 225, 250, 0.8);
-    margin-top: 0.75rem;
+    margin-top: 12px;
     font-weight: 500;
   }
 
   .individual-downloads {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
+    gap: 16px;
+    padding-top: 24px;
     border-top: 1px solid rgba(50, 130, 184, 0.2);
   }
 
@@ -146,7 +145,7 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem;
+    padding: 20px;
     background: rgba(15, 76, 117, 0.4);
     border: 1px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
@@ -162,18 +161,18 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   .file-info {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 8px;
     flex: 1;
   }
 
   .file-name {
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 600;
     color: #BBE1FA;
   }
 
   .file-details {
-    font-size: 0.85rem;
+    font-size: 13px;
     color: rgba(187, 225, 250, 0.7);
     font-family: 'SF Mono', 'Monaco', monospace;
   }
@@ -181,13 +180,13 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   .download-single-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
+    gap: 8px;
+    padding: 12px 20px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 12px;
     background: rgba(50, 130, 184, 0.2);
     color: #BBE1FA;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -374,7 +373,7 @@ export const DownloadManager: React.FC<DownloadManagerPropsType> = ({
 
         {!hasResults && (
           <div className="download-actions">
-            <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+            <p style={{ color: "#6b7280", fontSize: "14px" }}>
               No converted files available for download.
             </p>
           </div>

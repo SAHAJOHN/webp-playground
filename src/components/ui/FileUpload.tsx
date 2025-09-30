@@ -34,7 +34,7 @@ const FileUploadContainerStyled = styled.div.withConfig({
           ? "rgba(50, 130, 184, 0.8)"
           : "rgba(50, 130, 184, 0.3)"};
     border-radius: 24px;
-    padding: 3rem 2rem;
+    padding: 48px 32px;
     text-align: center;
     background: ${(props) =>
       props.isDragOver
@@ -50,7 +50,7 @@ const FileUploadContainerStyled = styled.div.withConfig({
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;
+    gap: 24px;
     position: relative;
     backdrop-filter: blur(10px);
   }
@@ -82,13 +82,13 @@ const FileUploadContainerStyled = styled.div.withConfig({
         : props.isDragOver
         ? "#3282B8"
         : "rgba(50, 130, 184, 0.6)"};
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
     filter: ${(props) =>
       props.isDragOver ? "drop-shadow(0 0 12px rgba(50, 130, 184, 0.5))" : "none"};
   }
 
   .upload-text {
-    font-size: 1.5rem;
+    font-size: 24px;
     font-weight: 700;
     color: ${(props) =>
       props.hasErrors
@@ -96,14 +96,14 @@ const FileUploadContainerStyled = styled.div.withConfig({
         : props.isDragOver
         ? "#BBE1FA"
         : "#3282B8"};
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
     letter-spacing: -0.02em;
   }
 
   .upload-subtext {
-    font-size: 1rem;
+    font-size: 16px;
     color: rgba(187, 225, 250, 0.7);
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
   }
 
   .upload-button {
@@ -111,8 +111,8 @@ const FileUploadContainerStyled = styled.div.withConfig({
     color: #BBE1FA;
     border: none;
     border-radius: 16px;
-    padding: 1rem 2rem;
-    font-size: 1rem;
+    padding: 16px 32px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -147,8 +147,8 @@ const FileUploadContainerStyled = styled.div.withConfig({
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 1.5rem;
-    padding: 1rem 1.25rem;
+    margin-top: 24px;
+    padding: 16px 16px 16px 20px;
     background: rgba(15, 76, 117, 0.3);
     border: 1px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
@@ -156,7 +156,7 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .file-count {
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 600;
     color: #BBE1FA;
   }
@@ -164,13 +164,13 @@ const FileUploadContainerStyled = styled.div.withConfig({
   .clear-all-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    gap: 8px;
+    padding: 8px 16px;
     background: rgba(239, 68, 68, 0.2);
     border: 2px solid rgba(239, 68, 68, 0.3);
     border-radius: 12px;
     color: #fca5a5;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -191,17 +191,17 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .file-list {
-    margin-top: 1rem;
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
   }
 
   .file-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem;
+    padding: 16px;
     background: rgba(15, 76, 117, 0.4);
     border: 1px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
@@ -227,13 +227,13 @@ const FileUploadContainerStyled = styled.div.withConfig({
   .file-info {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 16px;
     flex: 1;
   }
 
   .file-icon {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     color: #3282B8;
   }
 
@@ -242,21 +242,20 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .file-name {
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 600;
     color: #BBE1FA;
-    margin-bottom: 0.25rem;
   }
 
   .file-meta {
-    font-size: 0.85rem;
+    font-size: 13px;
     color: rgba(187, 225, 250, 0.7);
   }
 
   .file-status {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
   }
 
   .status-icon {
@@ -276,7 +275,7 @@ const FileUploadContainerStyled = styled.div.withConfig({
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.3);
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 8px;
     border-radius: 12px;
     color: #fca5a5;
     transition: all 0.3s ease;
@@ -298,17 +297,17 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .error-list {
-    margin-top: 1.5rem;
+    margin-top: 24px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
   }
 
   .error-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
+    gap: 12px;
+    padding: 16px;
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.3);
     border-radius: 12px;
@@ -322,16 +321,16 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .error-text {
-    font-size: 0.9rem;
+    font-size: 14px;
     color: #fca5a5;
   }
 
   .validation-loading {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-    padding: 1rem;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 16px;
     background: rgba(50, 130, 184, 0.15);
     border: 1px solid rgba(50, 130, 184, 0.3);
     border-radius: 12px;
@@ -356,13 +355,13 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .loading-text {
-    font-size: 0.9rem;
+    font-size: 14px;
     color: #BBE1FA;
   }
 
   .format-info {
-    margin-top: 1rem;
-    font-size: 0.85rem;
+    margin-top: 16px;
+    font-size: 13px;
     color: rgba(187, 225, 250, 0.7);
     line-height: 1.6;
   }

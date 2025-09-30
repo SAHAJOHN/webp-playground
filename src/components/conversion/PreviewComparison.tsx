@@ -18,10 +18,10 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .preview-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 24px;
     border: 1px solid rgba(50, 130, 184, 0.2);
     border-radius: 24px;
-    padding: 2rem;
+    padding: 24px;
     background: rgba(15, 76, 117, 0.4);
     backdrop-filter: blur(10px);
     opacity: ${(props) => (props.isLoading ? 0.6 : 1)};
@@ -32,17 +32,17 @@ const PreviewComparisonStyled = styled.div.withConfig({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 1rem;
+    padding-bottom: 24px;
     border-bottom: 1px solid rgba(50, 130, 184, 0.2);
   }
 
   .preview-title {
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 20px;
     color: #BBE1FA;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
     letter-spacing: -0.02em;
 
     svg {
@@ -52,12 +52,12 @@ const PreviewComparisonStyled = styled.div.withConfig({
 
   .zoom-controls {
     display: flex;
-    gap: 0.75rem;
+    gap: 12px;
     align-items: center;
   }
 
   .zoom-button {
-    padding: 0.75rem;
+    padding: 12px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 12px;
     background: rgba(15, 76, 117, 0.5);
@@ -87,10 +87,10 @@ const PreviewComparisonStyled = styled.div.withConfig({
   }
 
   .zoom-level {
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 600;
     color: #BBE1FA;
-    min-width: 4rem;
+    min-width: 64px;
     text-align: center;
     font-family: 'SF Mono', 'Monaco', monospace;
   }
@@ -98,24 +98,19 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .images-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    min-height: 400px;
-
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-    }
+    gap: 24px;
   }
 
   .image-section {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
   }
 
   .image-label {
     font-weight: 700;
     color: #BBE1FA;
-    font-size: 1rem;
+    font-size: 16px;
     text-align: center;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -151,14 +146,14 @@ const PreviewComparisonStyled = styled.div.withConfig({
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 16px;
     color: rgba(187, 225, 250, 0.6);
     min-height: 300px;
   }
 
   .loading-spinner {
-    width: 3rem;
-    height: 3rem;
+    width: 48px;
+    height: 48px;
     border: 3px solid rgba(50, 130, 184, 0.2);
     border-top: 3px solid #3282B8;
     border-radius: 50%;
@@ -174,8 +169,8 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .size-comparison {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-    padding: 1.5rem;
+    gap: 20px;
+    padding: 24px;
     background: rgba(50, 130, 184, 0.15);
     border-radius: 20px;
     border: 1px solid rgba(50, 130, 184, 0.2);
@@ -184,11 +179,11 @@ const PreviewComparisonStyled = styled.div.withConfig({
 
   .size-comparison-title {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 17px;
     color: #BBE1FA;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
     letter-spacing: -0.01em;
 
     svg {
@@ -198,18 +193,18 @@ const PreviewComparisonStyled = styled.div.withConfig({
 
   .size-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
 
   .size-stat {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 8px;
   }
 
   .size-stat-label {
-    font-size: 0.8rem;
+    font-size: 12px;
     color: rgba(187, 225, 250, 0.7);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -219,17 +214,17 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .size-stat-value {
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 17px;
     color: #BBE1FA;
   }
 
   .compression-indicator {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: 12px;
+    padding: 12px 16px;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: 700;
     font-family: 'SF Mono', 'Monaco', monospace;
 
@@ -256,7 +251,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 14px;
     color: rgba(187, 225, 250, 0.8);
     font-weight: 500;
   }
@@ -265,10 +260,10 @@ const PreviewComparisonStyled = styled.div.withConfig({
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 12px;
     color: #fca5a5;
     background: rgba(239, 68, 68, 0.2);
-    padding: 1.5rem;
+    padding: 24px;
     border-radius: 16px;
     border: 1px solid rgba(239, 68, 68, 0.4);
     font-weight: 600;

@@ -20,31 +20,31 @@ const ConversionPanelStyled = styled.div.withConfig({
   }
 
   .format-selection {
-    margin-bottom: 2rem;
+    margin-bottom: 32px;
   }
 
   .format-label {
     display: block;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 16px;
     color: #BBE1FA;
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
     letter-spacing: 0.01em;
   }
 
   .format-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
   }
 
   .format-button {
-    padding: 1rem;
+    padding: 16px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 16px;
     background: rgba(15, 76, 117, 0.3);
     color: rgba(187, 225, 250, 0.7);
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
     cursor: pointer;
@@ -95,7 +95,7 @@ const ConversionPanelStyled = styled.div.withConfig({
   }
 
   .settings-group {
-    margin-bottom: 2rem;
+    margin-bottom: 32px;
   }
 
   .settings-group:last-child {
@@ -103,7 +103,7 @@ const ConversionPanelStyled = styled.div.withConfig({
   }
 
   .setting-item {
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
   }
 
   .setting-item:last-child {
@@ -115,13 +115,13 @@ const ConversionPanelStyled = styled.div.withConfig({
     align-items: center;
     justify-content: space-between;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 14px;
     color: #BBE1FA;
-    margin-bottom: 1rem;
+    margin-bottom: 8px;
   }
 
   .setting-value {
-    font-size: 0.85rem;
+    font-size: 13px;
     color: #3282B8;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-weight: 600;
@@ -191,16 +191,14 @@ const ConversionPanelStyled = styled.div.withConfig({
 
   .preset-buttons {
     display: flex;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
   }
 
   .preset-button {
     flex: 1;
-    min-width: 120px;
-    padding: 0.75rem 1rem;
-    font-size: 0.85rem;
+    padding: 12px 16px;
+    font-size: 13px;
     font-weight: 600;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 12px;
@@ -235,19 +233,19 @@ const ConversionPanelStyled = styled.div.withConfig({
   .toggle-container {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 16px;
   }
 
   .toggle-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
+    gap: 8px;
+    padding: 12px 20px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 14px;
     background: rgba(15, 76, 117, 0.3);
     color: rgba(187, 225, 250, 0.7);
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -270,12 +268,12 @@ const ConversionPanelStyled = styled.div.withConfig({
 
   .compression-select {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 12px 16px;
     border: 2px solid rgba(50, 130, 184, 0.3);
     border-radius: 14px;
     background: rgba(15, 76, 117, 0.3);
     color: #BBE1FA;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -293,12 +291,12 @@ const ConversionPanelStyled = styled.div.withConfig({
   }
 
   .format-info {
-    margin-top: 1.5rem;
-    padding: 1.25rem;
+    margin-top: 24px;
+    padding: 20px;
     background: rgba(50, 130, 184, 0.15);
     border-radius: 16px;
     border: 1px solid rgba(50, 130, 184, 0.2);
-    font-size: 0.85rem;
+    font-size: 13px;
     color: rgba(187, 225, 250, 0.9);
     line-height: 1.6;
     backdrop-filter: blur(10px);
@@ -321,21 +319,16 @@ const ConversionPanelStyled = styled.div.withConfig({
     border: 0;
   }
 
-  @media (max-width: 640px) {
-
-    .format-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-    }
+  
 
     .format-button {
-      padding: 0.75rem;
-      font-size: 0.85rem;
+      padding: 12px;
+      font-size: 13px;
       min-height: 48px;
     }
 
     .setting-label {
-      font-size: 0.9rem;
+      font-size: 14px;
     }
 
     .toggle-container {
@@ -494,7 +487,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           aria-valuemax={100}
           aria-valuenow={quality}
         />
-        <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+        <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
           {isQualityDisabled
             ? "Quality setting is not applicable in lossless mode"
             : "Higher quality = larger file size"}
@@ -537,7 +530,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         <div className="setting-item">
           <div className="setting-label">
             <span>Interlacing (Adam7)</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            <span className="setting-value" style={{ fontSize: '11px' }}>
               {settings.interlace ? "Progressive display" : "Sequential"}
             </span>
           </div>
@@ -554,7 +547,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             )}
             {settings.interlace ? "Enabled" : "Disabled"}
           </button>
-          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
             {settings.interlace
               ? "Shows low-res preview first (larger file)"
               : "Standard top-to-bottom loading"}
@@ -564,7 +557,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         <div className="setting-item">
           <div className="setting-label">
             <span>Palette Quantization</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            <span className="setting-value" style={{ fontSize: '11px' }}>
               {settings.palette ? `${settings.colors || 256} colors` : "Full color"}
             </span>
           </div>
@@ -591,9 +584,9 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                 onChange={(e) => onSettingsChange({ ...settings, colors: Number(e.target.value) })}
                 className="quality-slider"
                 disabled={disabled || isProcessing}
-                style={{ marginTop: '0.5rem' }}
+                style={{ marginTop: '8px' }}
               />
-              <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.25rem' }}>
+              <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '4px' }}>
                 Colors: {settings.colors || 256} (fewer colors = smaller file)
               </p>
             </>
@@ -676,7 +669,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           <div className="setting-item">
             <div className="setting-label">
               <span>Optimization Preset</span>
-              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              <span className="setting-value" style={{ fontSize: '11px' }}>
                 {settings.preset || "default"}
               </span>
             </div>
@@ -693,7 +686,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
               <option value="icon">Icon (small colorful)</option>
               <option value="text">Text (legibility)</option>
             </select>
-            <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
               Optimizes compression for specific content types
             </p>
           </div>
@@ -704,7 +697,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           <div className="setting-item">
             <div className="setting-label">
               <span>Alpha Channel Quality</span>
-              <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+              <span className="setting-value" style={{ fontSize: '11px' }}>
                 {settings.alphaQuality || 100}%
               </span>
             </div>
@@ -717,7 +710,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
               className="quality-slider"
               disabled={disabled || isProcessing}
             />
-            <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
               Quality of transparency channel (if present)
             </p>
           </div>
@@ -730,7 +723,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                   <label htmlFor="near-lossless-slider">
                     Near-Lossless Quality
                     {nearLosslessValue < 100 && (
-                      <span style={{ fontSize: '0.7rem', marginLeft: '0.5rem', color: '#10b981' }}>
+                      <span style={{ fontSize: '11px', marginLeft: '8px', color: '#10b981' }}>
                         (Smaller file)
                       </span>
                     )}
@@ -781,7 +774,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
                     Max Compression (60%)
                   </button>
                 </div>
-                <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
                   {nearLosslessValue === 100
                     ? "Pixel-perfect quality, larger file size"
                     : nearLosslessValue >= 80
@@ -802,7 +795,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         <div className="setting-item">
           <div className="setting-label">
             <span>Progressive JPEG</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            <span className="setting-value" style={{ fontSize: '11px' }}>
               {settings.progressive ? "Better for web" : "Standard"}
             </span>
           </div>
@@ -819,7 +812,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             )}
             {settings.progressive ? "Enabled" : "Disabled"}
           </button>
-          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
             {settings.progressive
               ? "Shows low-quality preview first, then improves."
               : "Loads from top to bottom."}
@@ -829,7 +822,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         <div className="setting-item">
           <div className="setting-label">
             <span>Chroma Subsampling</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            <span className="setting-value" style={{ fontSize: '11px' }}>
               {settings.chromaSubsampling || "auto"}
             </span>
           </div>
@@ -844,7 +837,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             <option value="4:2:2">4:2:2 (Balanced)</option>
             <option value="4:2:0">4:2:0 (Smallest file)</option>
           </select>
-          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
             {settings.chromaSubsampling === "4:4:4"
               ? "No color compression - best for graphics"
               : settings.chromaSubsampling === "4:2:0"
@@ -856,7 +849,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         <div className="setting-item">
           <div className="setting-label">
             <span>MozJPEG Encoder</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            <span className="setting-value" style={{ fontSize: '11px' }}>
               10-15% smaller files
             </span>
           </div>
@@ -921,7 +914,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
         <div className="setting-item">
           <div className="setting-label">
             <span>Compression Effort</span>
-            <span className="setting-value" style={{ fontSize: '0.7rem' }}>
+            <span className="setting-value" style={{ fontSize: '11px' }}>
               {settings.effort ?? 4}/9
             </span>
           </div>
@@ -934,12 +927,12 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
             className="quality-slider"
             disabled={disabled || isProcessing}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(187, 225, 250, 0.5)' }}>Fast (0)</span>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(187, 225, 250, 0.5)' }}>Balanced (4)</span>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(187, 225, 250, 0.5)' }}>Best (9)</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'rgba(187, 225, 250, 0.5)' }}>Fast (0)</span>
+            <span style={{ fontSize: '10px', color: 'rgba(187, 225, 250, 0.5)' }}>Balanced (4)</span>
+            <span style={{ fontSize: '10px', color: 'rgba(187, 225, 250, 0.5)' }}>Best (9)</span>
           </div>
-          <p style={{ fontSize: '0.7rem', color: 'rgba(187, 225, 250, 0.6)', marginTop: '0.5rem' }}>
+          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
             {(settings.effort ?? 4) <= 2
               ? "Fast encoding, larger file size"
               : (settings.effort ?? 4) >= 7
@@ -1003,7 +996,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           <div className="format-info">
             <Sliders
               size={14}
-              style={{ display: "inline", marginRight: "0.5rem" }}
+              style={{ display: "inline", marginRight: "8px" }}
             />
             {formatInfo}
           </div>

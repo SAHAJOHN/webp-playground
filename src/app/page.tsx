@@ -47,10 +47,10 @@ const MainContainerStyled = styled.div`
     z-index: 1;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 32px 24px;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 32px;
   }
 
   .upload-section,
@@ -68,12 +68,11 @@ const MainContainerStyled = styled.div`
   .section-title {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
+    gap: 12px;
+    font-size: 24px;
     font-weight: 700;
     color: #BBE1FA;
-    margin-bottom: 2rem;
-    letter-spacing: -0.02em;
+    margin-bottom: 24px;
 
     svg {
       color: #3282B8;
@@ -82,20 +81,19 @@ const MainContainerStyled = styled.div`
 
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
   }
 
   .feature-card {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
+    gap: 16px;
+    padding: 24px;
     background: rgba(50, 130, 184, 0.15);
     border-radius: 20px;
     border: 1px solid rgba(187, 225, 250, 0.2);
-    font-size: 0.95rem;
+    font-size: 14px;
     color: #BBE1FA;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -114,19 +112,18 @@ const MainContainerStyled = styled.div`
 
   .action-buttons {
     display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+    gap: 16px;
     margin-top: 24px;
   }
 
   .action-button {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
+    gap: 12px;
+    padding: 16px 32px;
     border-radius: 16px;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 14px;
     transition: all 0.3s ease;
     cursor: pointer;
     border: none;
@@ -174,51 +171,47 @@ const MainContainerStyled = styled.div`
 
   .empty-state {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 64px 32px;
     color: #3282B8;
   }
 
   .empty-state-icon {
-    margin: 0 auto 1.5rem;
-    width: 5rem;
-    height: 5rem;
+    margin: 0 auto 24px;
+    width: 80px;
+    height: 80px;
     color: rgba(50, 130, 184, 0.4);
   }
 
   .empty-state h3 {
     color: #BBE1FA;
-    font-size: 1.5rem;
+    font-size: 24px;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 16px;
   }
 
   .empty-state p {
     color: #3282B8;
-    font-size: 1rem;
+    font-size: 16px;
     line-height: 1.6;
   }
 
-  @media (max-width: 768px) {
-    .content-wrapper {
-      padding: 1rem;
-      gap: 1.5rem;
-    }
+  
 
     .upload-section,
     .settings-section,
     .processing-section,
     .results-section {
-      padding: 1.5rem;
+      padding: 24px;
       border-radius: 20px;
     }
 
     .section-title {
-      font-size: 1.25rem;
+      font-size: 20px;
     }
 
     .feature-grid {
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 16px;
     }
 
     .action-buttons {
@@ -243,7 +236,7 @@ const HeaderStyled = styled.header`
   .header-content {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 32px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -252,16 +245,16 @@ const HeaderStyled = styled.header`
   .logo {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    font-size: 1.75rem;
+    gap: 16px;
+    font-size: 28px;
     font-weight: 800;
     color: #BBE1FA;
     letter-spacing: -0.03em;
   }
 
   .logo-icon {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 40px;
+    height: 40px;
     color: #3282B8;
     filter: drop-shadow(0 0 8px rgba(50, 130, 184, 0.5));
   }
@@ -269,12 +262,12 @@ const HeaderStyled = styled.header`
   .privacy-badge {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
+    gap: 12px;
+    padding: 12px 24px;
     background: rgba(50, 130, 184, 0.2);
     color: #BBE1FA;
     border-radius: 50px;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 600;
     border: 1px solid rgba(187, 225, 250, 0.3);
     letter-spacing: 0.01em;
@@ -284,21 +277,15 @@ const HeaderStyled = styled.header`
     }
   }
 
-  @media (max-width: 768px) {
-    .header-content {
-      flex-direction: column;
-      gap: 1.5rem;
-      text-align: center;
-      padding: 1.5rem 1rem;
-    }
+  
 
     .logo {
-      font-size: 1.5rem;
+      font-size: 24px;
     }
 
     .logo-icon {
-      width: 2rem;
-      height: 2rem;
+      width: 32px;
+      height: 32px;
     }
   }
 `;
@@ -450,7 +437,7 @@ export default function Home() {
               Conversion Progress
             </h2>
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
             >
               {jobsArray.map((job) => (
                 <ProgressIndicator
@@ -486,7 +473,7 @@ export default function Home() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "1.5rem",
+                gap: "24px",
               }}
             >
               {resultsArray.map((result, idx) => (
