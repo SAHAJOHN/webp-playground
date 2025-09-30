@@ -315,7 +315,7 @@ export default function Home() {
             </div>
             <div className="privacy-badge">
               <Shield size={16} />
-              100% Client-Side Processing
+              Server-Side Sharp Processing
             </div>
           </div>
         </div>
@@ -327,15 +327,15 @@ export default function Home() {
         <div className="feature-grid">
           <div className="feature-card">
             <Zap size={20} />
-            <span>Fast client-side conversion</span>
+            <span>Server-side Sharp processing</span>
           </div>
           <div className="feature-card">
             <Shield size={20} />
-            <span>No server uploads required</span>
+            <span>Superior compression quality</span>
           </div>
           <div className="feature-card">
             <FileImage size={20} />
-            <span>7 formats supported</span>
+            <span>4 formats supported (JPEG, PNG, WebP, AVIF)</span>
           </div>
         </div>
 
@@ -351,11 +351,8 @@ export default function Home() {
               "jpeg",
               "jpg",
               "png",
-              "gif",
               "webp",
               "avif",
-              "svg",
-              "ico",
             ]}
             maxFileSize={50 * 1024 * 1024} // 50MB
             maxFiles={10}
@@ -469,12 +466,12 @@ export default function Home() {
           <div className="empty-state">
             <FileImage className="empty-state-icon" />
             <h3 className="text-lg font-semibold mb-2">
-              Ready to convert your images?
+              Ready to convert your images with Sharp?
             </h3>
             <p className="mb-4">
-              Drag and drop your images above or click to select files.
+              Upload your images above to convert with server-side Sharp processing.
               <br />
-              Supports JPEG, PNG, GIF, WebP, AVIF, SVG, and ICO formats.
+              Supports JPEG, PNG, WebP, and AVIF output formats.
             </p>
           </div>
         )}
