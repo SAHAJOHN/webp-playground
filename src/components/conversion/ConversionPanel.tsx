@@ -254,7 +254,6 @@ const ConversionPanelStyled = styled.div.withConfig({
     border-color: rgba(50, 130, 184, 0.5);
     background: rgba(15, 76, 117, 0.5);
     color: #BBE1FA;
-    transform: translateY(-1px);
   }
 
   .toggle-button.active {
@@ -327,11 +326,6 @@ const ConversionPanelStyled = styled.div.withConfig({
 
     .setting-label {
       font-size: 14px;
-    }
-
-    .toggle-container {
-      flex-direction: column;
-      align-items: stretch;
     }
 
     .toggle-button {

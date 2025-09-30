@@ -179,7 +179,6 @@ const FileUploadContainerStyled = styled.div.withConfig({
     &:hover {
       background: rgba(239, 68, 68, 0.3);
       border-color: rgba(239, 68, 68, 0.5);
-      transform: translateY(-1px);
     }
 
     &:active {
