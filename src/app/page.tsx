@@ -169,34 +169,6 @@ const MainContainerStyled = styled.div`
     }
   }
 
-  .empty-state {
-    text-align: center;
-    padding: 64px 32px;
-    color: #3282B8;
-  }
-
-  .empty-state-icon {
-    margin: 0 auto 24px;
-    width: 80px;
-    height: 80px;
-    color: rgba(50, 130, 184, 0.4);
-  }
-
-  .empty-state h3 {
-    color: #BBE1FA;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-
-  .empty-state p {
-    color: #3282B8;
-    font-size: 16px;
-    line-height: 1.6;
-  }
-
-  
-
     .upload-section,
     .settings-section,
     .processing-section,
@@ -293,6 +265,7 @@ const HeaderStyled = styled.header`
 export default function Home() {
   // State for selected files and conversion settings
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [fileUploadKey, setFileUploadKey] = useState(0);
   const [conversionSettings, setConversionSettings] =
     useState<ConversionSettingsType>({
       format: "webp" as SupportedFormatType,
@@ -326,6 +299,9 @@ export default function Home() {
   const handleStartConversion = useCallback(() => {
     if (selectedFiles.length > 0) {
       convertFiles(selectedFiles, conversionSettings);
+      // Clear file list after starting conversion
+      setSelectedFiles([]);
+      setFileUploadKey((prev) => prev + 1); // Force FileUpload to re-render and clear
     }
   }, [selectedFiles, conversionSettings, convertFiles]);
 
@@ -391,6 +367,7 @@ export default function Home() {
             Upload Images
           </h2>
           <FileUpload
+            key={fileUploadKey}
             onFilesSelected={handleFilesSelected}
             acceptedFormats={[
               "jpeg",
@@ -454,7 +431,7 @@ export default function Home() {
               <div className="action-buttons">
                 <button className="action-button danger" onClick={clearJobs}>
                   <Trash2 size={16} />
-                  Clear All
+                  Cancel All
                 </button>
               </div>
             )}
@@ -489,21 +466,6 @@ export default function Home() {
               results={resultsMap}
               isDownloading={false}
             />
-          </div>
-        )}
-
-        {/* Empty State */}
-        {selectedFiles.length === 0 && !hasResults && (
-          <div className="empty-state">
-            <FileImage className="empty-state-icon" />
-            <h3 className="text-lg font-semibold mb-2">
-              Ready to convert your images with Sharp?
-            </h3>
-            <p className="mb-4">
-              Upload your images above to convert with server-side Sharp processing.
-              <br />
-              Supports JPEG, PNG, WebP, and AVIF output formats.
-            </p>
           </div>
         )}
       </div>
