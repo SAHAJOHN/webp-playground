@@ -24,7 +24,6 @@ import type { ConversionSettingsType, SupportedFormatType, ConversionResultType 
 
 // Styled Components with Dark Theme
 const MainContainerStyled = styled.div`
-  min-height: 100vh;
   background: #1B262C;
   position: relative;
 
@@ -46,11 +45,13 @@ const MainContainerStyled = styled.div`
     position: relative;
     z-index: 1;
     max-width: 1400px;
-    margin: 0 auto;
+    margin: 95px auto 0 auto;
     padding: 32px 24px;
     display: flex;
     flex-direction: column;
     gap: 32px;
+max-height: calc(100dvh - 95px);
+      overflow: auto;
   }
 
   .upload-section,
@@ -106,7 +107,6 @@ const MainContainerStyled = styled.div`
     &:hover {
       background: rgba(50, 130, 184, 0.25);
       border-color: rgba(187, 225, 250, 0.4);
-      transform: translateY(-2px);
     }
   }
 
@@ -137,7 +137,6 @@ const MainContainerStyled = styled.div`
       &:hover:not(:disabled) {
         background: linear-gradient(135deg, #4292C8 0%, #1F5C85 100%);
         box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
-        transform: translateY(-2px);
       }
     }
 
@@ -181,11 +180,6 @@ const MainContainerStyled = styled.div`
       font-size: 20px;
     }
 
-    .feature-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
     .action-buttons {
       flex-direction: column;
     }
@@ -197,17 +191,18 @@ const MainContainerStyled = styled.div`
 `;
 
 const HeaderStyled = styled.header`
-  position: relative;
+  position: fixed;
   z-index: 10;
   background: rgba(27, 38, 44, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(50, 130, 184, 0.2);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-
+width: 100%;
+    top: 0;
   .header-content {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -256,6 +251,30 @@ const HeaderStyled = styled.header`
       width: 32px;
       height: 32px;
   }
+`;
+
+const BlurTopStyled = styled.div`
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.02);
+    top: 95px;
+    flex: 0 0 auto;
+    height: 40px;
+    position: fixed;
+    width: 100%;
+    z-index: 48;
+    mask: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 70%);
+`;
+
+const BlurBottomStyled = styled.div`
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.02);
+    bottom: 0px;
+    flex: 0 0 auto;
+    height: 40px;
+    position: fixed;
+    width: 100%;
+    z-index: 48;
+    mask: linear-gradient(rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 70%);
 `;
 
 export default function Home() {
@@ -322,6 +341,7 @@ export default function Home() {
 
   return (
     <MainContainerStyled>
+        <BlurTopStyled/>
       {/* Header */}
       <HeaderStyled>
         <div className="header">
@@ -465,6 +485,7 @@ export default function Home() {
           </div>
         )}
       </div>
+        <BlurBottomStyled/>
     </MainContainerStyled>
   );
 }

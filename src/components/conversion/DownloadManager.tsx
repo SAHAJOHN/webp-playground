@@ -85,7 +85,6 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
   .download-button:hover:not(:disabled) {
     background: rgba(50, 130, 184, 0.3);
     border-color: rgba(50, 130, 184, 0.5);
-    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
   }
     
@@ -186,7 +185,6 @@ const DownloadManagerStyled = styled.div<{ $isDownloading: boolean }>`
     &:hover:not(:disabled) {
       background: rgba(50, 130, 184, 0.3);
       border-color: rgba(50, 130, 184, 0.5);
-      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
     }
   }

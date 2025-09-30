@@ -72,7 +72,6 @@ const PreviewComparisonStyled = styled.div.withConfig({
     &:hover:not(:disabled) {
       background: rgba(50, 130, 184, 0.3);
       border-color: rgba(50, 130, 184, 0.5);
-      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
     }
 
@@ -179,7 +178,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
 
   .size-comparison-title {
     font-weight: 700;
-    font-size: 17px;
+    font-size: 16px;
     color: #BBE1FA;
     display: flex;
     align-items: center;
@@ -193,7 +192,7 @@ const PreviewComparisonStyled = styled.div.withConfig({
 
   .size-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
   }
 
@@ -214,37 +213,19 @@ const PreviewComparisonStyled = styled.div.withConfig({
   .size-stat-value {
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
     font-weight: 700;
-    font-size: 17px;
-    color: #BBE1FA;
-  }
-
-  .compression-indicator {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 12px;
     font-size: 16px;
-    font-weight: 700;
-    font-family: 'SF Mono', 'Monaco', monospace;
+    color: #BBE1FA;
+      &.positive {
+          color: #BBE1FA;
+      }
 
-    &.positive {
-      background: rgba(50, 130, 184, 0.3);
-      color: #BBE1FA;
-      border: 1px solid rgba(50, 130, 184, 0.5);
-    }
+      &.negative {
+          color: #fca5a5;
+      }
 
-    &.negative {
-      background: rgba(239, 68, 68, 0.2);
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.4);
-    }
-
-    &.neutral {
-      background: rgba(50, 130, 184, 0.15);
-      color: rgba(187, 225, 250, 0.8);
-      border: 1px solid rgba(50, 130, 184, 0.3);
-    }
+      &.neutral {
+          color: rgba(187, 225, 250, 0.8);
+      }
   }
 
   .format-info {
@@ -490,7 +471,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
               <div className="size-stat">
                 <div className="size-stat-label">Compression</div>
                 <div
-                  className={`compression-indicator ${
+                  className={`size-stat-value ${
                     compressionRatio > 0
                       ? "positive"
                       : compressionRatio < 0

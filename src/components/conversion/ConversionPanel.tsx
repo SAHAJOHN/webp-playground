@@ -63,7 +63,6 @@ const ConversionPanelStyled = styled.div.withConfig({
     border-color: rgba(50, 130, 184, 0.5);
     background: rgba(15, 76, 117, 0.5);
     color: #BBE1FA;
-    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
   }
 
@@ -212,7 +211,6 @@ const ConversionPanelStyled = styled.div.withConfig({
       border-color: rgba(50, 130, 184, 0.5);
       background: rgba(15, 76, 117, 0.5);
       color: #BBE1FA;
-      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(50, 130, 184, 0.2);
     }
 

@@ -33,7 +33,7 @@ const FileUploadContainerStyled = styled.div.withConfig({
           : props.isDragOver
           ? "rgba(50, 130, 184, 0.8)"
           : "rgba(50, 130, 184, 0.3)"};
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 48px 32px;
     text-align: center;
     background: ${(props) =>
@@ -50,7 +50,7 @@ const FileUploadContainerStyled = styled.div.withConfig({
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 8px;
     position: relative;
     backdrop-filter: blur(10px);
   }
@@ -118,14 +118,11 @@ const FileUploadContainerStyled = styled.div.withConfig({
     transition: all 0.3s ease;
     min-height: 48px;
     min-width: 48px;
-    box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
     letter-spacing: 0.01em;
   }
 
   .upload-button:hover {
     background: linear-gradient(135deg, #4292C8 0%, #1F5C85 100%);
-    box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
-    transform: translateY(-2px);
   }
 
   .upload-button:disabled {
