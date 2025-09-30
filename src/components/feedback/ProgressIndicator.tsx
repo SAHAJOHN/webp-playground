@@ -197,7 +197,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorPropsType> = ({
     }
   };
 
-  const canCancel = status === "pending" || status === "processing";
+  const canCancel = status === "pending";
   const showProgress = status !== "pending";
 
   return (
