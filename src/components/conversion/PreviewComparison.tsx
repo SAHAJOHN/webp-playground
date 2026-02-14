@@ -374,7 +374,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
   };
 
   // Pan handlers
-  const handleMouseDown = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement>) => {
+  const handleMouseDown = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement | null>) => {
     if (!wrapperRef.current || zoomLevel <= 100) return;
 
     setIsDragging(true);
@@ -385,7 +385,7 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
     });
   };
 
-  const handleMouseMove = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent, wrapperRef: React.RefObject<HTMLDivElement | null>) => {
     if (!isDragging || !wrapperRef.current) return;
 
     const dx = e.clientX - dragStart.x;

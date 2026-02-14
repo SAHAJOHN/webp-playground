@@ -1,39 +1,58 @@
-# CLAUDE.md - AI Assistant Guide for webp-playground
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-**webp-playground** is a professional Next.js image converter using server-side Sharp for superior compression.
+**webp-playground** is a professional Next.js image converter using server-side Sharp for superior compression. The key architectural decision is that all image processing happens server-side via API routes using Sharp/libvips, providing 10-20% better compression than browser-based Canvas API.
 
-### Key Features
-- **Server-only processing**: Sharp/libvips for best compression (10-20% better)
-- **Format support**: JPEG, PNG, WebP, AVIF with advanced settings
-- **Batch processing**: Multi-file upload with ZIP downloads
-- **Real-time preview**: Before/after comparisons
+## Development Commands
 
-### Core Architecture
-- **Next.js 15** with App Router
-- **Sharp 0.34.3** for all image processing
-- **React 19** with TypeScript 5
-- **Tailwind CSS 4** + styled-components
+```bash
+yarn dev      # Development server with Turbopack
+yarn build    # Production build with Turbopack
+yarn start    # Production server
+yarn lint     # Run ESLint
+```
 
-## Development Guidelines
+No test framework is configured.
 
-### File Conventions
-- PascalCase for components: `FileUpload.tsx`
-- camelCase for utilities: `fileUtils.ts`
-- Suffix styled components: `ButtonStyled`, `ContainerStyled`
-- Suffix types: `UserType`, `ConversionSettingsType`
+## Architecture
 
-### Component Patterns
+### Server-Side Conversion Flow
+
+The conversion pipeline follows this flow:
+
+1. **Upload** (`src/hooks/ui/useFileUpload.ts`): File validation and Blob URL creation
+2. **Client Service** (`src/lib/services/server-conversion-service.ts`): Prepares FormData, calls `/api/convert`
+3. **API Route** (`src/app/api/convert/route.ts`): Sharp processing with format-specific options
+4. **Headers** return metadata (X-Original-Size, X-Converted-Size, X-Compression-Ratio)
+5. **Download** (`src/lib/services/download-service.ts`): Single files or batch ZIP via JSZip
+
+### Key Architectural Patterns
+
+**Server-Only Processing**: The `shouldUseServerConversion()` function in `server-conversion-service.ts` always returns `true` because Sharp provides superior compression algorithms (libwebp, mozjpeg, libpng, libavif) that are not available in browsers.
+
+**Memory Management**: The `memory-management-service.ts` tracks and revokes Blob URLs to prevent memory leaks during batch processing.
+
+**Format-Specific Sharp Options**:
+- WebP: effort clamped to 0-6 (Sharp limitation), supports near-lossless mode
+- JPEG: mozjpeg encoder, progressive encoding, chroma subsampling
+- PNG: palette quantization with dithering, Adam7 interlacing
+- AVIF: effort 0-9, lossless/lossy toggle
+
+### File Naming Conventions
+
+- **Components**: PascalCase with `Styled` suffix for styled-components (e.g., `ButtonStyled`)
+- **Types**: PascalCase with `Type` suffix (e.g., `ConversionSettingsType`)
+- **Utilities**: camelCase (e.g., `fileValidation.ts`)
+- **Hooks**: camelCase with `use` prefix (e.g., `useImageConversion.ts`)
+
+### Type Patterns
+
+Use `type` declarations (not `interface`) with strict suffixes:
+
 ```typescript
-// Styled components with TypeScript
-const ButtonStyled = styled.button<ButtonPropsType>`
-  .button-text {
-    color: ${props => props.variant === 'primary' ? 'white' : 'black'};
-  }
-`;
-
-// Use type declarations (not interface)
 type ConversionSettingsType = {
   format: 'jpeg' | 'png' | 'webp' | 'avif';
   quality: number;
@@ -41,84 +60,52 @@ type ConversionSettingsType = {
 };
 ```
 
+### Styled Components Pattern
+
+```typescript
+const ButtonStyled = styled.button<ButtonPropsType>`
+  .button-text {
+    color: ${props => props.variant === 'primary' ? 'white' : 'black'};
+  }
+`;
+```
+
+## Technology Stack
+
+- Next.js 15.5.0 with App Router and Turbopack
+- React 19.1.0 with TypeScript 5
+- Sharp 0.34.3 for image processing
+- Tailwind CSS 4 + styled-components
+- Lucide React for icons
+- JSZip for batch downloads
+
 ## Project Structure
 
 ```
 src/
-├── app/                 # Next.js App Router + API routes
-├── components/          # UI components
-│   ├── conversion/      # ConversionPanel, DownloadManager
-│   ├── feedback/        # ErrorBoundary, LoadingStates
-│   └── ui/              # FileUpload, basic components
-├── hooks/               # Custom React hooks
-├── lib/                 # Services and utilities
-│   ├── services/        # Business logic
-│   └── utils/           # Constants, validation
-└── types/               # TypeScript definitions
+├── app/
+│   ├── api/convert/route.ts    # Sharp processing endpoint
+│   ├── layout.tsx              # Root layout with providers
+│   └── page.tsx                # Main conversion UI
+├── components/
+│   ├── conversion/             # ConversionPanel, DownloadManager, PreviewComparison
+│   ├── feedback/               # ErrorBoundary, LoadingStates, NotificationSystem
+│   └── ui/                     # FileUpload, select (Radix-based)
+├── hooks/
+│   ├── conversion/             # useSimpleImageConversion, useImageConversion
+│   └── ui/                     # useFileUpload, useAccessibility
+├── lib/services/               # Business logic layer
+│   ├── server-conversion-service.ts   # API client for /api/convert
+│   ├── download-service.ts            # ZIP download handling
+│   └── memory-management-service.ts   # Blob URL lifecycle
+└── types/
+    └── conversion.ts           # Core types (ConversionSettingsType, etc.)
 ```
 
-## Format-Specific Settings
+## Important Implementation Notes
 
-### JPEG
-- Quality (1-100)
-- Progressive (default: enabled)
-- Chroma subsampling (4:4:4, 4:2:2, 4:2:0, auto)
-- MozJPEG encoder (10-15% better)
-
-### PNG
-- Compression level (0-9)
-- Interlacing/Adam7 (default: enabled)
-- Palette quantization (2-256 colors)
-- Dithering (0-1)
-
-### WebP
-- Lossy/Lossless toggle
-- Near-lossless (0-100%, lossless only)
-- Presets (default, photo, picture, drawing, icon, text)
-- Alpha quality (0-100)
-- Effort (0-6, clamped from UI 0-9)
-
-### AVIF
-- Lossy/Lossless toggle
-- Effort (0-9, controls speed/quality)
-- Server-exclusive format
-
-## Key Services
-
-### Active Services
-- **image-conversion-service.ts**: Calls server API
-- **server-conversion-service.ts**: Sharp integration
-- **download-service.ts**: Batch ZIP downloads
-- **memory-management-service.ts**: Blob URL cleanup
-- **error-handling-service.ts**: Error recovery
-- **accessibility-service.ts**: A11y features
-
-## Development Commands
-```bash
-yarn dev     # Development server
-yarn build   # Production build
-yarn lint    # ESLint
-```
-
-## AI Assistant Guidelines
-
-### Code Quality
-1. Maintain TypeScript with proper types
-2. Use functional components and hooks
-3. Implement accessibility (ARIA, keyboard)
-4. Follow existing folder structure
-
-### Implementation Priorities
-1. **Never create new files** unless necessary
-2. **Always prefer editing** existing files
-3. **Test server processing** with Sharp
-4. **Performance first**: Memory management
-5. **Compression quality**: Use Sharp settings
-
-### Component Development
-1. Use styled-components with `Styled` suffix
-2. Use Lucide React icons
-3. Add error boundaries where needed
-4. Provide loading states
-
-This is a production-ready image converter with server-side Sharp for optimal compression.
+- **Max file size**: 50MB limit in API route (`MAX_FILE_SIZE`)
+- **WebP effort**: UI allows 0-9 but Sharp only supports 0-6 (clamped in API)
+- **Progress tracking**: Each conversion job reports progress via callbacks
+- **Accessibility**: High contrast mode and keyboard navigation in `accessibility-service.ts`
+- **Error handling**: Error boundaries + notification system for user feedback
