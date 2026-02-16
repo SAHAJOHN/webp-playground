@@ -22,6 +22,7 @@ import type {
   SupportedFormatType,
 } from "@/types";
 import type { FileQueueItemType, PreviewGridItemType } from "@/components/conversion";
+import {ScrollShadow} from "@/components/layout/ScrollShadow";
 
 const LeftPanelContent = styled.div`
   display: flex;
@@ -36,6 +37,13 @@ const ScrollSection = styled.div`
   flex-direction: column;
   gap: 16px;
   padding-bottom: 16px;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -61,6 +69,13 @@ const PreviewSection = styled.div`
   flex: 1;
   overflow-y: auto;
   padding-bottom: 24px;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const EmptyState = styled.div`
@@ -261,49 +276,51 @@ export default function Home() {
       sidebar={<MiniSidebar activeTab={activeTab} onTabChange={setActiveTab} />}
       leftPanel={
         <LeftPanelContent>
-          <ScrollSection>
-            {/* Upload Section */}
-            <SectionCard>
-              <SectionTitle>Upload</SectionTitle>
-              <FileUpload
-                key={fileUploadKey}
-                onFilesSelected={handleFilesSelected}
-                acceptedFormats={["jpeg", "jpg", "png", "webp", "avif"]}
-                maxFileSize={50 * 1024 * 1024}
-                maxFiles={10}
-                disabled={isProcessing}
-              />
-            </SectionCard>
-
-            {/* Settings Section */}
-            {selectedFiles.length > 0 && (
+          <ScrollShadow selectors={["scroll-section"]} color="#18181b">
+            <ScrollSection className="scroll-section">
+              {/* Upload Section */}
               <SectionCard>
-                <SectionTitle>Settings</SectionTitle>
-                <ConversionPanel
-                  settings={conversionSettings}
-                  onSettingsChange={handleSettingsChange}
-                  isProcessing={isProcessing}
-                />
-                <ConvertButton
-                  $disabled={isProcessing || selectedFiles.length === 0}
-                  onClick={handleStartConversion}
-                  disabled={isProcessing || selectedFiles.length === 0}
-                >
-                  {isProcessing ? "Converting..." : "Convert All"}
-                </ConvertButton>
-              </SectionCard>
-            )}
-
-            {/* Queue Section */}
-            {queueItems.length > 0 && (
-              <SectionCard>
-                <FileQueue
-                  files={queueItems}
-                  onRemove={handleRemoveFromQueue}
+                <SectionTitle>Upload</SectionTitle>
+                <FileUpload
+                    key={fileUploadKey}
+                    onFilesSelected={handleFilesSelected}
+                    acceptedFormats={["jpeg", "jpg", "png", "webp", "avif"]}
+                    maxFileSize={50 * 1024 * 1024}
+                    maxFiles={10}
+                    disabled={isProcessing}
                 />
               </SectionCard>
-            )}
-          </ScrollSection>
+
+              {/* Settings Section */}
+              {selectedFiles.length > 0 && (
+                  <SectionCard>
+                    <SectionTitle>Settings</SectionTitle>
+                    <ConversionPanel
+                        settings={conversionSettings}
+                        onSettingsChange={handleSettingsChange}
+                        isProcessing={isProcessing}
+                    />
+                    <ConvertButton
+                        $disabled={isProcessing || selectedFiles.length === 0}
+                        onClick={handleStartConversion}
+                        disabled={isProcessing || selectedFiles.length === 0}
+                    >
+                      {isProcessing ? "Converting..." : "Convert All"}
+                    </ConvertButton>
+                  </SectionCard>
+              )}
+
+              {/* Queue Section */}
+              {queueItems.length > 0 && (
+                  <SectionCard>
+                    <FileQueue
+                        files={queueItems}
+                        onRemove={handleRemoveFromQueue}
+                    />
+                  </SectionCard>
+              )}
+            </ScrollSection>
+          </ScrollShadow>
 
           {/* Clear All Area */}
           {queueItems.length > 0 && (
@@ -316,16 +333,18 @@ export default function Home() {
       }
       rightPanel={
         <RightPanelContent>
-          <PreviewSection>
-            {previewItems.length > 0 ? (
-              <PreviewGrid items={previewItems} onDownload={handleDownloadSingle} />
-            ) : (
-              <EmptyState>
-                <EmptyIcon></EmptyIcon>
-                <EmptyText>Drop files to start converting</EmptyText>
-              </EmptyState>
-            )}
-          </PreviewSection>
+          <ScrollShadow selectors={["preview-section"]} color="#18181b">
+            <PreviewSection className="preview-section">
+              {previewItems.length > 0 ? (
+                <PreviewGrid items={previewItems} onDownload={handleDownloadSingle} />
+              ) : (
+                <EmptyState>
+                  <EmptyIcon></EmptyIcon>
+                  <EmptyText>Drop files to start converting</EmptyText>
+                </EmptyState>
+              )}
+            </PreviewSection>
+          </ScrollShadow>
           {simpleResults.length > 0 && (
             <DownloadArea
               filesReady={simpleResults.length}
