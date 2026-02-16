@@ -133,26 +133,6 @@ const PreviewComparisonStyled = styled.div.withConfig({
     &:active {
       cursor: grabbing;
     }
-
-    /* Custom scrollbar */
-    &::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(27, 38, 44, 0.5);
-      border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(50, 130, 184, 0.5);
-      border-radius: 4px;
-
-      &:hover {
-        background: rgba(50, 130, 184, 0.7);
-      }
-    }
   }
 
   .image-display {

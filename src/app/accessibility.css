@@ -189,7 +189,10 @@ input[type="reset"],
   min-height: 44px;
   min-width: 44px;
 }
-
+button {
+  min-height: initial;
+  min-width: initial;
+}
 /* Improve text readability */
 body {
   line-height: 1.5;

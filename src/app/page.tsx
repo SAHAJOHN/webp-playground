@@ -1,286 +1,138 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import {
-  ImageIcon,
-  Settings,
-  Download,
-  RefreshCw,
-  Trash2,
-  Shield,
-  Zap,
-  FileImage,
-} from "lucide-react";
+  AppHeader,
+  AppLayout,
+  MiniSidebar,
+} from "@/components/layout";
 import {
   FileUpload,
   ConversionPanel,
-  PreviewComparison,
-  ProgressIndicator,
-  DownloadManager,
+  FileQueue,
+  PreviewGrid,
+  DownloadArea,
+  ClearAllArea,
 } from "@/components";
 import { useSimpleImageConversion } from "@/hooks/conversion/useSimpleImageConversion";
-import type { ConversionSettingsType, SupportedFormatType, ConversionResultType } from "@/types";
+import { DownloadService } from "@/lib/services";
+import type {
+  ConversionSettingsType,
+  SupportedFormatType,
+} from "@/types";
+import type { FileQueueItemType, PreviewGridItemType } from "@/components/conversion";
 
-// Styled Components with Dark Theme
-const MainContainerStyled = styled.div`
-  background: #1B262C;
-  position: relative;
-
-  /* Subtle gradient overlay */
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 50%, rgba(15, 76, 117, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(50, 130, 184, 0.2) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .content-wrapper {
-    position: relative;
-    z-index: 1;
-    max-width: 1400px;
-    margin: 95px auto 0 auto;
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-max-height: calc(100dvh - 95px);
-      overflow: auto;
-  }
-
-  .upload-section,
-  .settings-section,
-  .processing-section,
-  .results-section {
-    background: rgba(15, 76, 117, 0.4);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    padding: 24px;
-    border: 1px solid rgba(50, 130, 184, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  }
-
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 24px;
-    font-weight: 700;
-    color: #BBE1FA;
-    margin-bottom: 24px;
-
-    svg {
-      color: #3282B8;
-    }
-  }
-
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-
-  .feature-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 24px;
-    background: rgba(50, 130, 184, 0.15);
-    border-radius: 20px;
-    border: 1px solid rgba(187, 225, 250, 0.2);
-    font-size: 14px;
-    color: #BBE1FA;
-    font-weight: 500;
-    transition: all 0.3s ease;
-
-    svg {
-      color: #3282B8;
-      flex-shrink: 0;
-    }
-
-    &:hover {
-      background: rgba(50, 130, 184, 0.25);
-      border-color: rgba(187, 225, 250, 0.4);
-    }
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 16px;
-    margin-top: 24px;
-  }
-
-  .action-button {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 32px;
-    border-radius: 16px;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border: none;
-    letter-spacing: 0.01em;
-
-    &.primary {
-      background: linear-gradient(135deg, #3282B8 0%, #0F4C75 100%);
-      color: #BBE1FA;
-      box-shadow: 0 4px 16px rgba(50, 130, 184, 0.3);
-
-      &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #4292C8 0%, #1F5C85 100%);
-        box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
-      }
-    }
-
-    &.secondary {
-      background: rgba(50, 130, 184, 0.2);
-      color: #BBE1FA;
-      border: 1px solid rgba(187, 225, 250, 0.3);
-
-      &:hover:not(:disabled) {
-        background: rgba(50, 130, 184, 0.3);
-        border-color: rgba(187, 225, 250, 0.5);
-      }
-    }
-
-    &.danger {
-      background: rgba(220, 38, 38, 0.2);
-      color: #fca5a5;
-      border: 1px solid rgba(220, 38, 38, 0.3);
-
-      &:hover:not(:disabled) {
-        background: rgba(220, 38, 38, 0.3);
-        border-color: rgba(220, 38, 38, 0.5);
-      }
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  }
-
-    .upload-section,
-    .settings-section,
-    .processing-section,
-    .results-section {
-      padding: 24px;
-      border-radius: 20px;
-    }
-
-    .section-title {
-      font-size: 20px;
-    }
-
-    .action-buttons {
-      flex-direction: column;
-    }
-
-    .action-button {
-      justify-content: center;
-      width: 100%;
-    }
+const LeftPanelContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 `;
 
-const HeaderStyled = styled.header`
-  position: fixed;
-  z-index: 10;
-  background: rgba(27, 38, 44, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(50, 130, 184, 0.2);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-width: 100%;
-    top: 0;
-  .header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+const ScrollSection = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 16px;
+`;
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 28px;
-    font-weight: 800;
-    color: #BBE1FA;
-    letter-spacing: -0.03em;
-  }
+const SectionTitle = styled.h3`
+  font-size: 11px;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px 0;
+`;
 
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    color: #3282B8;
-    filter: drop-shadow(0 0 8px rgba(50, 130, 184, 0.5));
-  }
+const SectionCard = styled.div`
+  background: #18181b;
+`;
 
-  .privacy-badge {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 24px;
-    background: rgba(50, 130, 184, 0.2);
-    color: #BBE1FA;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 600;
-    border: 1px solid rgba(187, 225, 250, 0.3);
-    letter-spacing: 0.01em;
+const RightPanelContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+`;
 
-    svg {
-      color: #3282B8;
-    }
-  }
+const PreviewSection = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 24px;
+`;
 
-    .logo {
-      font-size: 24px;
-    }
+const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  color: #71717a;
+  text-align: center;
+  gap: 16px;
+`;
 
-    .logo-icon {
-      width: 32px;
-      height: 32px;
+const EmptyIcon = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #27272a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+`;
+
+const EmptyText = styled.p`
+  font-size: 16px;
+  color: #52525b;
+  margin: 0;
+`;
+
+const ConvertButton = styled.button<{ $disabled: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  margin-top: 16px;
+  background: ${(props) =>
+    props.$disabled ? "#27272a" : "#6366f1"};
+  color: ${(props) =>
+    props.$disabled ? "#71717a" : "white"};
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: ${(props) =>
+      props.$disabled ? "#27272a" : "#818cf8"};
   }
 `;
 
-const BlurTopStyled = styled.div`
-    backdrop-filter: blur(4px);
-    background: rgba(0, 0, 0, 0.02);
-    top: 95px;
-    flex: 0 0 auto;
-    height: 40px;
-    position: fixed;
-    width: 100%;
-    z-index: 48;
-    mask: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 70%);
-`;
-
-const BlurBottomStyled = styled.div`
-    backdrop-filter: blur(4px);
-    background: rgba(0, 0, 0, 0.02);
-    bottom: 0px;
-    flex: 0 0 auto;
-    height: 40px;
-    position: fixed;
-    width: 100%;
-    z-index: 48;
-    mask: linear-gradient(rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 70%);
+const Footer = styled.footer`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #09090b;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 11px;
+  color: #52525b;
 `;
 
 export default function Home() {
-  // State for selected files and conversion settings
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileUploadKey, setFileUploadKey] = useState(0);
+  const [activeTab, setActiveTab] = useState<"upload" | "settings" | "history" | "stats">("upload");
+  const [isDownloading, setIsDownloading] = useState(false);
   const [conversionSettings, setConversionSettings] =
     useState<ConversionSettingsType>({
       format: "webp" as SupportedFormatType,
@@ -290,7 +142,6 @@ export default function Home() {
       interlace: true,
     });
 
-  // Simple image conversion hook for testing
   const {
     jobs: simpleJobs,
     isProcessing,
@@ -300,27 +151,67 @@ export default function Home() {
     cancelJob,
   } = useSimpleImageConversion();
 
-  // Handle files selected from FileUpload component
+  // Convert jobs to queue items
+  const queueItems: FileQueueItemType[] = useMemo(() => {
+    return simpleJobs
+      .filter((job) => job.status !== "cancelled")
+      .map((job) => ({
+        id: job.id,
+        name: job.file.name,
+        size: formatFileSize(job.file.size),
+        thumbnail: URL.createObjectURL(job.file),
+        status: mapJobStatus(job.status),
+        progress: job.progress,
+      }));
+  }, [simpleJobs]);
+
+  // Convert results to preview grid items
+  const previewItems: PreviewGridItemType[] = useMemo(() => {
+    return simpleResults.map((result, idx) => ({
+      id: `result-${idx}`,
+      name: result.originalFile.name,
+      originalUrl: URL.createObjectURL(result.originalFile),
+      convertedUrl: result.convertedBlob
+        ? URL.createObjectURL(result.convertedBlob)
+        : undefined,
+      originalSize: formatFileSize(result.originalFile.size),
+      convertedSize: result.convertedBlob
+        ? formatFileSize(result.convertedBlob.size)
+        : undefined,
+      compressionRatio: getCompressionRatio(
+        result.originalFile.size,
+        result.convertedBlob?.size || 0
+      ),
+      status: "done" as const,
+    }));
+  }, [simpleResults]);
+
+  // Calculate stats
+  const totalSaved = useMemo(() => {
+    const saved = simpleResults.reduce((acc, result) => {
+      if (result.convertedBlob) {
+        return acc + (result.originalFile.size - result.convertedBlob.size);
+      }
+      return acc;
+    }, 0);
+    return formatFileSize(Math.abs(saved));
+  }, [simpleResults]);
+
   const handleFilesSelected = useCallback((files: File[]) => {
     setSelectedFiles(files);
-
-    // Clear jobs if no files selected
     if (files.length === 0) {
       clearJobs();
     }
   }, [clearJobs]);
 
-  // Handle conversion start
   const handleStartConversion = useCallback(() => {
     if (selectedFiles.length > 0) {
       convertFiles(selectedFiles, conversionSettings);
-      // Clear file list after starting conversion
       setSelectedFiles([]);
-      setFileUploadKey((prev) => prev + 1); // Force FileUpload to re-render and clear
+      setFileUploadKey((prev) => prev + 1);
     }
   }, [selectedFiles, conversionSettings, convertFiles]);
 
-  // Handle settings change
   const handleSettingsChange = useCallback(
     (newSettings: ConversionSettingsType) => {
       setConversionSettings(newSettings);
@@ -328,164 +219,160 @@ export default function Home() {
     []
   );
 
-  // Get job arrays for display (filter out cancelled jobs)
-  const jobsArray = simpleJobs.filter((job) => job.status !== "cancelled");
-  const resultsArray = simpleResults;
-  const hasResults = resultsArray.length > 0;
+  const handleRemoveFromQueue = useCallback(
+    (id: string) => {
+      cancelJob(id);
+    },
+    [cancelJob]
+  );
 
-  // Convert results array to Map for DownloadManager
-  const resultsMap = new Map<string, ConversionResultType>();
-  resultsArray.forEach((result, index) => {
-    resultsMap.set(`result-${index}`, result);
-  });
+  const handleDownloadAll = useCallback(async () => {
+    if (simpleResults.length === 0) return;
+
+    setIsDownloading(true);
+    try {
+      await DownloadService.downloadAsZip(simpleResults, {
+        customPrefix: "converted_images",
+        addTimestamp: true,
+      });
+    } catch (error) {
+      console.error("Download failed:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [simpleResults]);
+
+  const handleDownloadSingle = useCallback((id: string) => {
+    const index = parseInt(id.replace("result-", ""));
+    const result = simpleResults[index];
+    if (result) {
+      DownloadService.downloadSingleFile(result);
+    }
+  }, [simpleResults]);
 
   return (
-    <MainContainerStyled>
-        <BlurTopStyled/>
-      {/* Header */}
-      <HeaderStyled>
-        <div className="header">
-          <div className="header-content">
-            <div className="logo">
-              <ImageIcon className="logo-icon" />
-              Multi-Format Image Converter
-            </div>
-            <div className="privacy-badge">
-              <Shield size={16} />
-              Server-Side Sharp Processing
-            </div>
-          </div>
-        </div>
-      </HeaderStyled>
+    <AppLayout
+      header={
+        <AppHeader
+          filesProcessed={simpleResults.length}
+          totalSaved={totalSaved}
+        />
+      }
+      sidebar={<MiniSidebar activeTab={activeTab} onTabChange={setActiveTab} />}
+      leftPanel={
+        <LeftPanelContent>
+          <ScrollSection>
+            {/* Upload Section */}
+            <SectionCard>
+              <SectionTitle>Upload</SectionTitle>
+              <FileUpload
+                key={fileUploadKey}
+                onFilesSelected={handleFilesSelected}
+                acceptedFormats={["jpeg", "jpg", "png", "webp", "avif"]}
+                maxFileSize={50 * 1024 * 1024}
+                maxFiles={10}
+                disabled={isProcessing}
+              />
+            </SectionCard>
 
-      {/* Main Content */}
-      <div className="content-wrapper">
-        {/* Features Overview */}
-        <div className="feature-grid">
-          <div className="feature-card">
-            <Zap size={20} />
-            <span>Server-side Sharp processing</span>
-          </div>
-          <div className="feature-card">
-            <Shield size={20} />
-            <span>Superior compression quality</span>
-          </div>
-          <div className="feature-card">
-            <FileImage size={20} />
-            <span>4 formats supported (JPEG, PNG, WebP, AVIF)</span>
-          </div>
-        </div>
-
-        {/* File Upload Section */}
-        <div className="upload-section">
-          <h2 className="section-title">
-            <FileImage size={24} />
-            Upload Images
-          </h2>
-          <FileUpload
-            key={fileUploadKey}
-            onFilesSelected={handleFilesSelected}
-            acceptedFormats={[
-              "jpeg",
-              "jpg",
-              "png",
-              "webp",
-              "avif",
-            ]}
-            maxFileSize={50 * 1024 * 1024} // 50MB
-            maxFiles={10}
-            disabled={isProcessing}
-          />
-        </div>
-
-        {/* Conversion Settings Section */}
-        {selectedFiles.length > 0 && (
-          <div className="settings-section">
-            <h2 className="section-title">
-              <Settings size={24} />
-              Conversion Settings
-            </h2>
-            <ConversionPanel
-              settings={conversionSettings}
-              onSettingsChange={handleSettingsChange}
-              isProcessing={isProcessing}
-            />
-            <div className="action-buttons">
-              <button
-                className="action-button primary"
-                onClick={handleStartConversion}
-                disabled={isProcessing || selectedFiles.length === 0}
-              >
-                <RefreshCw size={16} />
-                {isProcessing ? "Converting..." : "Start Conversion"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Processing Section */}
-        {jobsArray.length > 0 && (
-          <div className="processing-section">
-            <h2 className="section-title">
-              <RefreshCw size={24} />
-              Conversion Progress
-            </h2>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-            >
-              {jobsArray.map((job) => (
-                <ProgressIndicator
-                  key={job.id}
-                  progress={job.progress}
-                  fileName={job.file.name}
-                  status={job.status}
-                  onCancel={() => cancelJob(job.id)}
+            {/* Settings Section */}
+            {selectedFiles.length > 0 && (
+              <SectionCard>
+                <SectionTitle>Settings</SectionTitle>
+                <ConversionPanel
+                  settings={conversionSettings}
+                  onSettingsChange={handleSettingsChange}
+                  isProcessing={isProcessing}
                 />
-              ))}
-            </div>
-            {isProcessing && (
-              <div className="action-buttons">
-                <button className="action-button danger" onClick={clearJobs}>
-                  <Trash2 size={16} />
-                  Cancel All
-                </button>
-              </div>
+                <ConvertButton
+                  $disabled={isProcessing || selectedFiles.length === 0}
+                  onClick={handleStartConversion}
+                  disabled={isProcessing || selectedFiles.length === 0}
+                >
+                  {isProcessing ? "Converting..." : "Convert All"}
+                </ConvertButton>
+              </SectionCard>
             )}
-          </div>
-        )}
 
-        {/* Results Section */}
-        {hasResults && (
-          <div className="results-section">
-            <h2 className="section-title">
-              <Download size={24} />
-              Conversion Results
-            </h2>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "24px",
-              }}
-            >
-              {resultsArray.map((result, idx) => (
-                <PreviewComparison
-                  key={`result-${idx}`}
-                  originalFile={result.originalFile}
-                  convertedBlob={result.convertedBlob}
-                  isLoading={false}
-                  showSizeComparison={true}
+            {/* Queue Section */}
+            {queueItems.length > 0 && (
+              <SectionCard>
+                <FileQueue
+                  files={queueItems}
+                  onRemove={handleRemoveFromQueue}
                 />
-              ))}
-            </div>
-            <DownloadManager
-              results={resultsMap}
-              isDownloading={false}
+              </SectionCard>
+            )}
+          </ScrollSection>
+
+          {/* Clear All Area */}
+          {queueItems.length > 0 && (
+            <ClearAllArea
+              filesInQueue={queueItems.length}
+              onClearAll={clearJobs}
             />
-          </div>
-        )}
-      </div>
-        <BlurBottomStyled/>
-    </MainContainerStyled>
+          )}
+        </LeftPanelContent>
+      }
+      rightPanel={
+        <RightPanelContent>
+          <PreviewSection>
+            {previewItems.length > 0 ? (
+              <PreviewGrid items={previewItems} onDownload={handleDownloadSingle} />
+            ) : (
+              <EmptyState>
+                <EmptyIcon></EmptyIcon>
+                <EmptyText>Drop files to start converting</EmptyText>
+              </EmptyState>
+            )}
+          </PreviewSection>
+          {simpleResults.length > 0 && (
+            <DownloadArea
+              filesReady={simpleResults.length}
+              totalSaved={totalSaved}
+              onDownloadAll={handleDownloadAll}
+              isDownloading={isDownloading}
+            />
+          )}
+        </RightPanelContent>
+      }
+      footer={
+        <Footer>
+          <span>⌘+V to paste images</span>
+          <span>WebP Converter Pro</span>
+        </Footer>
+      }
+    />
   );
+}
+
+// Helper functions
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function mapJobStatus(
+  status: string
+): "pending" | "processing" | "done" | "error" {
+  switch (status) {
+    case "pending":
+      return "pending";
+    case "processing":
+      return "processing";
+    case "completed":
+      return "done";
+    case "error":
+      return "error";
+    default:
+      return "pending";
+  }
+}
+
+function getCompressionRatio(original: number, converted: number): number {
+  if (original === 0) return 0;
+  return ((original - converted) / original) * 100;
 }

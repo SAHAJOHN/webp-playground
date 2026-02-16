@@ -4,7 +4,8 @@
 
 import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
-import { Upload, X, AlertCircle, CheckCircle, File } from "lucide-react";
+import { Upload, X, AlertCircle, FileCog } from "lucide-react";
+import { theme } from "@/styles/theme";
 import { useFileUpload } from "@/hooks/ui/useFileUpload";
 import {
   useAccessibility,
@@ -29,208 +30,179 @@ const FileUploadContainerStyled = styled.div.withConfig({
     border: 2px dashed
       ${(props) =>
         props.hasErrors
-          ? "rgba(239, 68, 68, 0.5)"
+          ? theme.colors.accent.error
           : props.isDragOver
-          ? "rgba(50, 130, 184, 0.8)"
-          : "rgba(50, 130, 184, 0.3)"};
-    border-radius: 16px;
-    padding: 48px 32px;
+          ? theme.colors.accent.primary
+          : theme.colors.border.default};
+    border-radius: ${theme.radii.xl};
+    padding: ${theme.spacing[6]} ${theme.spacing[4]};
     text-align: center;
     background: ${(props) =>
       props.isDragOver
-        ? "rgba(50, 130, 184, 0.2)"
+        ? theme.colors.bg.elevated
         : props.hasErrors
-        ? "rgba(239, 68, 68, 0.1)"
-        : "rgba(15, 76, 117, 0.3)"};
-    transition: all 0.3s ease;
+        ? `${theme.colors.accent.error}15`
+        : theme.colors.bg.surface};
+    transition: all ${theme.transitions.normal};
     cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
     opacity: ${(props) => (props.disabled ? 0.5 : 1)};
-    min-height: 280px;
+    min-height: 160px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    position: relative;
-    backdrop-filter: blur(10px);
-  }
-
-  .upload-zone[data-accessibility-mode="high-contrast"] {
-    border-width: 3px;
-    background-color: ${(props) =>
-      props.isDragOver ? "#0F4C75" : props.hasErrors ? "#800000" : "#1B262C"};
-    color: #BBE1FA;
+    gap: ${theme.spacing[2]};
   }
 
   .upload-zone:hover {
     border-color: ${(props) =>
       !props.disabled && !props.hasErrors
-        ? "rgba(50, 130, 184, 0.6)"
+        ? theme.colors.border.strong
         : undefined};
     background: ${(props) =>
       !props.disabled && !props.hasErrors
-        ? "rgba(15, 76, 117, 0.4)"
+        ? theme.colors.bg.elevated
         : undefined};
   }
 
   .upload-icon {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
     color: ${(props) =>
       props.hasErrors
-        ? "#ef4444"
+        ? theme.colors.accent.error
         : props.isDragOver
-        ? "#3282B8"
-        : "rgba(50, 130, 184, 0.6)"};
-    margin-bottom: 8px;
-    filter: ${(props) =>
-      props.isDragOver ? "drop-shadow(0 0 12px rgba(50, 130, 184, 0.5))" : "none"};
+        ? theme.colors.accent.primary
+        : theme.colors.text.muted};
+    margin-bottom: ${theme.spacing[2]};
   }
 
   .upload-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: ${(props) =>
-      props.hasErrors
-        ? "#fca5a5"
-        : props.isDragOver
-        ? "#BBE1FA"
-        : "#3282B8"};
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
+    font-size: ${theme.fontSizes.base};
+    font-weight: ${theme.fontWeights.medium};
+    color: ${theme.colors.text.primary};
+    margin-bottom: ${theme.spacing[1]};
   }
 
   .upload-subtext {
-    font-size: 16px;
-    color: rgba(187, 225, 250, 0.7);
-    margin-bottom: 16px;
+    font-size: ${theme.fontSizes.sm};
+    color: ${theme.colors.text.muted};
+    margin-bottom: ${theme.spacing[3]};
   }
 
   .upload-button {
-    background: linear-gradient(135deg, #3282B8 0%, #0F4C75 100%);
-    color: #BBE1FA;
+    background: ${theme.colors.accent.primary};
+    color: white;
     border: none;
-    border-radius: 16px;
-    padding: 16px 32px;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: ${theme.radii.lg};
+    padding: ${theme.spacing[3]} ${theme.spacing[5]};
+    font-size: ${theme.fontSizes.sm};
+    font-weight: ${theme.fontWeights.medium};
     cursor: pointer;
-    transition: all 0.3s ease;
-    min-height: 48px;
-    min-width: 48px;
-    letter-spacing: 0.01em;
+    transition: background ${theme.transitions.fast};
   }
 
   .upload-button:hover {
-    background: linear-gradient(135deg, #4292C8 0%, #1F5C85 100%);
+    background: ${theme.colors.accent.primaryHover};
   }
 
   .upload-button:disabled {
-    background: rgba(50, 130, 184, 0.3);
+    background: ${theme.colors.bg.elevated};
     cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  .upload-button[data-accessibility-mode="high-contrast"] {
-    border: 2px solid #BBE1FA;
-    background: #0F4C75;
+    color: ${theme.colors.text.muted};
   }
 
   .file-input {
     display: none;
   }
 
+  .format-info {
+    margin-top: ${theme.spacing[3]};
+    font-size: ${theme.fontSizes.xs};
+    color: ${theme.colors.text.muted};
+    line-height: 1.5;
+  }
+
   .file-list-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 24px;
-    padding: 16px 16px 16px 20px;
-    background: rgba(15, 76, 117, 0.3);
-    border: 1px solid rgba(50, 130, 184, 0.3);
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
+    margin-top: ${theme.spacing[4]};
+    padding: ${theme.spacing[3]};
+    background: ${theme.colors.bg.surface};
+    border: 1px solid ${theme.colors.border.subtle};
+    border-radius: ${theme.radii.lg};
   }
 
   .file-count {
-    font-size: 14px;
-    font-weight: 600;
-    color: #BBE1FA;
+    font-size: ${theme.fontSizes.sm};
+    font-weight: ${theme.fontWeights.medium};
+    color: ${theme.colors.text.secondary};
   }
 
   .clear-all-button {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(239, 68, 68, 0.2);
-    border: 2px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
-    color: #fca5a5;
-    font-size: 13px;
-    font-weight: 600;
+    gap: ${theme.spacing[2]};
+    padding: ${theme.spacing[2]} ${theme.spacing[3]};
+    background: transparent;
+    border: 1px solid ${theme.colors.accent.error}50;
+    border-radius: ${theme.radii.md};
+    color: ${theme.colors.accent.error};
+    font-size: ${theme.fontSizes.xs};
+    font-weight: ${theme.fontWeights.medium};
     cursor: pointer;
-    transition: all 0.3s ease;
-
-    svg {
-      flex-shrink: 0;
-    }
+    transition: all ${theme.transitions.fast};
 
     &:hover {
-      background: rgba(239, 68, 68, 0.3);
-      border-color: rgba(239, 68, 68, 0.5);
-    }
-
-    &:active {
-      transform: translateY(0);
+      background: ${theme.colors.accent.error}15;
+      border-color: ${theme.colors.accent.error};
     }
   }
 
   .file-list {
-    margin-top: 16px;
+    margin-top: ${theme.spacing[3]};
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: ${theme.spacing[2]};
   }
 
   .file-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px;
-    background: rgba(15, 76, 117, 0.4);
-    border: 1px solid rgba(50, 130, 184, 0.3);
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-  }
+    padding: ${theme.spacing[3]};
+    background: ${theme.colors.bg.surface};
+    border: 1px solid ${theme.colors.border.subtle};
+    border-radius: ${theme.radii.lg};
+    transition: all ${theme.transitions.fast};
 
-  .file-item:hover {
-    background: rgba(15, 76, 117, 0.5);
-    border-color: rgba(50, 130, 184, 0.5);
-  }
-
-  .file-item.error {
-    border-color: rgba(239, 68, 68, 0.5);
-    background: rgba(239, 68, 68, 0.1);
-  }
-
-  .file-item.valid {
-    border-color: rgba(50, 130, 184, 0.5);
-    background: rgba(50, 130, 184, 0.15);
+    &:hover {
+      border-color: ${theme.colors.border.default};
+    }
   }
 
   .file-info {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: ${theme.spacing[3]};
     flex: 1;
+    height: 40px;
   }
 
-  .file-icon {
-    width: 30px;
-    height: 30px;
-    color: #3282B8;
+  .file-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: ${theme.radii.md};
+    overflow: hidden;
+    flex-shrink: 0;
+    background: ${theme.colors.bg.elevated};
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
   }
 
   .file-details {
@@ -238,127 +210,106 @@ const FileUploadContainerStyled = styled.div.withConfig({
   }
 
   .file-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #BBE1FA;
+    font-size: ${theme.fontSizes.sm};
+    font-weight: ${theme.fontWeights.medium};
+    color: ${theme.colors.text.primary};
   }
 
   .file-meta {
-    font-size: 13px;
-    color: rgba(187, 225, 250, 0.7);
+    font-size: ${theme.fontSizes.xs};
+    color: ${theme.colors.text.muted};
   }
 
   .file-status {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: ${theme.spacing[3]};
+    height: 40px;
   }
 
   .status-icon {
-    width: 24px;
-    height: 24px;
-  }
+    width: 16px;
+    height: 16px;
 
-  .status-icon.valid {
-    color: #3282B8;
-  }
-
-  .status-icon.error {
-    color: #ef4444;
+    &.valid { color: ${theme.colors.accent.success}; }
+    &.error { color: ${theme.colors.accent.error}; }
   }
 
   .remove-button {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    cursor: pointer;
-    border-radius: 12px;
-    color: #fca5a5;
-    transition: all 0.3s ease;
-    min-height: 24px;
-    min-width: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    color: ${theme.colors.text.muted};
+    cursor: pointer;
+    border-radius: ${theme.radii.md};
+    transition: all ${theme.transitions.fast};
 
-  .remove-button:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.5);
-    transform: scale(1.05);
-  }
-  .remove-button[data-accessibility-mode="high-contrast"] {
-    border: 2px solid #ef4444;
-    background: rgba(239, 68, 68, 0.2);
+    &:hover {
+      background: ${theme.colors.accent.error}15;
+      color: ${theme.colors.accent.error};
+    }
   }
 
   .error-list {
-    margin-top: 24px;
+    margin-top: ${theme.spacing[4]};
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: ${theme.spacing[2]};
   }
 
   .error-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
+    gap: ${theme.spacing[3]};
+    padding: ${theme.spacing[3]};
+    background: ${theme.colors.accent.error}10;
+    border: 1px solid ${theme.colors.accent.error}30;
+    border-radius: ${theme.radii.md};
   }
 
   .error-icon {
     width: 20px;
     height: 20px;
-    color: #ef4444;
+    color: ${theme.colors.accent.error};
     flex-shrink: 0;
   }
 
   .error-text {
-    font-size: 14px;
-    color: #fca5a5;
+    font-size: ${theme.fontSizes.sm};
+    color: ${theme.colors.accent.error};
   }
 
   .validation-loading {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-top: 24px;
-    padding: 16px;
-    background: rgba(50, 130, 184, 0.15);
-    border: 1px solid rgba(50, 130, 184, 0.3);
-    border-radius: 12px;
+    gap: ${theme.spacing[3]};
+    margin-top: ${theme.spacing[4]};
+    padding: ${theme.spacing[3]};
+    background: ${theme.colors.bg.elevated};
+    border: 1px solid ${theme.colors.border.subtle};
+    border-radius: ${theme.radii.md};
   }
 
   .loading-spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid rgba(50, 130, 184, 0.3);
-    border-top: 2px solid #3282B8;
+    border: 2px solid ${theme.colors.border.default};
+    border-top-color: ${theme.colors.accent.primary};
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
   }
 
   .loading-text {
-    font-size: 14px;
-    color: #BBE1FA;
-  }
-
-  .format-info {
-    margin-top: 16px;
-    font-size: 13px;
-    color: rgba(187, 225, 250, 0.7);
-    line-height: 1.6;
+    font-size: ${theme.fontSizes.sm};
+    color: ${theme.colors.text.secondary};
   }
 `;
 
@@ -640,7 +591,9 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
                   }${isValid ? ", valid" : ", has errors"}`}
                 >
                   <div className="file-info">
-                    <File className="file-icon" />
+                    <div className="file-preview">
+                      <img src={URL.createObjectURL(file)} alt={file.name} />
+                    </div>
                     <div className="file-details">
                       <div className="file-name">{file.name}</div>
                       <div className="file-meta">
@@ -660,7 +613,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
                   </div>
                   <div className="file-status">
                     {isValid ? (
-                      <CheckCircle className="status-icon valid" />
+                      <FileCog className="status-icon valid" />
                     ) : (
                       <AlertCircle className="status-icon error" />
                     )}

@@ -1,18 +1,7 @@
-// Component exports for the multi-format image converter
+// src/components/index.ts
 
-export { FileUpload } from "./ui/FileUpload";
-export { default as ConversionPanel } from "./conversion/ConversionPanel";
-export { default as PreviewComparison } from "./conversion/PreviewComparison";
-export { default as ProgressIndicator } from "./feedback/ProgressIndicator";
-export { DownloadManager } from "./conversion/DownloadManager";
-
-// Error handling and feedback components
-export { ErrorBoundary } from "./feedback/ErrorBoundary";
-export {
-  NotificationProvider,
-  useNotifications,
-  useNotificationHelpers,
-} from "./feedback/NotificationSystem";
+// Feedback components
+export { default as ErrorBoundary } from "./feedback/ErrorBoundary";
 export {
   LoadingState,
   Skeleton,
@@ -21,8 +10,40 @@ export {
   PreviewSkeleton,
   ConversionPanelSkeleton,
 } from "./feedback/LoadingStates";
+export { default as LoadingStates } from "./feedback/LoadingStates";
+export {
+  NotificationProvider,
+  useNotifications,
+  useNotificationHelpers,
+} from "./feedback/NotificationSystem";
+export { default as NotificationSystem } from "./feedback/NotificationSystem";
+export { default as ProgressIndicator } from "./feedback/ProgressIndicator";
 
-// Re-export from organized folders
-export * from "./conversion";
-export * from "./feedback";
-export * from "./ui";
+// Conversion components
+export { default as ConversionPanel } from "./conversion/ConversionPanel";
+export { DownloadManager } from "./conversion/DownloadManager";
+export { default as PreviewComparison } from "./conversion/PreviewComparison";
+export { default as FileQueue } from "./conversion/FileQueue";
+export { default as PreviewGrid } from "./conversion/PreviewGrid";
+export { default as DownloadArea } from "./conversion/DownloadArea";
+export { default as ClearAllArea } from "./conversion/ClearAllArea";
+
+// UI components
+export { FileUpload } from "./ui/FileUpload";
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+// Layout components
+export { default as AppHeader } from "./layout/AppHeader";
+export { default as MiniSidebar } from "./layout/MiniSidebar";
+export { default as AppLayout } from "./layout/AppLayout";

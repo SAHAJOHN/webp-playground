@@ -139,14 +139,20 @@ export const useSimpleImageConversion = () => {
       abortControllersRef.current.delete(jobId);
     }
 
-    // Update job status to cancelled
-    setJobs((prev) =>
-      prev.map((j) =>
+    // Update job status to cancelled or remove if completed/error
+    setJobs((prev) => {
+      const job = prev.find((j) => j.id === jobId);
+      if (job?.status === "completed" || job?.status === "error") {
+        // Remove completed/error jobs from list
+        return prev.filter((j) => j.id !== jobId);
+      }
+      // Cancel pending/processing jobs
+      return prev.map((j) =>
         j.id === jobId && (j.status === "pending" || j.status === "processing")
           ? { ...j, status: "cancelled" as const }
           : j
-      )
-    );
+      );
+    });
   }, []);
 
   // Get results
