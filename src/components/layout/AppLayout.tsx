@@ -11,14 +11,14 @@ const LayoutStyled = styled.div`
   flex-direction: column;
 `;
 
-const MainContent = styled.div`
+const MainContentStyled = styled.div`
   display: flex;
   flex: 1;
   overflow: hidden;
   position: relative;
 `;
 
-const LeftPanel = styled.div`
+const LeftPanelStyled = styled.div`
   width: 40%;
   min-width: 360px;
   max-width: 500px;
@@ -30,7 +30,7 @@ const LeftPanel = styled.div`
   padding: ${theme.spacing[4]};
 `;
 
-const RightPanel = styled.div`
+const RightPanelStyled = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -39,9 +39,10 @@ const RightPanel = styled.div`
   padding: ${theme.spacing[4]};
 `;
 
-const PanelContent = styled.div`
+const PanelContentStyled = styled.div`
+  position: relative;
   flex: 1;
-  overflow-y: auto;
+  overflow-y: hidden;
   padding: ${theme.spacing[4]};
   background: ${theme.colors.bg.surface};
   border: 1px solid ${theme.colors.border.subtle};
@@ -78,15 +79,15 @@ export const AppLayout: React.FC<AppLayoutPropsType> = ({
   return (
     <LayoutStyled>
       {header}
-      <MainContent>
+      <MainContentStyled>
         {sidebar}
-        <LeftPanel>
-          <PanelContent>{leftPanel}</PanelContent>
-        </LeftPanel>
-        <RightPanel>
-          <PanelContent>{rightPanel}</PanelContent>
-        </RightPanel>
-      </MainContent>
+        <LeftPanelStyled>
+          <PanelContentStyled data-scroll-render-target="true">{leftPanel}</PanelContentStyled>
+        </LeftPanelStyled>
+        <RightPanelStyled>
+          <PanelContentStyled data-scroll-render-target="true">{rightPanel}</PanelContentStyled>
+        </RightPanelStyled>
+      </MainContentStyled>
       {footer}
     </LayoutStyled>
   );

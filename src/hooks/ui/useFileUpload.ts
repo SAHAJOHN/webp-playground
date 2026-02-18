@@ -17,7 +17,7 @@ type UseFileUploadOptionsType = {
 
 export const useFileUpload = (options: UseFileUploadOptionsType = {}) => {
   const {
-    maxFiles = 10,
+    maxFiles = 50,
     validationRules = DEFAULT_VALIDATION_RULES,
     onFilesSelected,
     onValidationComplete,
@@ -39,21 +39,27 @@ export const useFileUpload = (options: UseFileUploadOptionsType = {}) => {
     async (fileList: FileList | File[]) => {
       const files = Array.from(fileList);
 
-      // Clear previous errors and set files first
+      // Clear previous validation state before processing new selection
       setState((prev) => ({
         ...prev,
-        files,
         validationErrors: new Map(),
         fileInfos: [],
       }));
 
       // Check max files limit
       if (files.length > maxFiles) {
-        const error = `Maximum ${maxFiles} files allowed. Selected ${files.length} files.`;
+        const error = `Maximum ${maxFiles} files allowed. Selected ${files.length} files. Upload selection was cleared.`;
         setState((prev) => ({
           ...prev,
+          files: [],
+          fileInfos: [],
           validationErrors: new Map([["maxFiles", [error]]]),
         }));
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+
         return;
       }
 
@@ -65,6 +71,37 @@ export const useFileUpload = (options: UseFileUploadOptionsType = {}) => {
           files,
           validationRules
         );
+
+        // If any file exceeds size limit, clear whole selection
+        const hasOversizedFile = fileInfos.some((fileInfo) =>
+          fileInfo.validationErrors.some(
+            (validationError) => validationError.code === "FILE_TOO_LARGE"
+          )
+        );
+
+        if (hasOversizedFile) {
+          setState((prev) => ({
+            ...prev,
+            files: [],
+            fileInfos: [],
+            validationErrors: new Map([
+              [
+                "maxFileSize",
+                [
+                  `One or more files exceed the maximum size (${Math.round(
+                    validationRules.maxFileSize / 1024 / 1024
+                  )} MB). Upload selection was cleared.`,
+                ],
+              ],
+            ]),
+          }));
+
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+
+          return;
+        }
 
         // Group validation errors by file
         const validationErrors = new Map<string, string[]>();
@@ -79,6 +116,7 @@ export const useFileUpload = (options: UseFileUploadOptionsType = {}) => {
 
         setState((prev) => ({
           ...prev,
+          files,
           validationErrors,
           fileInfos,
         }));

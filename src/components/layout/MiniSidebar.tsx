@@ -14,7 +14,7 @@ const SidebarStyled = styled.aside<{ $collapsed: boolean }>`
   gap: ${theme.spacing[2]};
 `;
 
-const SidebarButton = styled.button<{ $active?: boolean }>`
+const SidebarButtonStyled = styled.button<{ $active?: boolean }>`
   width: 48px;
   height: 48px;
   display: flex;
@@ -70,7 +70,7 @@ export const MiniSidebar: React.FC<MiniSidebarPropsType> = ({
   return (
     <SidebarStyled $collapsed={collapsed}>
       {tabs.map((tab) => (
-        <SidebarButton
+        <SidebarButtonStyled
           key={tab.id}
           $active={activeTab === tab.id}
           onClick={() => onTabChange?.(tab.id)}
@@ -78,7 +78,7 @@ export const MiniSidebar: React.FC<MiniSidebarPropsType> = ({
           aria-label={tab.label}
         >
           <tab.icon size={20} />
-        </SidebarButton>
+        </SidebarButtonStyled>
       ))}
     </SidebarStyled>
   );

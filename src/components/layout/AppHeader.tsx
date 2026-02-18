@@ -27,13 +27,13 @@ const HeaderStyled = styled.header`
   }
 `;
 
-const LogoSection = styled.div`
+const LogoSectionStyled = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing[3]};
 `;
 
-const LogoIcon = styled.div`
+const LogoIconStyled = styled.div`
   width: 32px;
   height: 32px;
   display: flex;
@@ -42,14 +42,14 @@ const LogoIcon = styled.div`
   color: ${theme.colors.accent.primary};
 `;
 
-const LogoText = styled.span`
+const LogoTextStyled = styled.span`
   font-size: ${theme.fontSizes.lg};
   font-weight: ${theme.fontWeights.semibold};
   color: ${theme.colors.text.primary};
   letter-spacing: -0.02em;
 `;
 
-const StatsBadge = styled.div`
+const StatsBadgeStyled = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing[2]};
@@ -76,16 +76,16 @@ export const AppHeader: React.FC<AppHeaderPropsType> = ({
 }) => {
   return (
     <HeaderStyled>
-      <LogoSection>
-        <LogoIcon>
+      <LogoSectionStyled>
+        <LogoIconStyled>
           <ImageIcon size={24} />
-        </LogoIcon>
-        <LogoText>WebP Converter</LogoText>
-      </LogoSection>
-      <StatsBadge>
+        </LogoIconStyled>
+        <LogoTextStyled>WebP Converter</LogoTextStyled>
+      </LogoSectionStyled>
+      <StatsBadgeStyled>
         <Zap size={14} />
         {filesProcessed} files • {totalSaved} saved
-      </StatsBadge>
+      </StatsBadgeStyled>
     </HeaderStyled>
   );
 };

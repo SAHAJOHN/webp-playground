@@ -5,13 +5,13 @@ import styled from "styled-components";
 import { Download, CheckCircle, AlertCircle, Loader2, Clock } from "lucide-react";
 import { theme } from "@/styles/theme";
 
-const GridContainer = styled.div`
+const GridContainerStyled = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: ${theme.spacing[4]};
 `;
 
-const PreviewCard = styled.div<{ $status: "pending" | "processing" | "done" | "error" }>`
+const PreviewCardStyled = styled.div<{ $status: "pending" | "processing" | "done" | "error" }>`
   aspect-ratio: 1;
   border-radius: ${theme.radii.xl};
   border: 1px solid ${theme.colors.border.subtle};
@@ -27,13 +27,13 @@ const PreviewCard = styled.div<{ $status: "pending" | "processing" | "done" | "e
   }
 `;
 
-const PreviewImage = styled.img`
+const PreviewImageStyled = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
 `;
 
-const CardOverlay = styled.div`
+const CardOverlayStyled = styled.div`
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
@@ -44,18 +44,18 @@ const CardOverlay = styled.div`
   justify-content: flex-end;
   padding: ${theme.spacing[3]};
 
-  ${PreviewCard}:hover & {
+  ${PreviewCardStyled}:hover & {
     opacity: 1;
   }
 `;
 
-const OverlayContent = styled.div`
+const OverlayContentStyled = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing[1]};
 `;
 
-const OverlayFileName = styled.span`
+const OverlayFileNameStyled = styled.span`
   font-size: ${theme.fontSizes.xs};
   font-weight: ${theme.fontWeights.medium};
   color: white;
@@ -64,13 +64,13 @@ const OverlayFileName = styled.span`
   text-overflow: ellipsis;
 `;
 
-const OverlayStats = styled.span`
+const OverlayStatsStyled = styled.span`
   font-size: ${theme.fontSizes.xs};
   color: ${theme.colors.accent.success};
   font-family: ${theme.fonts.mono};
 `;
 
-const StatusDot = styled.div<{ $status: "pending" | "processing" | "done" | "error" }>`
+const StatusDotStyled = styled.div<{ $status: "pending" | "processing" | "done" | "error" }>`
   position: absolute;
   top: ${theme.spacing[3]};
   right: ${theme.spacing[3]};
@@ -91,7 +91,7 @@ const StatusDot = styled.div<{ $status: "pending" | "processing" | "done" | "err
   }};
 `;
 
-const DownloadBadge = styled.div`
+const DownloadBadgeStyled = styled.div`
   position: absolute;
   bottom: ${theme.spacing[3]};
   right: ${theme.spacing[3]};
@@ -102,12 +102,12 @@ const DownloadBadge = styled.div`
   opacity: 0;
   transition: opacity ${theme.transitions.fast};
 
-  ${PreviewCard}:hover & {
+  ${PreviewCardStyled}:hover & {
     opacity: 1;
   }
 `;
 
-const PlaceholderContent = styled.div`
+const PlaceholderContentStyled = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
@@ -118,7 +118,7 @@ const PlaceholderContent = styled.div`
   color: ${theme.colors.text.muted};
 `;
 
-const SpinningIcon = styled.div`
+const SpinningIconStyled = styled.div`
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
@@ -155,9 +155,9 @@ export const PreviewGrid: React.FC<PreviewGridPropsType> = ({
         return <AlertCircle size={14} />;
       case "processing":
         return (
-          <SpinningIcon>
+          <SpinningIconStyled>
             <Loader2 size={14} />
-          </SpinningIcon>
+          </SpinningIconStyled>
         );
       case "pending":
         return <Clock size={14} />;
@@ -173,51 +173,51 @@ export const PreviewGrid: React.FC<PreviewGridPropsType> = ({
   };
 
   return (
-    <GridContainer>
+    <GridContainerStyled>
       {items.map((item) => (
-        <PreviewCard
+        <PreviewCardStyled
           key={item.id}
           $status={item.status}
           onClick={() => onItemClick?.(item.id)}
         >
-          {item.convertedUrl || item.originalUrl ? (
-            <PreviewImage
-              src={item.convertedUrl || item.originalUrl}
+          {item.convertedUrl ? (
+            <PreviewImageStyled
+              src={item.convertedUrl}
               alt={item.name}
             />
           ) : (
-            <PlaceholderContent>
-              <SpinningIcon>
+            <PlaceholderContentStyled>
+              <SpinningIconStyled>
                 <Loader2 size={24} />
-              </SpinningIcon>
-            </PlaceholderContent>
+              </SpinningIconStyled>
+            </PlaceholderContentStyled>
           )}
-          <StatusDot $status={item.status}>
+          <StatusDotStyled $status={item.status}>
             {getStatusIcon(item.status)}
-          </StatusDot>
+          </StatusDotStyled>
           {item.status === "done" && (
             <>
-              <CardOverlay>
-                <OverlayContent>
-                  <OverlayFileName>{item.name}</OverlayFileName>
+              <CardOverlayStyled>
+                <OverlayContentStyled>
+                  <OverlayFileNameStyled>{item.name}</OverlayFileNameStyled>
                   {item.compressionRatio !== undefined && (
-                    <OverlayStats>
+                    <OverlayStatsStyled>
                       {formatCompression(item.compressionRatio)}
-                    </OverlayStats>
+                    </OverlayStatsStyled>
                   )}
-                </OverlayContent>
-              </CardOverlay>
-              <DownloadBadge onClick={(e) => {
+                </OverlayContentStyled>
+              </CardOverlayStyled>
+              <DownloadBadgeStyled onClick={(e) => {
                 e.stopPropagation();
                 onDownload?.(item.id);
               }}>
                 <Download size={16} />
-              </DownloadBadge>
+              </DownloadBadgeStyled>
             </>
           )}
-        </PreviewCard>
+        </PreviewCardStyled>
       ))}
-    </GridContainer>
+    </GridContainerStyled>
   );
 };
 

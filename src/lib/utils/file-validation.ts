@@ -384,8 +384,8 @@ export class FileValidationService {
       }
 
       // Check for excessively large files that might cause DoS
-      if (file.size > 100 * 1024 * 1024) {
-        // 100MB
+      if (file.size > 15 * 1024 * 1024) {
+        // 15MB
         errors.push({
           code: "POTENTIAL_DOS",
           message:

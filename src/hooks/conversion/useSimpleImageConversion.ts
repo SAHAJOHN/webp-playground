@@ -16,14 +16,27 @@ type SimpleJobType = {
   error?: Error;
 };
 
+const MAX_CLIENT_CONCURRENCY = 5;
+
+type RetryableServerErrorType = Error & {
+  status?: number;
+  code?: string;
+  retryAfterMs?: number;
+};
+
 export const useSimpleImageConversion = () => {
   const [jobs, setJobs] = useState<SimpleJobType[]>([]);
+  const [results, setResults] = useState<ConversionResultType[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
   const cancelledJobsRef = useRef<Set<string>>(new Set());
+  const activeBatchIdRef = useRef(0);
 
   const convertFiles = useCallback(
     async (files: File[], settings: ConversionSettingsType) => {
+      const batchId = activeBatchIdRef.current + 1;
+      activeBatchIdRef.current = batchId;
+
       // Clear cancelled jobs ref for new batch
       cancelledJobsRef.current.clear();
 
@@ -39,85 +52,205 @@ export const useSimpleImageConversion = () => {
       setJobs(newJobs);
       setIsProcessing(true);
 
-      // Process each job
-      for (const job of newJobs) {
-        // Check if job was cancelled
-        if (cancelledJobsRef.current.has(job.id)) {
-          continue;
-        }
+      const pendingJobs = [...newJobs];
+      let runningJobs = 0;
 
-        try {
-          // Create abort controller for this job
+      await new Promise<void>((resolve) => {
+        const processJob = async (job: SimpleJobType) => {
+          if (
+            activeBatchIdRef.current !== batchId ||
+            cancelledJobsRef.current.has(job.id)
+          ) {
+            return;
+          }
+
           const abortController = new AbortController();
           abortControllersRef.current.set(job.id, abortController);
 
-          // Update job to processing
           setJobs((prev) =>
             prev.map((j) =>
               j.id === job.id ? { ...j, status: "processing" as const } : j
             )
           );
 
-          // Convert the image
-          const result = await ImageConversionService.convertImage(
-            job.file,
-            job.settings,
-            (progress) => {
-              // Check if job was cancelled
-              if (abortController.signal.aborted) {
-                throw new Error("Job cancelled");
+          try {
+            let retryAttempt = 0;
+
+            while (true) {
+              try {
+                const result = await ImageConversionService.convertImage(
+                  job.file,
+                  job.settings,
+                  (progress) => {
+                    if (
+                      abortController.signal.aborted ||
+                      activeBatchIdRef.current !== batchId ||
+                      cancelledJobsRef.current.has(job.id)
+                    ) {
+                      return;
+                    }
+
+                    setJobs((prev) =>
+                      prev.map((j) => (j.id === job.id ? { ...j, progress } : j))
+                    );
+                  },
+                  { signal: abortController.signal }
+                );
+
+                if (
+                  abortController.signal.aborted ||
+                  activeBatchIdRef.current !== batchId ||
+                  cancelledJobsRef.current.has(job.id)
+                ) {
+                  return;
+                }
+
+                setJobs((prev) =>
+                  prev.map((j) =>
+                    j.id === job.id
+                      ? {
+                          ...j,
+                          status: "completed" as const,
+                          progress: 100,
+                          result,
+                        }
+                      : j
+                  )
+                );
+                setResults((prev) => {
+                  const existingIndex = prev.findIndex(
+                    (existingResult) =>
+                      existingResult.originalFile.name === result.originalFile.name
+                  );
+
+                  if (existingIndex === -1) {
+                    return [...prev, result];
+                  }
+
+                  const nextResults = [...prev];
+                  nextResults[existingIndex] = result;
+                  return nextResults;
+                });
+                return;
+              } catch (error) {
+                const retryableError = error as RetryableServerErrorType;
+                const shouldRetryForServerCapacity =
+                  retryableError?.status === 429 ||
+                  retryableError?.code === "QUEUE_FULL" ||
+                  retryableError?.code === "MEMORY_BUDGET_EXCEEDED";
+
+                if (!shouldRetryForServerCapacity) {
+                  throw error;
+                }
+
+                retryAttempt += 1;
+                const baseDelay = retryableError.retryAfterMs ?? 1000;
+                const retryDelayMs = Math.min(
+                  baseDelay + (retryAttempt - 1) * 500,
+                  4000
+                );
+
+                await new Promise<void>((resolve) => {
+                  setTimeout(() => resolve(), retryDelayMs);
+                });
+
+                if (
+                  abortController.signal.aborted ||
+                  activeBatchIdRef.current !== batchId ||
+                  cancelledJobsRef.current.has(job.id)
+                ) {
+                  return;
+                }
+              }
+            }
+          } catch (error) {
+            const isAbortError =
+              (error instanceof DOMException && error.name === "AbortError") ||
+              (error instanceof Error &&
+                (error.name === "AbortError" ||
+                  error.message.toLowerCase().includes("abort")));
+
+            if (
+              isAbortError ||
+              abortController.signal.aborted ||
+              activeBatchIdRef.current !== batchId ||
+              cancelledJobsRef.current.has(job.id)
+            ) {
+              return;
+            }
+
+            console.error("❌ Conversion failed for:", job.id, error);
+
+            setJobs((prev) =>
+              prev.map((j) =>
+                j.id === job.id
+                  ? {
+                      ...j,
+                      status: "error" as const,
+                      error:
+                        error instanceof Error
+                          ? error
+                          : new Error("Unknown error"),
+                    }
+                  : j
+              )
+            );
+          } finally {
+            abortControllersRef.current.delete(job.id);
+          }
+        };
+
+        const schedule = () => {
+          if (activeBatchIdRef.current !== batchId) {
+            if (runningJobs === 0) {
+              resolve();
+            }
+            return;
+          }
+
+          while (
+            runningJobs < MAX_CLIENT_CONCURRENCY &&
+            pendingJobs.length > 0
+          ) {
+            const nextJob = pendingJobs.shift();
+
+            if (!nextJob || cancelledJobsRef.current.has(nextJob.id)) {
+              continue;
+            }
+
+            runningJobs += 1;
+
+            void processJob(nextJob).finally(() => {
+              runningJobs = Math.max(0, runningJobs - 1);
+
+              if (pendingJobs.length === 0 && runningJobs === 0) {
+                resolve();
+                return;
               }
 
-              setJobs((prev) =>
-                prev.map((j) => (j.id === job.id ? { ...j, progress } : j))
-              );
-            }
-          );
+              schedule();
+            });
+          }
 
-          // Clean up abort controller
-          abortControllersRef.current.delete(job.id);
+          if (pendingJobs.length === 0 && runningJobs === 0) {
+            resolve();
+          }
+        };
 
+        schedule();
+      });
 
-          // Update job to completed
-          setJobs((prev) =>
-            prev.map((j) =>
-              j.id === job.id
-                ? {
-                    ...j,
-                    status: "completed" as const,
-                    progress: 100,
-                    result,
-                  }
-                : j
-            )
-          );
-        } catch (error) {
-          console.error("❌ Conversion failed for:", job.id, error);
-
-          // Update job to error
-          setJobs((prev) =>
-            prev.map((j) =>
-              j.id === job.id
-                ? {
-                    ...j,
-                    status: "error" as const,
-                    error:
-                      error instanceof Error
-                        ? error
-                        : new Error("Unknown error"),
-                  }
-                : j
-            )
-          );
-        }
+      if (activeBatchIdRef.current === batchId) {
+        setIsProcessing(false);
       }
-
-      setIsProcessing(false);
     },
     []
   );
 
   const clearJobs = useCallback(() => {
+    // Invalidate current batch to stop loop immediately
+    activeBatchIdRef.current += 1;
+
     // Abort all active jobs
     abortControllersRef.current.forEach((controller) => {
       controller.abort();
@@ -126,6 +259,23 @@ export const useSimpleImageConversion = () => {
     cancelledJobsRef.current.clear();
 
     setJobs([]);
+    setResults([]);
+    setIsProcessing(false);
+  }, []);
+
+  const resetQueue = useCallback(() => {
+    // Invalidate current batch to stop loop immediately
+    activeBatchIdRef.current += 1;
+
+    // Abort all active jobs
+    abortControllersRef.current.forEach((controller) => {
+      controller.abort();
+    });
+    abortControllersRef.current.clear();
+    cancelledJobsRef.current.clear();
+
+    setJobs([]);
+    setIsProcessing(false);
   }, []);
 
   const cancelJob = useCallback((jobId: string) => {
@@ -155,17 +305,13 @@ export const useSimpleImageConversion = () => {
     });
   }, []);
 
-  // Get results
-  const results = jobs
-    .filter((job) => job.status === "completed" && job.result)
-    .map((job) => job.result!);
-
   return {
     jobs,
     isProcessing,
     results,
     convertFiles,
     clearJobs,
+    resetQueue,
     cancelJob,
   };
 };

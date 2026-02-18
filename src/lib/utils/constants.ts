@@ -28,7 +28,7 @@ export const EXTENSION_MAP: Record<SupportedFormatType, string[]> = {
 
 // Default validation rules
 export const DEFAULT_VALIDATION_RULES: FileValidationRulesType = {
-  maxFileSize: 50 * 1024 * 1024, // 50MB
+  maxFileSize: 15 * 1024 * 1024, // 15MB
   supportedFormats: SUPPORTED_FORMATS,
   maxDimensions: { width: 8192, height: 8192 },
   minDimensions: { width: 1, height: 1 },

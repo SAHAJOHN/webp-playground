@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import styled from "styled-components";
 import {
   AppHeader,
   AppLayout,
   MiniSidebar,
+  ScrollProgress,
 } from "@/components/layout";
 import {
   FileUpload,
@@ -24,13 +25,13 @@ import type {
 import type { FileQueueItemType, PreviewGridItemType } from "@/components/conversion";
 import {ScrollShadow} from "@/components/layout/ScrollShadow";
 
-const LeftPanelContent = styled.div`
+const LeftPanelContentStyled = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
 `;
 
-const ScrollSection = styled.div`
+const ScrollSectionStyled = styled.div`
   flex: 1;
   overflow-y: auto;
   display: flex;
@@ -46,7 +47,7 @@ const ScrollSection = styled.div`
   }
 `;
 
-const SectionTitle = styled.h3`
+const SectionTitleStyled = styled.h3`
   font-size: 11px;
   font-weight: 600;
   color: #71717a;
@@ -55,17 +56,17 @@ const SectionTitle = styled.h3`
   margin: 0 0 12px 0;
 `;
 
-const SectionCard = styled.div`
+const SectionCardStyled = styled.div`
   background: #18181b;
 `;
 
-const RightPanelContent = styled.div`
+const RightPanelContentStyled = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
 `;
 
-const PreviewSection = styled.div`
+const PreviewSectionStyled = styled.div`
   flex: 1;
   overflow-y: auto;
   padding-bottom: 24px;
@@ -78,7 +79,7 @@ const PreviewSection = styled.div`
   }
 `;
 
-const EmptyState = styled.div`
+const EmptyStateStyled = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -90,7 +91,7 @@ const EmptyState = styled.div`
   gap: 16px;
 `;
 
-const EmptyIcon = styled.div`
+const EmptyIconStyled = styled.div`
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -101,38 +102,13 @@ const EmptyIcon = styled.div`
   font-size: 32px;
 `;
 
-const EmptyText = styled.p`
+const EmptyTextStyled = styled.p`
   font-size: 16px;
   color: #52525b;
   margin: 0;
 `;
 
-const ConvertButton = styled.button<{ $disabled: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px;
-  margin-top: 16px;
-  background: ${(props) =>
-    props.$disabled ? "#27272a" : "#6366f1"};
-  color: ${(props) =>
-    props.$disabled ? "#71717a" : "white"};
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
-  transition: all 0.15s ease;
-
-  &:hover {
-    background: ${(props) =>
-      props.$disabled ? "#27272a" : "#818cf8"};
-  }
-`;
-
-const Footer = styled.footer`
+const FooterStyled = styled.footer`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -143,11 +119,29 @@ const Footer = styled.footer`
   color: #52525b;
 `;
 
+type ServerProcessingStatusType = {
+  queueTotal: number;
+  processing: number;
+  maxQueue: number;
+  maxProcessing: number;
+  memoryBytes: number;
+  memoryLimitBytes: number;
+};
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileUploadKey, setFileUploadKey] = useState(0);
   const [activeTab, setActiveTab] = useState<"upload" | "settings" | "history" | "stats">("upload");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [serverProcessing, setServerProcessing] =
+    useState<ServerProcessingStatusType>({
+      queueTotal: 0,
+      processing: 0,
+      maxQueue: 100,
+      maxProcessing: 5,
+      memoryBytes: 0,
+      memoryLimitBytes: 100 * 1024 * 1024,
+    });
   const [conversionSettings, setConversionSettings] =
     useState<ConversionSettingsType>({
       format: "webp" as SupportedFormatType,
@@ -156,6 +150,23 @@ export default function Home() {
       progressive: true,
       interlace: true,
     });
+  const queueThumbnailUrlsRef = useRef<Map<string, string>>(new Map());
+  const previewConvertedUrlsRef = useRef<
+    Map<string, { url: string; fingerprint: string }>
+  >(new Map());
+
+  const getQueueThumbnailUrl = useCallback((file: File) => {
+    const key = `${file.name}-${file.lastModified}-${file.size}`;
+    const cachedUrl = queueThumbnailUrlsRef.current.get(key);
+
+    if (cachedUrl) {
+      return cachedUrl;
+    }
+
+    const createdUrl = URL.createObjectURL(file);
+    queueThumbnailUrlsRef.current.set(key, createdUrl);
+    return createdUrl;
+  }, []);
 
   const {
     jobs: simpleJobs,
@@ -163,43 +174,131 @@ export default function Home() {
     results: simpleResults,
     convertFiles,
     clearJobs,
+    resetQueue,
     cancelJob,
   } = useSimpleImageConversion();
 
+  const getSelectedFileKey = useCallback(
+    (file: File) => `${file.name}-${file.lastModified}-${file.size}`,
+    []
+  );
+
   // Convert jobs to queue items
   const queueItems: FileQueueItemType[] = useMemo(() => {
+    if (simpleJobs.length === 0 && selectedFiles.length > 0) {
+      return selectedFiles.map((file) => ({
+        id: `selected-${getSelectedFileKey(file)}`,
+        name: file.name,
+        size: formatFileSize(file.size),
+        thumbnail: getQueueThumbnailUrl(file),
+        status: "pending" as const,
+        progress: 0,
+      }));
+    }
+
     return simpleJobs
       .filter((job) => job.status !== "cancelled")
       .map((job) => ({
         id: job.id,
         name: job.file.name,
         size: formatFileSize(job.file.size),
-        thumbnail: URL.createObjectURL(job.file),
+        thumbnail: getQueueThumbnailUrl(job.file),
         status: mapJobStatus(job.status),
         progress: job.progress,
       }));
-  }, [simpleJobs]);
+  }, [getQueueThumbnailUrl, getSelectedFileKey, simpleJobs, selectedFiles]);
 
-  // Convert results to preview grid items
+  const activeQueueThumbnailKeys = useMemo(() => {
+    if (simpleJobs.length === 0 && selectedFiles.length > 0) {
+      return selectedFiles.map(
+        (file) => `${file.name}-${file.lastModified}-${file.size}`
+      );
+    }
+
+    return simpleJobs
+      .filter((job) => job.status !== "cancelled")
+      .map((job) => `${job.file.name}-${job.file.lastModified}-${job.file.size}`);
+  }, [selectedFiles, simpleJobs]);
+
+  useEffect(() => {
+    const activeKeys = new Set(activeQueueThumbnailKeys);
+
+    queueThumbnailUrlsRef.current.forEach((url, key) => {
+      if (!activeKeys.has(key)) {
+        URL.revokeObjectURL(url);
+        queueThumbnailUrlsRef.current.delete(key);
+      }
+    });
+  }, [activeQueueThumbnailKeys]);
+
+  const previewResultKeys = useMemo(
+    () => simpleResults.map((result) => result.originalFile.name),
+    [simpleResults]
+  );
+
+  // Convert results to preview grid items with stable blob URLs
   const previewItems: PreviewGridItemType[] = useMemo(() => {
-    return simpleResults.map((result, idx) => ({
-      id: `result-${idx}`,
-      name: result.originalFile.name,
-      originalUrl: URL.createObjectURL(result.originalFile),
-      convertedUrl: result.convertedBlob
-        ? URL.createObjectURL(result.convertedBlob)
-        : undefined,
-      originalSize: formatFileSize(result.originalFile.size),
-      convertedSize: result.convertedBlob
-        ? formatFileSize(result.convertedBlob.size)
-        : undefined,
-      compressionRatio: getCompressionRatio(
-        result.originalFile.size,
-        result.convertedBlob?.size || 0
-      ),
-      status: "done" as const,
-    }));
-  }, [simpleResults]);
+    return simpleResults.map((result, idx) => {
+      const key = previewResultKeys[idx];
+
+      let convertedUrl: string | undefined;
+      if (result.convertedBlob) {
+        const fingerprint = `${result.originalFile.lastModified}-${result.originalFile.size}-${result.convertedBlob.size}`;
+        const cachedPreview = previewConvertedUrlsRef.current.get(key);
+
+        if (!cachedPreview || cachedPreview.fingerprint !== fingerprint) {
+          if (cachedPreview) {
+            URL.revokeObjectURL(cachedPreview.url);
+          }
+
+          convertedUrl = URL.createObjectURL(result.convertedBlob);
+          previewConvertedUrlsRef.current.set(key, {
+            url: convertedUrl,
+            fingerprint,
+          });
+        } else {
+          convertedUrl = cachedPreview.url;
+        }
+      }
+
+      return {
+        id: `result-${idx}`,
+        name: result.originalFile.name,
+        originalUrl: "",
+        convertedUrl,
+        originalSize: formatFileSize(result.originalFile.size),
+        convertedSize: result.convertedBlob
+          ? formatFileSize(result.convertedBlob.size)
+          : undefined,
+        compressionRatio: getCompressionRatio(
+          result.originalFile.size,
+          result.convertedBlob?.size || 0
+        ),
+        status: "done" as const,
+      };
+    });
+  }, [previewResultKeys, simpleResults]);
+
+  useEffect(() => {
+    const activeKeys = new Set(previewResultKeys);
+
+    previewConvertedUrlsRef.current.forEach((url, key) => {
+      if (!activeKeys.has(key)) {
+        URL.revokeObjectURL(url.url);
+        previewConvertedUrlsRef.current.delete(key);
+      }
+    });
+  }, [previewResultKeys]);
+
+  useEffect(() => {
+    return () => {
+      queueThumbnailUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      queueThumbnailUrlsRef.current.clear();
+
+      previewConvertedUrlsRef.current.forEach((url) => URL.revokeObjectURL(url.url));
+      previewConvertedUrlsRef.current.clear();
+    };
+  }, []);
 
   // Calculate stats
   const totalSaved = useMemo(() => {
@@ -213,11 +312,15 @@ export default function Home() {
   }, [simpleResults]);
 
   const handleFilesSelected = useCallback((files: File[]) => {
+    if (files.length > 0) {
+      resetQueue();
+    }
+
     setSelectedFiles(files);
     if (files.length === 0) {
       clearJobs();
     }
-  }, [clearJobs]);
+  }, [clearJobs, resetQueue]);
 
   const handleStartConversion = useCallback(() => {
     if (selectedFiles.length > 0) {
@@ -236,10 +339,34 @@ export default function Home() {
 
   const handleRemoveFromQueue = useCallback(
     (id: string) => {
+      if (id.startsWith("selected-")) {
+        const selectedFileKey = id.replace("selected-", "");
+
+        setSelectedFiles((prev) => {
+          const nextFiles = prev.filter(
+            (file) => getSelectedFileKey(file) !== selectedFileKey
+          );
+
+          if (nextFiles.length === 0) {
+            setFileUploadKey((prevKey) => prevKey + 1);
+          }
+
+          return nextFiles;
+        });
+
+        return;
+      }
+
       cancelJob(id);
     },
-    [cancelJob]
+    [cancelJob, getSelectedFileKey]
   );
+
+  const handleClearAll = useCallback(() => {
+    clearJobs();
+    setSelectedFiles([]);
+    setFileUploadKey((prev) => prev + 1);
+  }, [clearJobs]);
 
   const handleDownloadAll = useCallback(async () => {
     if (simpleResults.length === 0) return;
@@ -265,6 +392,89 @@ export default function Home() {
     }
   }, [simpleResults]);
 
+  useEffect(() => {
+    let isMounted = true;
+    let eventSource: EventSource | null = null;
+    let reconnectTimeoutId: number | null = null;
+    let reconnectDelay = 1000;
+
+    const clearReconnectTimeout = () => {
+      if (reconnectTimeoutId !== null) {
+        window.clearTimeout(reconnectTimeoutId);
+        reconnectTimeoutId = null;
+      }
+    };
+
+    const connect = () => {
+      if (!isMounted) {
+        return;
+      }
+
+      eventSource = new EventSource("/api/convert");
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data) as Partial<ServerProcessingStatusType>;
+
+          if (!isMounted) {
+            return;
+          }
+
+          setServerProcessing({
+            queueTotal:
+              typeof data.queueTotal === "number" ? data.queueTotal : 0,
+            processing:
+              typeof data.processing === "number" ? data.processing : 0,
+            maxQueue:
+              typeof data.maxQueue === "number" ? data.maxQueue : 100,
+            maxProcessing:
+              typeof data.maxProcessing === "number" ? data.maxProcessing : 5,
+            memoryBytes:
+              typeof data.memoryBytes === "number" ? data.memoryBytes : 0,
+            memoryLimitBytes:
+              typeof data.memoryLimitBytes === "number"
+                ? data.memoryLimitBytes
+                : 100 * 1024 * 1024,
+          });
+
+          reconnectDelay = 1000;
+        } catch {
+          // Ignore malformed SSE payloads
+        }
+      };
+
+      eventSource.onerror = () => {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        clearReconnectTimeout();
+        reconnectTimeoutId = window.setTimeout(() => {
+          connect();
+        }, reconnectDelay);
+
+        reconnectDelay = Math.min(reconnectDelay * 2, 5000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      isMounted = false;
+      clearReconnectTimeout();
+
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+    };
+  }, []);
+
   return (
     <AppLayout
       header={
@@ -275,76 +485,77 @@ export default function Home() {
       }
       sidebar={<MiniSidebar activeTab={activeTab} onTabChange={setActiveTab} />}
       leftPanel={
-        <LeftPanelContent>
-          <ScrollShadow selectors={["scroll-section"]} color="#18181b">
-            <ScrollSection className="scroll-section">
+        <LeftPanelContentStyled>
+          <ScrollProgress selectors={["scroll-section"]}>
+            <ScrollShadow selectors={["scroll-section"]} color="#18181b">
+              <ScrollSectionStyled className="scroll-section">
               {/* Upload Section */}
-              <SectionCard>
-                <SectionTitle>Upload</SectionTitle>
+              <SectionCardStyled>
+                <SectionTitleStyled>Upload</SectionTitleStyled>
                 <FileUpload
                     key={fileUploadKey}
                     onFilesSelected={handleFilesSelected}
                     acceptedFormats={["jpeg", "jpg", "png", "webp", "avif"]}
-                    maxFileSize={50 * 1024 * 1024}
-                    maxFiles={10}
+                    maxFileSize={15 * 1024 * 1024}
+                    maxFiles={50}
                     disabled={isProcessing}
                 />
-              </SectionCard>
+              </SectionCardStyled>
 
               {/* Settings Section */}
               {selectedFiles.length > 0 && (
-                  <SectionCard>
-                    <SectionTitle>Settings</SectionTitle>
+                  <SectionCardStyled>
+                    <SectionTitleStyled>Settings</SectionTitleStyled>
                     <ConversionPanel
                         settings={conversionSettings}
                         onSettingsChange={handleSettingsChange}
                         isProcessing={isProcessing}
                     />
-                    <ConvertButton
-                        $disabled={isProcessing || selectedFiles.length === 0}
-                        onClick={handleStartConversion}
-                        disabled={isProcessing || selectedFiles.length === 0}
-                    >
-                      {isProcessing ? "Converting..." : "Convert All"}
-                    </ConvertButton>
-                  </SectionCard>
+                  </SectionCardStyled>
               )}
 
               {/* Queue Section */}
-              {queueItems.length > 0 && (
-                  <SectionCard>
+              {(queueItems.length > 0 || serverProcessing.queueTotal > 0) && (
+                  <SectionCardStyled>
                     <FileQueue
                         files={queueItems}
                         onRemove={handleRemoveFromQueue}
                     />
-                  </SectionCard>
+                  </SectionCardStyled>
               )}
-            </ScrollSection>
-          </ScrollShadow>
+            </ScrollSectionStyled>
+            </ScrollShadow>
+          </ScrollProgress>
 
           {/* Clear All Area */}
           {queueItems.length > 0 && (
             <ClearAllArea
               filesInQueue={queueItems.length}
-              onClearAll={clearJobs}
+              onClearAll={handleClearAll}
+              onConvertAll={handleStartConversion}
+              canConvert={selectedFiles.length > 0}
+              isProcessing={isProcessing}
+              statusText={`Server Queue: ${serverProcessing.queueTotal}/${serverProcessing.maxQueue} • Processing: ${serverProcessing.processing}/${serverProcessing.maxProcessing} • Memory: ${Math.round(serverProcessing.memoryBytes / 1024 / 1024)}/${Math.round(serverProcessing.memoryLimitBytes / 1024 / 1024)}MB`}
             />
           )}
-        </LeftPanelContent>
+        </LeftPanelContentStyled>
       }
       rightPanel={
-        <RightPanelContent>
-          <ScrollShadow selectors={["preview-section"]} color="#18181b">
-            <PreviewSection className="preview-section">
+        <RightPanelContentStyled>
+          <ScrollProgress selectors={["preview-section"]}>
+            <ScrollShadow selectors={["preview-section"]} color="#18181b">
+              <PreviewSectionStyled className="preview-section">
               {previewItems.length > 0 ? (
                 <PreviewGrid items={previewItems} onDownload={handleDownloadSingle} />
               ) : (
-                <EmptyState>
-                  <EmptyIcon></EmptyIcon>
-                  <EmptyText>Drop files to start converting</EmptyText>
-                </EmptyState>
+                <EmptyStateStyled>
+                  <EmptyIconStyled></EmptyIconStyled>
+                  <EmptyTextStyled>Drop files to start converting</EmptyTextStyled>
+                </EmptyStateStyled>
               )}
-            </PreviewSection>
-          </ScrollShadow>
+            </PreviewSectionStyled>
+            </ScrollShadow>
+          </ScrollProgress>
           {simpleResults.length > 0 && (
             <DownloadArea
               filesReady={simpleResults.length}
@@ -353,13 +564,13 @@ export default function Home() {
               isDownloading={isDownloading}
             />
           )}
-        </RightPanelContent>
+        </RightPanelContentStyled>
       }
       footer={
-        <Footer>
+        <FooterStyled>
           <span>⌘+V to paste images</span>
           <span>WebP Converter Pro</span>
-        </Footer>
+        </FooterStyled>
       }
     />
   );

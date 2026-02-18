@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { FileArchive, HardDriveDownload } from "lucide-react";
 import { theme } from "@/styles/theme";
 
-const Container = styled.div`
+const ContainerStyled = styled.div`
   background: ${theme.colors.bg.surface};
   border-top: 1px solid ${theme.colors.border.subtle};
   padding-top: ${theme.spacing[2]};
@@ -14,29 +14,29 @@ const Container = styled.div`
   gap: ${theme.spacing[2]};
 `;
 
-const StatsRow = styled.div`
+const StatsRowStyled = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 
-const StatsText = styled.span`
+const StatsTextStyled = styled.span`
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.text.secondary};
 `;
 
-const SavedText = styled.span`
+const SavedTextStyled = styled.span`
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.accent.success};
   font-weight: ${theme.fontWeights.medium};
 `;
 
-const ButtonsRow = styled.div`
+const ButtonsRowStyled = styled.div`
   display: flex;
   gap: ${theme.spacing[3]};
 `;
 
-const PrimaryButton = styled.button`
+const PrimaryButtonStyled = styled.button`
   flex: 1;
   display: flex;
   align-items: center;
@@ -62,7 +62,7 @@ const PrimaryButton = styled.button`
   }
 `;
 
-const SecondaryButton = styled.button`
+const SecondaryButtonStyled = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,30 +104,30 @@ export const DownloadArea: React.FC<DownloadAreaPropsType> = ({
   isDownloading = false,
 }) => {
   return (
-    <Container>
-      <StatsRow>
-        <StatsText>{filesReady} files ready</StatsText>
-        <SavedText>{totalSaved} saved</SavedText>
-      </StatsRow>
-      <ButtonsRow>
-        <PrimaryButton
+    <ContainerStyled>
+      <StatsRowStyled>
+        <StatsTextStyled>{filesReady} files ready</StatsTextStyled>
+        <SavedTextStyled>{totalSaved} saved</SavedTextStyled>
+      </StatsRowStyled>
+      <ButtonsRowStyled>
+        <PrimaryButtonStyled
           onClick={onDownloadAll}
           disabled={filesReady === 0 || isDownloading}
         >
           <FileArchive size={18} />
           {isDownloading ? "Downloading..." : "Download All as ZIP"}
-        </PrimaryButton>
+        </PrimaryButtonStyled>
         {onDownloadIndividual && (
-          <SecondaryButton
+          <SecondaryButtonStyled
             onClick={onDownloadIndividual}
             disabled={filesReady === 0 || isDownloading}
           >
             <HardDriveDownload size={16} />
             Individual
-          </SecondaryButton>
+          </SecondaryButtonStyled>
         )}
-      </ButtonsRow>
-    </Container>
+      </ButtonsRowStyled>
+    </ContainerStyled>
   );
 };
 

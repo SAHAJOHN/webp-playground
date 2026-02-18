@@ -6,14 +6,15 @@ A professional Next.js image converter using server-side Sharp for superior comp
 
 - 🚀 **Server-side Processing**: Sharp/libvips for best compression (10-20% smaller files)
 - 📁 **Format Support**: JPEG, PNG, WebP, AVIF with format-specific optimizations
-- 📦 **Batch Processing**: Convert multiple files and download as ZIP
+- 📦 **Batch Processing**: Client-side queue with controlled parallel conversion
+- 📡 **Real-time Server Status**: SSE updates for queue, processing slots, and memory budget
 - 📊 **Size Comparison**: Real-time before/after file size display
 - 🎨 **Modern UI**: Clean interface with Tailwind CSS and Lucide icons
 - ♿ **Accessible**: Full keyboard navigation and ARIA support
 
 ## 🛠️ Technology Stack
 
-- **Next.js 15** with App Router
+- **Next.js 16.1.6** with App Router
 - **Sharp 0.34.3** for image processing
 - **React 19** with TypeScript 5
 - **Tailwind CSS 4** + styled-components
@@ -55,6 +56,17 @@ yarn build    # Production build
 yarn start    # Production server
 yarn lint     # Run ESLint
 ```
+
+## Runtime Limits and Queue Behavior
+
+- **Max file size**: `15MB` per file
+- **Client parallelism**: `5` conversions per client
+- **Server active processing**: `5` jobs
+- **Server queue capacity**: `100` jobs (`pending + active`)
+- **Server memory budget**: `100MB` reserved input bytes (`pending + active`)
+
+When server capacity is full, `/api/convert` returns `429` with `Retry-After` and a reason code (`QUEUE_FULL` or `MEMORY_BUDGET_EXCEEDED`).
+The client retries automatically with backoff.
 
 ## 📋 Format Settings Guide
 
@@ -99,8 +111,9 @@ yarn lint     # Run ESLint
 ### Basic Workflow
 1. **Upload**: Drag & drop or click to select images
 2. **Configure**: Choose format and adjust settings
-3. **Convert**: Process with real-time progress
-4. **Download**: Individual files or batch ZIP
+3. **Convert**: Use **Convert All** in the bottom action area next to **Clear All**
+4. **Monitor**: Queue status updates in real time (`Server Queue`, `Processing`, `Memory`)
+5. **Download**: Individual files or batch ZIP
 
 ### Recommended Settings by Use Case
 
@@ -168,6 +181,12 @@ src/
 - styled-components with `Styled` suffix
 - Types with `Type` suffix
 
+### Current UX Notes
+- Upload panel does not render a file list; the queue section is the source of truth.
+- Queue rows show status text (`Waiting...`, `Processing...`, `Completed`, `Failed`).
+- Preview persists across batches until **Clear All**.
+- Re-converting a file with the same filename replaces the previous preview item.
+
 ### Key Services
 - `image-conversion-service.ts` - Main conversion orchestration
 - `server-conversion-service.ts` - Sharp integration
@@ -187,4 +206,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Note**: All image processing happens server-side using Sharp for optimal compression and quality.
+**Note**: All image processing happens server-side using Sharp for optimal compression and quality. Current queue control is single-instance in-memory.

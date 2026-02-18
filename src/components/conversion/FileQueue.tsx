@@ -5,20 +5,20 @@ import styled from "styled-components";
 import { X, CheckCircle, AlertCircle, Loader2, Clock } from "lucide-react";
 import { theme } from "@/styles/theme";
 
-const QueueContainer = styled.div`
+const QueueContainerStyled = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing[2]};
 `;
 
-const QueueHeader = styled.div`
+const QueueHeaderStyled = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: ${theme.spacing[2]};
 `;
 
-const QueueTitle = styled.span`
+const QueueTitleStyled = styled.span`
   font-size: ${theme.fontSizes.sm};
   font-weight: ${theme.fontWeights.medium};
   color: ${theme.colors.text.secondary};
@@ -26,7 +26,7 @@ const QueueTitle = styled.span`
   letter-spacing: 0.05em;
 `;
 
-const QueueCount = styled.span`
+const QueueCountStyled = styled.span`
   font-size: ${theme.fontSizes.xs};
   color: ${theme.colors.text.muted};
   background: ${theme.colors.bg.elevated};
@@ -34,7 +34,7 @@ const QueueCount = styled.span`
   border-radius: ${theme.radii.full};
 `;
 
-const FileItem = styled.div`
+const FileItemStyled = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing[3]};
@@ -49,9 +49,9 @@ const FileItem = styled.div`
   }
 `;
 
-const Thumbnail = styled.div`
-  width: 40px;
-  height: 40px;
+const ThumbnailStyled = styled.div`
+  width: 52px;
+  height: 52px;
   border-radius: ${theme.radii.md};
   background: ${theme.colors.bg.elevated};
   overflow: hidden;
@@ -64,12 +64,16 @@ const Thumbnail = styled.div`
   }
 `;
 
-const FileInfo = styled.div`
+const FileInfoStyled = styled.div`
   flex: 1;
   min-width: 0;
+  height: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
-const FileName = styled.div`
+const FileNameStyled = styled.div`
   font-size: ${theme.fontSizes.sm};
   font-weight: ${theme.fontWeights.medium};
   color: ${theme.colors.text.primary};
@@ -78,7 +82,7 @@ const FileName = styled.div`
   text-overflow: ellipsis;
 `;
 
-const FileMeta = styled.div`
+const FileMetaStyled = styled.div`
   font-size: ${theme.fontSizes.xs};
   color: ${theme.colors.text.muted};
   display: flex;
@@ -86,7 +90,7 @@ const FileMeta = styled.div`
   gap: ${theme.spacing[2]};
 `;
 
-const StatusIndicator = styled.div<{ $status: "pending" | "processing" | "done" | "error" }>`
+const StatusIndicatorStyled = styled.div<{ $status: "pending" | "processing" | "done" | "error" }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,9 +104,23 @@ const StatusIndicator = styled.div<{ $status: "pending" | "processing" | "done" 
       default: return theme.colors.text.muted;
     }
   }};
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  svg {
+    animation: ${(props) =>
+      props.$status === "processing" ? "spin 0.8s linear infinite" : "none"};
+  }
 `;
 
-const RemoveButton = styled.button`
+const RemoveButtonStyled = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,23 +141,63 @@ const RemoveButton = styled.button`
   }
 `;
 
-const ProgressBar = styled.div<{ $progress: number }>`
+const ProgressBarStyled = styled.div<{
+  $progress: number;
+  $indeterminate?: boolean;
+  $status: FileStatusType;
+}>`
   position: absolute;
   bottom: 0;
   left: 0;
   height: 2px;
-  background: ${theme.colors.accent.primary};
-  width: ${(props) => props.$progress}%;
+  width: ${(props) => (props.$indeterminate ? "100%" : `${props.$progress}%`)};
+  background: ${(props) =>
+    props.$indeterminate
+      ? "transparent"
+      : props.$status === "done"
+      ? theme.colors.accent.success
+      : props.$status === "error"
+      ? theme.colors.accent.error
+      : theme.colors.accent.primary};
   transition: width ${theme.transitions.normal};
+  overflow: hidden;
+
+  @keyframes indeterminateFlow {
+    0% {
+      left: -35%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -35%;
+    width: 35%;
+    background: linear-gradient(
+      90deg,
+      ${theme.colors.accent.primary}00 0%,
+      ${theme.colors.accent.primary} 45%,
+      ${theme.colors.accent.primary}00 100%
+    );
+    opacity: ${(props) => (props.$indeterminate ? 1 : 0)};
+    animation: ${(props) =>
+      props.$indeterminate ? "indeterminateFlow 1s ease-in-out infinite" : "none"};
+  }
 `;
 
-const ProgressContainer = styled.div`
+const ProgressContainerStyled = styled.div`
   position: relative;
   width: 100%;
   height: 2px;
   background: ${theme.colors.bg.elevated};
   border-radius: ${theme.radii.full};
   margin-top: ${theme.spacing[2]};
+  overflow: hidden;
 `;
 
 export type FileStatusType = "pending" | "processing" | "done" | "error";
@@ -177,42 +235,63 @@ export const FileQueue: React.FC<FileQueuePropsType> = ({
     }
   };
 
+  const getStatusText = (status: FileStatusType) => {
+    switch (status) {
+      case "processing":
+        return "Processing...";
+      case "done":
+        return "Completed";
+      case "error":
+        return "Failed";
+      case "pending":
+      default:
+        return "Waiting...";
+    }
+  };
+
+  const getProgressValue = (status: FileStatusType, progress?: number) => {
+    if (status === "done") return 100;
+    if (status === "error") return 100;
+    if (status === "processing") return progress || 0;
+    return 0;
+  };
+
   return (
-    <QueueContainer>
-      <QueueHeader>
-        <QueueTitle>Queue</QueueTitle>
-        <QueueCount>{files.length} files</QueueCount>
-      </QueueHeader>
+    <QueueContainerStyled>
+      <QueueHeaderStyled>
+        <QueueTitleStyled>Queue</QueueTitleStyled>
+        <QueueCountStyled>{files.length} files in queue</QueueCountStyled>
+      </QueueHeaderStyled>
       {files.map((file) => (
-        <FileItem key={file.id}>
-          <Thumbnail>
+        <FileItemStyled key={file.id}>
+          <ThumbnailStyled>
             {file.thumbnail && <img src={file.thumbnail} alt={file.name} />}
-          </Thumbnail>
-          <FileInfo>
-            <FileName>{file.name}</FileName>
-            <FileMeta>
+          </ThumbnailStyled>
+          <FileInfoStyled>
+            <FileNameStyled>{file.name}</FileNameStyled>
+            <FileMetaStyled>
               <span>{file.size}</span>
-              {file.status === "processing" && file.progress !== undefined && (
-                <span>{file.progress}%</span>
-              )}
-            </FileMeta>
-            {file.status === "processing" && (
-              <ProgressContainer>
-                <ProgressBar $progress={file.progress || 0} />
-              </ProgressContainer>
-            )}
-          </FileInfo>
-          <StatusIndicator $status={file.status}>
+              <span>{getStatusText(file.status)}</span>
+            </FileMetaStyled>
+            <ProgressContainerStyled>
+              <ProgressBarStyled
+                $progress={getProgressValue(file.status, file.progress)}
+                $indeterminate={file.status === "processing"}
+                $status={file.status}
+              />
+            </ProgressContainerStyled>
+          </FileInfoStyled>
+          <StatusIndicatorStyled $status={file.status}>
             {getStatusIcon(file.status)}
-          </StatusIndicator>
+          </StatusIndicatorStyled>
           {onRemove && (
-            <RemoveButton onClick={() => onRemove(file.id)}>
+            <RemoveButtonStyled onClick={() => onRemove(file.id)}>
               <X size={20} />
-            </RemoveButton>
+            </RemoveButtonStyled>
           )}
-        </FileItem>
+        </FileItemStyled>
       ))}
-    </QueueContainer>
+    </QueueContainerStyled>
   );
 };
 

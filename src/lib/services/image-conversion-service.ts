@@ -13,7 +13,8 @@ export class ImageConversionService {
   static async convertImage(
     file: File,
     settings: ConversionSettingsType,
-    onProgress?: (progress: number, message?: string) => void
+    onProgress?: (progress: number, message?: string) => void,
+    options?: { signal?: AbortSignal }
   ): Promise<ConversionResultType> {
 
     try {
@@ -24,6 +25,7 @@ export class ImageConversionService {
         useServer: true,
         effort: settings.effort || 6, // Maximum compression effort
         nearLossless: settings.nearLossless !== undefined && settings.nearLossless < 100,
+        signal: options?.signal,
       });
       
       onProgress?.(100, "Conversion complete");
@@ -37,6 +39,14 @@ export class ImageConversionService {
         format: serverResult.format as SupportedFormatType,
       };
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw error;
+      }
+
+      if (error instanceof Error && error.name === "AbortError") {
+        throw error;
+      }
+
       throw new Error(
         `Conversion failed: ${
           error instanceof Error ? error.message : "Unknown error"

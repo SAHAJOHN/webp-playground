@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
 
-const ShadowContainer = styled.div<{ $topOpacity: number; $bottomOpacity: number; $color: string }>`
+const ShadowContainerStyled = styled.div<{ $topOpacity: number; $bottomOpacity: number; $color: string }>`
   position: relative;
   height: 100%;
   overflow: hidden;
@@ -100,7 +100,7 @@ export const ScrollShadow: React.FC<ScrollShadowPropsType> = ({
   }, [selectors]);
 
   return (
-    <ShadowContainer
+    <ShadowContainerStyled
       ref={containerRef}
       $topOpacity={topOpacity}
       $bottomOpacity={bottomOpacity}
@@ -108,7 +108,7 @@ export const ScrollShadow: React.FC<ScrollShadowPropsType> = ({
       className={className}
     >
       {children}
-    </ShadowContainer>
+    </ShadowContainerStyled>
   );
 };
 

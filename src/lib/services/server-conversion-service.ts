@@ -7,6 +7,7 @@ export interface ServerConversionOptionsType {
   useServer: boolean;
   effort?: number; // 0-6 for WebP, higher = better compression but slower
   nearLossless?: boolean; // For WebP lossless mode
+  signal?: AbortSignal;
 }
 
 export interface ServerConversionResultType {
@@ -18,6 +19,12 @@ export interface ServerConversionResultType {
   processingTime?: number;
   isServerProcessed: boolean;
 }
+
+type ServerConversionErrorType = Error & {
+  status?: number;
+  code?: string;
+  retryAfterMs?: number;
+};
 
 /**
  * Convert image using server-side processing for better compression
@@ -65,11 +72,36 @@ export async function convertImageOnServer(
     const response = await fetch("/api/convert", {
       method: "POST",
       body: formData,
+      signal: options?.signal,
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Server conversion failed");
+      const errorPayload = await response.json().catch(() => null) as
+        | {
+            error?: string;
+            details?: string;
+            code?: string;
+          }
+        | null;
+      const retryAfterHeader = response.headers.get("Retry-After");
+      const retryAfterMs = retryAfterHeader
+        ? Math.max(parseInt(retryAfterHeader, 10) * 1000, 1000)
+        : undefined;
+
+      const serverError = new Error(
+        errorPayload?.error || "Server conversion failed"
+      ) as ServerConversionErrorType;
+      serverError.status = response.status;
+      serverError.code = errorPayload?.code;
+      if (retryAfterMs) {
+        serverError.retryAfterMs = retryAfterMs;
+      }
+
+      if (errorPayload?.details) {
+        serverError.message = `${serverError.message}: ${errorPayload.details}`;
+      }
+
+      throw serverError;
     }
 
     // Get conversion metadata from headers
@@ -92,6 +124,14 @@ export async function convertImageOnServer(
       isServerProcessed: true,
     };
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error;
+    }
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw error;
+    }
+
     console.error("Server conversion error:", error);
     throw new Error(
       `Server conversion failed: ${error instanceof Error ? error.message : "Unknown error"}`

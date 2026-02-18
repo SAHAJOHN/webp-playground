@@ -4,12 +4,11 @@
 
 import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
-import { Upload, X, AlertCircle, FileCog } from "lucide-react";
+import { Upload, AlertCircle } from "lucide-react";
 import { theme } from "@/styles/theme";
 import { useFileUpload } from "@/hooks/ui/useFileUpload";
 import {
   useAccessibility,
-  useKeyboardNavigation,
 } from "@/hooks/ui/useAccessibility";
 import type { FileUploadPropsType } from "@/types/components";
 
@@ -123,137 +122,6 @@ const FileUploadContainerStyled = styled.div.withConfig({
     line-height: 1.5;
   }
 
-  .file-list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: ${theme.spacing[4]};
-    padding: ${theme.spacing[3]};
-    background: ${theme.colors.bg.surface};
-    border: 1px solid ${theme.colors.border.subtle};
-    border-radius: ${theme.radii.lg};
-  }
-
-  .file-count {
-    font-size: ${theme.fontSizes.sm};
-    font-weight: ${theme.fontWeights.medium};
-    color: ${theme.colors.text.secondary};
-  }
-
-  .clear-all-button {
-    display: flex;
-    align-items: center;
-    gap: ${theme.spacing[2]};
-    padding: ${theme.spacing[2]} ${theme.spacing[3]};
-    background: transparent;
-    border: 1px solid ${theme.colors.accent.error}50;
-    border-radius: ${theme.radii.md};
-    color: ${theme.colors.accent.error};
-    font-size: ${theme.fontSizes.xs};
-    font-weight: ${theme.fontWeights.medium};
-    cursor: pointer;
-    transition: all ${theme.transitions.fast};
-
-    &:hover {
-      background: ${theme.colors.accent.error}15;
-      border-color: ${theme.colors.accent.error};
-    }
-  }
-
-  .file-list {
-    margin-top: ${theme.spacing[3]};
-    display: flex;
-    flex-direction: column;
-    gap: ${theme.spacing[2]};
-  }
-
-  .file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: ${theme.spacing[3]};
-    background: ${theme.colors.bg.surface};
-    border: 1px solid ${theme.colors.border.subtle};
-    border-radius: ${theme.radii.lg};
-    transition: all ${theme.transitions.fast};
-
-    &:hover {
-      border-color: ${theme.colors.border.default};
-    }
-  }
-
-  .file-info {
-    display: flex;
-    align-items: center;
-    gap: ${theme.spacing[3]};
-    flex: 1;
-    height: 40px;
-  }
-
-  .file-preview {
-    width: 40px;
-    height: 40px;
-    border-radius: ${theme.radii.md};
-    overflow: hidden;
-    flex-shrink: 0;
-    background: ${theme.colors.bg.elevated};
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .file-details {
-    flex: 1;
-  }
-
-  .file-name {
-    font-size: ${theme.fontSizes.sm};
-    font-weight: ${theme.fontWeights.medium};
-    color: ${theme.colors.text.primary};
-  }
-
-  .file-meta {
-    font-size: ${theme.fontSizes.xs};
-    color: ${theme.colors.text.muted};
-  }
-
-  .file-status {
-    display: flex;
-    align-items: center;
-    gap: ${theme.spacing[3]};
-    height: 40px;
-  }
-
-  .status-icon {
-    width: 16px;
-    height: 16px;
-
-    &.valid { color: ${theme.colors.accent.success}; }
-    &.error { color: ${theme.colors.accent.error}; }
-  }
-
-  .remove-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: transparent;
-    border: none;
-    color: ${theme.colors.text.muted};
-    cursor: pointer;
-    border-radius: ${theme.radii.md};
-    transition: all ${theme.transitions.fast};
-
-    &:hover {
-      background: ${theme.colors.accent.error}15;
-      color: ${theme.colors.accent.error};
-    }
-  }
-
   .error-list {
     margin-top: ${theme.spacing[4]};
     display: flex;
@@ -317,7 +185,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
   onFilesSelected,
   acceptedFormats,
   maxFileSize,
-  maxFiles = 10,
+  maxFiles = 50,
   disabled = false,
   className,
 }) => {
@@ -332,8 +200,6 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
     handleDragLeave,
     handleDrop,
     handleInputChange,
-    removeFile,
-    clearFiles,
     openFilePicker,
     fileInputRef,
     acceptedTypes,
@@ -342,6 +208,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
     validationRules: {
       maxFileSize,
       supportedFormats: acceptedFormats as string[],
+      checkDimensions: false,
     },
     onFilesSelected,
   });
@@ -356,20 +223,6 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
   });
 
   const uploadZoneRef = useRef<HTMLDivElement>(null);
-  const fileListRef = useRef<HTMLDivElement>(null);
-
-  // Get file item elements for keyboard navigation
-  const getFileItemElements = (): HTMLElement[] => {
-    if (!fileListRef.current) return [];
-    return Array.from(
-      fileListRef.current.querySelectorAll('[role="listitem"] button')
-    ) as HTMLElement[];
-  };
-
-  const { onKeyDown } = useKeyboardNavigation(
-    getFileItemElements(),
-    "vertical"
-  );
 
   // Announce file upload results
   useEffect(() => {
@@ -452,25 +305,6 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
     }
   };
 
-  // Enhanced remove file handler
-  const handleRemoveFile = (index: number, fileName: string) => {
-    removeFile(index);
-    announce({
-      message: `${fileName} removed from upload list`,
-      priority: "polite",
-    });
-  };
-
-  // Clear all files handler
-  const handleClearAllFiles = () => {
-    const fileCount = files.length;
-    clearFiles();
-    announce({
-      message: `All ${fileCount} files removed from upload list`,
-      priority: "polite",
-    });
-  };
-
   return (
     <FileUploadContainerStyled
       isDragOver={isDragOver}
@@ -548,91 +382,6 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
             <div className="loading-spinner" />
             <span className="loading-text">Validating files...</span>
           </div>
-        )}
-
-        {files.length > 0 && (
-          <>
-            <div className="file-list-header">
-              <span className="file-count">{files.length} file{files.length > 1 ? 's' : ''} selected</span>
-              <button
-                type="button"
-                className="clear-all-button"
-                onClick={handleClearAllFiles}
-                aria-label={`Clear all ${files.length} files`}
-                title="Clear all files"
-              >
-                <X size={16} aria-hidden="true" />
-                Clear All
-              </button>
-            </div>
-            <div
-              ref={fileListRef}
-              className="file-list"
-              role="list"
-              aria-label={`Uploaded files (${files.length} files)`}
-              onKeyDown={onKeyDown}
-            >
-              {files.map((file, index) => {
-              const fileInfo = fileInfos[index];
-              // const fileErrors = validationErrors.get(file.name) || [];
-              const isValid = fileInfo?.isValid ?? true;
-
-              return (
-                <div
-                  key={`${file.name}-${file.lastModified}`}
-                  className={`file-item ${isValid ? "valid" : "error"}`}
-                  role="listitem"
-                  aria-label={`File: ${file.name}, ${formatFileSize(
-                    file.size
-                  )}${
-                    fileInfo?.dimensions
-                      ? `, ${fileInfo.dimensions.width}×${fileInfo.dimensions.height}`
-                      : ""
-                  }${isValid ? ", valid" : ", has errors"}`}
-                >
-                  <div className="file-info">
-                    <div className="file-preview">
-                      <img src={URL.createObjectURL(file)} alt={file.name} />
-                    </div>
-                    <div className="file-details">
-                      <div className="file-name">{file.name}</div>
-                      <div className="file-meta">
-                        {formatFileSize(file.size)}
-                        {fileInfo?.dimensions && (
-                          <>
-                            {" "}
-                            • {fileInfo.dimensions.width}×
-                            {fileInfo.dimensions.height}
-                          </>
-                        )}
-                        {fileInfo?.type && (
-                          <> • {fileInfo.type.toUpperCase()}</>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="file-status">
-                    {isValid ? (
-                      <FileCog className="status-icon valid" />
-                    ) : (
-                      <AlertCircle className="status-icon error" />
-                    )}
-                    <button
-                      type="button"
-                      className="remove-button"
-                      data-accessibility-mode={accessibilityMode}
-                      onClick={() => handleRemoveFile(index, file.name)}
-                      aria-label={`Remove ${file.name} from upload list`}
-                      title={`Remove ${file.name}`}
-                    >
-                      <X size={16} aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-            </div>
-          </>
         )}
 
         {hasValidationErrors && (
