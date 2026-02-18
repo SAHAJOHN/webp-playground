@@ -5,6 +5,10 @@ const MAX_FILE_SIZE = 15 * 1024 * 1024;
 const MAX_SERVER_QUEUE = 100;
 const MAX_SERVER_CONCURRENCY = 5;
 const MAX_SERVER_MEMORY_BUDGET_BYTES = 100 * 1024 * 1024;
+const CONVERSION_TIMEOUT_MS = 60_000;
+const MAX_IMAGE_WIDTH = 8192;
+const MAX_IMAGE_HEIGHT = 8192;
+const MAX_TOTAL_PIXELS = 40_000_000;
 
 type ConversionJobType = {
   id: string;
@@ -85,6 +89,59 @@ const buildAbortedResponse = () =>
     { status: 499 }
   );
 
+const buildValidationErrorResponse = (
+  error: string,
+  code: string,
+  status: number = 400
+) =>
+  NextResponse.json(
+    {
+      error,
+      code,
+    },
+    { status }
+  );
+
+type DetectedInputFormatType = "jpeg" | "png" | "webp" | "avif" | "unknown";
+
+const detectInputFormat = (buffer: Buffer): DetectedInputFormatType => {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return "jpeg";
+  }
+
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return "png";
+  }
+
+  if (
+    buffer.length >= 12 &&
+    buffer.toString("ascii", 0, 4) === "RIFF" &&
+    buffer.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return "webp";
+  }
+
+  if (
+    buffer.length >= 12 &&
+    buffer.toString("ascii", 4, 8) === "ftyp" &&
+    ["avif", "avis"].includes(buffer.toString("ascii", 8, 12))
+  ) {
+    return "avif";
+  }
+
+  return "unknown";
+};
+
 const dequeueJobById = (jobId: string) => {
   const pendingIndex = pendingConversions.findIndex((job) => job.id === jobId);
 
@@ -121,21 +178,48 @@ const processQueuedJobs = () => {
     broadcastServerStatus();
 
     void (async () => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
       try {
-        const response = await processSingleConversion(job.formData, job.signal);
-        job.resolve(response);
-      } catch (error) {
-        console.error("Conversion error:", error);
-        job.resolve(
-          NextResponse.json(
-            {
-              error: "Conversion failed",
-              details: error instanceof Error ? error.message : "Unknown error",
-            },
-            { status: 500 }
-          )
+        const conversionPromise = processSingleConversion(job.formData, job.signal).catch(
+          (error) => {
+            console.error("Conversion error:", error);
+            return NextResponse.json(
+              {
+                error: "Conversion failed",
+                code: "CONVERSION_FAILED",
+                details: error instanceof Error ? error.message : "Unknown error",
+              },
+              { status: 500 }
+            );
+          }
         );
+
+        const timeoutPromise = new Promise<NextResponse>((resolve) => {
+          timeoutId = setTimeout(() => {
+            resolve(
+              buildValidationErrorResponse(
+                "Conversion timed out",
+                "PROCESSING_TIMEOUT",
+                504
+              )
+            );
+          }, CONVERSION_TIMEOUT_MS);
+        });
+
+        const response = await Promise.race([conversionPromise, timeoutPromise]);
+
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+        job.resolve(response);
       } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
         job.cleanupAbortListener();
         activeConversionCount = Math.max(0, activeConversionCount - 1);
         activeBytes = Math.max(0, activeBytes - job.fileSize);
@@ -228,23 +312,58 @@ const processSingleConversion = async (
   const dithering = parseFloat(formData.get("dithering") as string) || 1.0;
 
   if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    return buildValidationErrorResponse("No file provided", "NO_FILE_PROVIDED");
+  }
+
+  if (
+    file.type === "image/svg+xml" ||
+    file.name.toLowerCase().endsWith(".svg")
+  ) {
+    return buildValidationErrorResponse(
+      "SVG input is blocked for security reasons",
+      "SVG_BLOCKED"
+    );
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json(
-      { error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` },
-      { status: 400 }
+    return buildValidationErrorResponse(
+      `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+      "FILE_TOO_LARGE"
     );
   }
 
   if (!format || !["jpeg", "png", "webp", "avif"].includes(format)) {
-    return NextResponse.json({ error: "Invalid output format" }, { status: 400 });
+    return buildValidationErrorResponse(
+      "Invalid output format",
+      "INVALID_OUTPUT_FORMAT"
+    );
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  const detectedFormat = detectInputFormat(buffer);
+
+  if (detectedFormat === "unknown") {
+    return buildValidationErrorResponse(
+      "Unsupported or invalid input file signature",
+      "INVALID_FILE_SIGNATURE"
+    );
+  }
+
   const sharpInstance = sharp(buffer);
   const metadata = await sharpInstance.metadata();
+
+  if (
+    !metadata.width ||
+    !metadata.height ||
+    metadata.width > MAX_IMAGE_WIDTH ||
+    metadata.height > MAX_IMAGE_HEIGHT ||
+    metadata.width * metadata.height > MAX_TOTAL_PIXELS
+  ) {
+    return buildValidationErrorResponse(
+      `Image dimensions exceed safe limits (${MAX_IMAGE_WIDTH}x${MAX_IMAGE_HEIGHT}, ${MAX_TOTAL_PIXELS} pixels max)`,
+      "IMAGE_TOO_LARGE_DIMENSIONS"
+    );
+  }
 
   let outputBuffer: Buffer;
 
@@ -363,7 +482,10 @@ const processSingleConversion = async (
     }
 
     default:
-      return NextResponse.json({ error: "Unsupported format" }, { status: 400 });
+      return buildValidationErrorResponse(
+        "Unsupported format",
+        "UNSUPPORTED_OUTPUT_FORMAT"
+      );
   }
 
   const outputInfo = await sharp(outputBuffer).metadata();
@@ -400,13 +522,23 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return buildValidationErrorResponse("No file provided", "NO_FILE_PROVIDED");
+    }
+
+    if (
+      file.type === "image/svg+xml" ||
+      file.name.toLowerCase().endsWith(".svg")
+    ) {
+      return buildValidationErrorResponse(
+        "SVG input is blocked for security reasons",
+        "SVG_BLOCKED"
+      );
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` },
-        { status: 400 }
+      return buildValidationErrorResponse(
+        `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+        "FILE_TOO_LARGE"
       );
     }
 

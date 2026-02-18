@@ -11,10 +11,18 @@ This file documents the current behavior and constraints of the app so coding ag
 ## Throughput, Queue, and Memory Limits
 
 - Max upload size per file: `15MB`.
+- SVG input is blocked 100% for security (`SVG_BLOCKED`).
 - Client conversion parallelism: `5` jobs per client.
 - Server processing parallelism: `5` active jobs.
 - Server queue cap: `100` total jobs (`pending + active`).
 - Server memory budget: `100MB` reserved input bytes (`pendingBytes + activeBytes`).
+
+## Server-Side Security Guards
+
+- Input file signature is validated (magic bytes) before processing.
+- Unsupported/invalid signatures are rejected (`INVALID_FILE_SIGNATURE`).
+- Image dimensions are constrained (`8192x8192`, `40,000,000` pixels max).
+- Conversion jobs have a processing timeout (`60s`, `PROCESSING_TIMEOUT`).
 
 When server cannot accept new work:
 

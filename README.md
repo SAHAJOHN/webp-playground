@@ -60,10 +60,29 @@ yarn lint     # Run ESLint
 ## Runtime Limits and Queue Behavior
 
 - **Max file size**: `15MB` per file
+- **SVG input**: blocked 100% for security
 - **Client parallelism**: `5` conversions per client
 - **Server active processing**: `5` jobs
 - **Server queue capacity**: `100` jobs (`pending + active`)
 - **Server memory budget**: `100MB` reserved input bytes (`pending + active`)
+
+Server also enforces input signature validation (magic bytes), image dimension limits, and conversion timeout protection.
+
+### Verify API Error Codes
+
+Run the lightweight curl-based verification script while the app is running:
+
+```bash
+bash scripts/verify-convert-error-codes.sh http://localhost:3000
+```
+
+The script verifies:
+
+- `SVG_BLOCKED`
+- `INVALID_FILE_SIGNATURE`
+- `FILE_TOO_LARGE`
+- `NO_FILE_PROVIDED`
+- `INVALID_OUTPUT_FORMAT`
 
 When server capacity is full, `/api/convert` returns `429` with `Retry-After` and a reason code (`QUEUE_FULL` or `MEMORY_BUDGET_EXCEEDED`).
 The client retries automatically with backoff.
