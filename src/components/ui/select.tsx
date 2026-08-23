@@ -1,27 +1,211 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import * as React from "react";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import styled, { css, keyframes } from "styled-components";
+import { theme } from "@/styles/theme";
 
-import { cn } from "@/lib/utils"
+const contentOpen = keyframes`
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+`;
 
-function Select({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+const contentClose = keyframes`
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.96); }
+`;
+
+const SelectTriggerStyled = styled(SelectPrimitive.Trigger)<{
+  $size: "sm" | "default";
+}>`
+  min-height: ${({ $size }) => ($size === "sm" ? "40px" : "44px")};
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${theme.spacing[2]};
+  border: 1px solid ${theme.colors.control.border};
+  border-radius: ${theme.radii.lg};
+  background: ${theme.colors.control.surface};
+  color: ${theme.colors.control.text};
+  padding: 0 ${theme.spacing[3]};
+  font: ${theme.fontSizes.sm} ${theme.fonts.sans};
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  transition: border-color ${theme.transitions.fast},
+    background ${theme.transitions.fast}, box-shadow ${theme.transitions.fast};
+
+  > [data-slot="select-value"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    color: ${theme.colors.control.textMuted};
+    pointer-events: none;
+  }
+
+  &[data-placeholder] {
+    color: ${theme.colors.control.textMuted};
+  }
+
+  &:hover:not(:disabled) {
+    border-color: ${theme.colors.control.borderStrong};
+    background: ${theme.colors.control.surfaceHover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.control.accent};
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px ${theme.colors.control.focusRing};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+const SelectContentStyled = styled(SelectPrimitive.Content)<{
+  $position: "item-aligned" | "popper";
+}>`
+  position: relative;
+  z-index: 50;
+  max-height: var(--radix-select-content-available-height);
+  overflow: hidden;
+  border: 1px solid ${theme.colors.control.borderStrong};
+  border-radius: ${theme.radii.lg};
+  background: ${theme.colors.control.popup};
+  color: ${theme.colors.control.text};
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  transform-origin: var(--radix-select-content-transform-origin);
+
+  ${({ $position }) =>
+    $position === "popper" &&
+    css`
+      width: var(--radix-select-trigger-width);
+    `}
+
+  &[data-state="open"] {
+    animation: ${contentOpen} ${theme.transitions.normal};
+  }
+
+  &[data-state="closed"] {
+    animation: ${contentClose} ${theme.transitions.fast};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+`;
+
+const SelectViewportStyled = styled(SelectPrimitive.Viewport)`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing[1]};
+  padding: ${theme.spacing[1]};
+`;
+
+const SelectLabelStyled = styled(SelectPrimitive.Label)`
+  padding: 6px ${theme.spacing[2]};
+  color: ${theme.colors.control.textMuted};
+  font-size: ${theme.fontSizes.xs};
+`;
+
+const SelectItemStyled = styled(SelectPrimitive.Item)`
+  position: relative;
+  min-height: 36px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing[2]};
+  border-radius: ${theme.radii.sm};
+  padding: 7px 32px 7px ${theme.spacing[2]};
+  color: ${theme.colors.control.text};
+  font-size: ${theme.fontSizes.sm};
+  line-height: 1.35;
+  cursor: default;
+  outline: none;
+  user-select: none;
+  transition: color ${theme.transitions.fast},
+    background ${theme.transitions.fast};
+
+  &[data-highlighted] {
+    background: ${theme.colors.control.surfaceHover};
+  }
+
+  &[data-state="checked"] {
+    background: ${theme.colors.control.surfaceSelected};
+  }
+
+  &[data-disabled] {
+    pointer-events: none;
+    opacity: 0.45;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: ${theme.colors.control.text};
+  }
+`;
+
+const ItemIndicatorStyled = styled.span`
+  position: absolute;
+  right: ${theme.spacing[2]};
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+`;
+
+const SelectSeparatorStyled = styled(SelectPrimitive.Separator)`
+  height: 1px;
+  margin: ${theme.spacing[1]} -${theme.spacing[1]};
+  background: ${theme.colors.control.border};
+`;
+
+const ScrollButtonStyled = styled.div`
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${theme.colors.control.textMuted};
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+function Select(
+  props: React.ComponentProps<typeof SelectPrimitive.Root>
+) {
+  return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
 
-function SelectGroup({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />
+function SelectGroup(
+  props: React.ComponentProps<typeof SelectPrimitive.Group>
+) {
+  return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
-function SelectValue({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />
+function SelectValue(
+  props: React.ComponentProps<typeof SelectPrimitive.Value>
+) {
+  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
 function SelectTrigger({
@@ -30,30 +214,22 @@ function SelectTrigger({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: "sm" | "default"
+  size?: "sm" | "default";
 }) {
   return (
-    <SelectPrimitive.Trigger
+    <SelectTriggerStyled
       data-slot="select-trigger"
       data-size={size}
-      className={cn(
-        "flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        // Blue Ocean Theme colors
-        "bg-[rgba(15,76,117,0.3)] border-[rgba(50,130,184,0.3)] text-[#BBE1FA]",
-        "hover:bg-[rgba(15,76,117,0.5)] hover:border-[rgba(50,130,184,0.5)]",
-        "focus:border-[#3282B8] focus:ring-2 focus:ring-[rgba(50,130,184,0.3)]",
-        "data-[placeholder]:text-[rgba(187,225,250,0.5)]",
-        "[&_svg:not([class*='text-'])]:text-[rgba(187,225,250,0.7)]",
-        className
-      )}
+      $size={size}
+      className={className}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-70" />
+        <ChevronDownIcon aria-hidden="true" />
       </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
-  )
+    </SelectTriggerStyled>
+  );
 }
 
 function SelectContent({
@@ -65,45 +241,20 @@ function SelectContent({
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
+      <SelectContentStyled
         data-slot="select-content"
-        sideOffset={sideOffset}
-        className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
-          // Width matches trigger
-          position === "popper" && "w-[var(--radix-select-trigger-width)]",
-          // Animation - centered scale only (no slide)
-          "data-[state=open]:animate-in data-[state=closed]:animate-out",
-          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "origin-center",
-          // Blue Ocean Theme colors
-          "bg-[#0F4C75] border-[rgba(50,130,184,0.5)] text-[#BBE1FA]",
-          "backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
-          className
-        )}
+        $position={position}
         position={position}
+        sideOffset={sideOffset}
+        className={className}
         {...props}
       >
         <SelectScrollUpButton />
-        <SelectPrimitive.Viewport
-          className={cn(
-            "p-1 w-full",
-            position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] scroll-my-1"
-          )}
-          style={{
-            rowGap: '4px',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {children}
-        </SelectPrimitive.Viewport>
+        <SelectViewportStyled>{children}</SelectViewportStyled>
         <SelectScrollDownButton />
-      </SelectPrimitive.Content>
+      </SelectContentStyled>
     </SelectPrimitive.Portal>
-  )
+  );
 }
 
 function SelectLabel({
@@ -111,16 +262,12 @@ function SelectLabel({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Label>) {
   return (
-    <SelectPrimitive.Label
+    <SelectLabelStyled
       data-slot="select-label"
-      className={cn(
-        "px-2 py-1.5 text-xs",
-        "text-[rgba(187,225,250,0.6)]",
-        className
-      )}
+      className={className}
       {...props}
     />
-  )
+  );
 }
 
 function SelectItem({
@@ -129,31 +276,19 @@ function SelectItem({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   return (
-    <SelectPrimitive.Item
+    <SelectItemStyled
       data-slot="select-item"
-      className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none transition-colors",
-        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        "*:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        // Blue Ocean Theme colors
-        "text-[#BBE1FA]",
-        "hover:bg-[rgba(50,130,184,0.3)] hover:text-[#BBE1FA]",
-        "focus:bg-[rgba(50,130,184,0.4)] focus:text-[#BBE1FA]",
-        "data-[state=checked]:bg-[rgba(50,130,184,0.5)] data-[state=checked]:text-[#BBE1FA]",
-        "[&_svg:not([class*='text-'])]:text-[rgba(187,225,250,0.7)]",
-        className
-      )}
+      className={className}
       {...props}
     >
-      <span className="absolute right-2 flex size-3.5 items-center justify-center">
+      <ItemIndicatorStyled>
         <SelectPrimitive.ItemIndicator>
-          <CheckIcon className="size-4 text-[#3282B8]" />
+          <CheckIcon aria-hidden="true" />
         </SelectPrimitive.ItemIndicator>
-      </span>
+      </ItemIndicatorStyled>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
-  )
+    </SelectItemStyled>
+  );
 }
 
 function SelectSeparator({
@@ -161,16 +296,12 @@ function SelectSeparator({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Separator>) {
   return (
-    <SelectPrimitive.Separator
+    <SelectSeparatorStyled
       data-slot="select-separator"
-      className={cn(
-        "pointer-events-none -mx-1 my-1 h-px",
-        "bg-[rgba(50,130,184,0.3)]",
-        className
-      )}
+      className={className}
       {...props}
     />
-  )
+  );
 }
 
 function SelectScrollUpButton({
@@ -178,18 +309,15 @@ function SelectScrollUpButton({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
   return (
-    <SelectPrimitive.ScrollUpButton
-      data-slot="select-scroll-up-button"
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        "text-[rgba(187,225,250,0.7)]",
-        className
-      )}
-      {...props}
-    >
-      <ChevronUpIcon className="size-4" />
+    <SelectPrimitive.ScrollUpButton asChild {...props}>
+      <ScrollButtonStyled
+        data-slot="select-scroll-up-button"
+        className={className}
+      >
+        <ChevronUpIcon aria-hidden="true" />
+      </ScrollButtonStyled>
     </SelectPrimitive.ScrollUpButton>
-  )
+  );
 }
 
 function SelectScrollDownButton({
@@ -197,18 +325,15 @@ function SelectScrollDownButton({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
   return (
-    <SelectPrimitive.ScrollDownButton
-      data-slot="select-scroll-down-button"
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        "text-[rgba(187,225,250,0.7)]",
-        className
-      )}
-      {...props}
-    >
-      <ChevronDownIcon className="size-4" />
+    <SelectPrimitive.ScrollDownButton asChild {...props}>
+      <ScrollButtonStyled
+        data-slot="select-scroll-down-button"
+        className={className}
+      >
+        <ChevronDownIcon aria-hidden="true" />
+      </ScrollButtonStyled>
     </SelectPrimitive.ScrollDownButton>
-  )
+  );
 }
 
 export {
@@ -222,4 +347,4 @@ export {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-}
+};

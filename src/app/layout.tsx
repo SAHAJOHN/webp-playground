@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StyledComponentsRegistry from "@/lib/components/styled-components-registry";
 import { ErrorBoundary, NotificationProvider } from "@/components";
+import { ControlThemeGlobals } from "@/styles/ControlThemeGlobals";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <StyledComponentsRegistry>
+          <ControlThemeGlobals />
           <ErrorBoundary>
             <NotificationProvider>{children}</NotificationProvider>
           </ErrorBoundary>

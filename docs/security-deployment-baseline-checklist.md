@@ -63,6 +63,19 @@
 - [x] Convert/clear controls อยู่จุดเดียวกัน
 - [x] Queue/Preview behavior ชัดเจนและสอดคล้องกับระบบคิว
 
+### 2.4 Video-to-Audio Resource Controls
+- [x] จำกัดไฟล์วิดีโอสูงสุด `8 GiB` ต่อไฟล์
+- [x] อัปโหลดแบบ sequential raw chunks ขนาดสูงสุด `16 MiB`
+- [x] stream chunk ลง temporary disk โดยไม่สร้าง full-file Buffer
+- [x] จำกัด media jobs ที่ยังมีชีวิต `10` งาน
+- [x] จำกัด reserved media input `24 GiB`
+- [x] จำกัด FFmpeg concurrency เริ่มต้น `1`
+- [x] ตรวจ free disk ก่อนรับ upload และก่อนเริ่ม output
+- [x] ลบ input หลังสำเร็จ และ cleanup งาน/output เมื่อครบ `6 ชั่วโมง`
+- [x] FFprobe ยืนยัน media และ audio stream ก่อน FFmpeg
+- [x] ใช้ `spawn` argument arrays และไม่ผ่าน shell
+- [x] download รองรับ HTTP byte range โดยไม่โหลด output เข้า memory
+
 ---
 
 ## 3) Docker Baseline (ยังต้องทำ)
@@ -103,8 +116,11 @@
 ### 5.1 Edge/Proxy
 - [ ] วาง Nginx/Caddy หน้า app
 - [ ] บังคับ HTTPS + HTTP redirect
-- [ ] ตั้ง request body limit = `15MB`
+- [ ] ตั้ง request body limit แยกตาม route: `15MB` สำหรับ `/api/convert` และอย่างน้อย `17MB` สำหรับ media chunk routes
 - [ ] ตั้ง rate limit สำหรับ `/api/convert`
+- [ ] ตั้ง rate limit/session quota สำหรับ `/api/video-to-audio/jobs`
+- [ ] ปิด proxy buffering สำหรับ media download streams (`X-Accel-Buffering: no`)
+- [ ] mount `MEDIA_TEMP_DIR` บน volume ที่เขียนได้และมี capacity มากกว่า active reservations
 
 ### 5.2 Host Hardening
 - [ ] เปิด firewall เฉพาะพอร์ตจำเป็น
@@ -117,6 +133,8 @@
   - queue depth
   - processing count
   - memory pressure
+  - media reserved bytes / free disk
+  - active FFmpeg process และ conversion latency
 - [ ] ตั้ง alert เมื่อมี spike/pressure ต่อเนื่อง
 
 ---
@@ -125,6 +143,7 @@
 
 - [ ] เพิ่ม rate limit ระดับ app ต่อ IP (เสริม edge rate limit)
 - [ ] เพิ่ม structured security logs (ip, code, size, latency)
+- [ ] pin และ patch FFmpeg/FFprobe build พร้อมตรวจ LGPL/GPL obligations
 - [ ] ทำ load test หลาย client เพื่อตรวจพฤติกรรม backpressure
 - [ ] ทำ runbook incident (queue full, memory pressure, timeout spike)
 

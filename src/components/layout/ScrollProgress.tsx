@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSpring, motion, useMotionValue } from "motion/react";
 import styled from "styled-components";
+import { theme } from "@/styles/theme";
 
 type ScrollProgressPropsType = {
   children: React.ReactNode;
@@ -15,13 +16,12 @@ type ScrollProgressPropsType = {
 export const ScrollProgress: React.FC<ScrollProgressPropsType> = ({
   children,
   selectors = [],
-  color = "#3282B8",
+  color = theme.colors.control.accent,
   className,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollElementRef = useRef<HTMLElement | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
   const [overlayHost, setOverlayHost] = useState<HTMLElement | null>(null);
+  const selectorQuery = selectors.map((selector) => `.${selector}`).join(",");
 
   // Create motion value for manual scroll tracking
   const scrollProgress = useMotionValue(0);
@@ -32,26 +32,34 @@ export const ScrollProgress: React.FC<ScrollProgressPropsType> = ({
     restDelta: 0.0005,
   });
 
-  // Find scrollable element and setup scroll listener
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Find scrollable element using selectors
-    for (const selector of selectors) {
-      const el = container.querySelector(`.${selector}`) as HTMLElement;
-      if (el) {
-        scrollElementRef.current = el;
-        setIsReady(true);
-        break;
+  const handleContainerRef = useCallback(
+    (container: HTMLDivElement | null) => {
+      if (!container) {
+        setScrollElement(null);
+        setOverlayHost(null);
+        return;
       }
-    }
 
-    const scrollEl = scrollElementRef.current;
-    if (!scrollEl) return;
+      setScrollElement(
+        selectorQuery
+          ? (container.querySelector(selectorQuery) as HTMLElement | null)
+          : null
+      );
+      setOverlayHost(
+        container.closest(
+          '[data-scroll-render-target="true"]'
+        ) as HTMLElement | null
+      );
+    },
+    [selectorQuery, setOverlayHost, setScrollElement]
+  );
+
+  // Setup scroll listener after the callback ref locates the target.
+  useEffect(() => {
+    if (!scrollElement) return;
 
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+      const { scrollTop, scrollHeight, clientHeight } = scrollElement;
       const maxScroll = scrollHeight - clientHeight;
       const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
       scrollProgress.set(progress);
@@ -61,36 +69,53 @@ export const ScrollProgress: React.FC<ScrollProgressPropsType> = ({
     handleScroll();
 
     // Add scroll listener
-    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    scrollElement.addEventListener("scroll", handleScroll, { passive: true });
 
     // Observe resize
-    const resizeObserver = new ResizeObserver(handleScroll);
-    resizeObserver.observe(scrollEl);
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(handleScroll);
+    const observeResizeTargets = () => {
+      resizeObserver?.disconnect();
+      resizeObserver?.observe(scrollElement);
+      Array.from(scrollElement.children).forEach((child) =>
+        resizeObserver?.observe(child)
+      );
+    };
+    observeResizeTargets();
+
+    const mutationObserver =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(() => {
+            observeResizeTargets();
+            handleScroll();
+          });
+    mutationObserver?.observe(scrollElement, {
+      attributes: true,
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
 
     return () => {
-      scrollEl.removeEventListener("scroll", handleScroll);
-      resizeObserver.disconnect();
+      scrollElement.removeEventListener("scroll", handleScroll);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
     };
-  }, [selectors, scrollProgress]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const panelContent = container.closest(
-      '[data-scroll-render-target="true"]'
-    ) as HTMLElement | null;
-
-    setOverlayHost(panelContent);
-  }, []);
+  }, [scrollElement, scrollProgress]);
 
   return (
-    <ProgressContainerStyled ref={containerRef} className={className}>
+    <ProgressContainerStyled ref={handleContainerRef} className={className}>
       {children}
-      {isReady &&
+      {scrollElement &&
         overlayHost &&
         createPortal(
-          <ProgressOverlayStyled>
+          <ProgressOverlayStyled
+            data-scroll-progress="true"
+            aria-hidden="true"
+          >
             <ProgressTrackStyled />
             <ProgressFillStyled
               as={motion.div}

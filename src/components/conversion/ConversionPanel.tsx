@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import { Settings, Sliders, ToggleLeft, ToggleRight } from "lucide-react";
+import { Sliders, ToggleLeft, ToggleRight } from "lucide-react";
 import { ConversionPanelPropsType } from "@/types/components";
 import { SupportedFormatType } from "@/types/conversion";
-import {
-  useAccessibility,
-  useKeyboardNavigation,
-} from "@/hooks/ui/useAccessibility";
+import { useAccessibility } from "@/hooks/ui/useAccessibility";
+import { Button } from "@/components/ui/Button";
+import { ControlField } from "@/components/ui/ControlField";
+import { OptionCardGroup } from "@/components/ui/OptionCardGroup";
+import { RangeControl } from "@/components/ui/RangeControl";
+import { ToggleControl } from "@/components/ui/ToggleControl";
 import {
   Select,
   SelectContent,
@@ -17,6 +19,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { theme } from "@/styles/theme";
+
+const IMAGE_FORMAT_OPTIONS = [
+  { value: "jpeg", label: "JPEG" },
+  { value: "png", label: "PNG" },
+  { value: "webp", label: "WebP" },
+  { value: "avif", label: "AVIF" },
+] as const;
+
+const COMPRESSION_MODE_OPTIONS = [
+  { value: "lossy", label: "Lossy" },
+  { value: "lossless", label: "Lossless" },
+] as const;
 
 const ConversionPanelStyled = styled.div.withConfig({
   shouldForwardProp: (prop) => !["isProcessing"].includes(prop),
@@ -31,193 +45,39 @@ const ConversionPanelStyled = styled.div.withConfig({
     margin-bottom: ${theme.spacing[4]};
   }
 
-  .format-label {
-    display: block;
-    font-weight: ${theme.fontWeights.medium};
-    font-size: ${theme.fontSizes.sm};
-    color: ${theme.colors.text.secondary};
-    margin-bottom: ${theme.spacing[3]};
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .format-grid {
-    display: flex;
-    gap: ${theme.spacing[2]};
-  }
-
-  .format-button {
-    flex: 1;
-    padding: ${theme.spacing[3]} ${theme.spacing[2]};
-    border: 1px solid ${theme.colors.border.default};
-    border-radius: ${theme.radii.lg};
-    background: ${theme.colors.bg.surface};
-    color: ${theme.colors.text.secondary};
-    font-size: ${theme.fontSizes.sm};
-    font-weight: ${theme.fontWeights.medium};
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all ${theme.transitions.fast};
-
-    &:hover {
-      border-color: ${theme.colors.border.strong};
-      color: ${theme.colors.text.primary};
-    }
-
-    &.active {
-      border-color: ${theme.colors.accent.primary};
-      background: ${theme.colors.accent.primary};
-      color: white;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  }
-
   .settings-group {
-    margin-bottom: ${theme.spacing[4]};
+    display: grid;
+    gap: ${theme.spacing[4]};
   }
 
   .setting-item {
-    margin-bottom: ${theme.spacing[4]};
+    min-width: 0;
   }
 
-  .setting-label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: ${theme.fontWeights.medium};
-    font-size: ${theme.fontSizes.sm};
-    color: ${theme.colors.text.primary};
-    margin-bottom: ${theme.spacing[2]};
-  }
-
-  .setting-value {
-    font-size: ${theme.fontSizes.xs};
-    color: ${theme.colors.accent.primary};
-    font-family: ${theme.fonts.mono};
-  }
-
-  .quality-slider {
-    width: 100%;
-    height: 6px;
-    border-radius: ${theme.radii.full};
-    background: ${theme.colors.bg.elevated};
-    appearance: none;
-    cursor: pointer;
-
-    &::-webkit-slider-thumb {
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: white;
-      cursor: pointer;
-      border: 2px solid ${theme.colors.accent.primary};
-      box-shadow: ${theme.shadows.md};
-    }
-
-    &::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: white;
-      cursor: pointer;
-      border: 2px solid ${theme.colors.accent.primary};
-      box-shadow: ${theme.shadows.md};
-    }
-  }
-
-  .preset-buttons {
-    display: flex;
+  .near-lossless-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: ${theme.spacing[2]};
     margin-top: ${theme.spacing[3]};
-  }
 
-  .preset-button {
-    flex: 1;
-    padding: ${theme.spacing[3]} ${theme.spacing[4]};
-    font-size: ${theme.fontSizes.xs};
-    font-weight: ${theme.fontWeights.medium};
-    border: 1px solid ${theme.colors.border.default};
-    border-radius: ${theme.radii.md};
-    background: ${theme.colors.bg.surface};
-    color: ${theme.colors.text.secondary};
-    cursor: pointer;
-    transition: all ${theme.transitions.fast};
-
-    &:hover:not(:disabled) {
-      border-color: ${theme.colors.border.strong};
-      color: ${theme.colors.text.primary};
-    }
-
-    &.active {
-      border-color: ${theme.colors.accent.primary};
-      background: ${theme.colors.bg.elevated};
-      color: ${theme.colors.text.primary};
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+    button {
+      min-width: 0;
+      height: auto;
+      padding-block: ${theme.spacing[2]};
+      white-space: normal;
     }
   }
 
-  .toggle-container {
-    display: flex;
-    gap: ${theme.spacing[2]};
-  }
-
-  .toggle-button {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: ${theme.spacing[2]};
-    padding: ${theme.spacing[3]} ${theme.spacing[4]};
-    border: 1px solid ${theme.colors.border.default};
-    border-radius: ${theme.radii.lg};
-    background: ${theme.colors.bg.surface};
-    color: ${theme.colors.text.secondary};
-    font-size: ${theme.fontSizes.sm};
-    font-weight: ${theme.fontWeights.medium};
-    cursor: pointer;
-    transition: all ${theme.transitions.fast};
-
-    &:hover {
-      border-color: ${theme.colors.border.strong};
-      color: ${theme.colors.text.primary};
-    }
-
-    &.active {
-      border-color: ${theme.colors.accent.primary};
-      background: ${theme.colors.bg.elevated};
-      color: ${theme.colors.text.primary};
-    }
-  }
-
-  .compression-select {
+  .toggle-control {
     width: 100%;
-    padding: ${theme.spacing[3]} ${theme.spacing[4]};
-    border: 1px solid ${theme.colors.border.default};
-    border-radius: ${theme.radii.lg};
-    background: ${theme.colors.bg.surface};
-    color: ${theme.colors.text.primary};
-    font-size: ${theme.fontSizes.sm};
-    font-weight: ${theme.fontWeights.medium};
-    cursor: pointer;
-    transition: all ${theme.transitions.fast};
+  }
 
-    &:hover {
-      border-color: ${theme.colors.border.strong};
-    }
-
-    &:focus {
-      border-color: ${theme.colors.accent.primary};
-      outline: none;
-    }
+  .range-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: ${theme.spacing[2]};
+    color: ${theme.colors.control.textMuted};
+    font-size: 10px;
   }
 
   .format-info {
@@ -228,18 +88,18 @@ const ConversionPanelStyled = styled.div.withConfig({
     font-size: ${theme.fontSizes.xs};
     color: ${theme.colors.text.muted};
     line-height: 1.5;
+
+    svg {
+      display: inline;
+      margin-right: ${theme.spacing[2]};
+      vertical-align: text-bottom;
+    }
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  @media (max-width: 640px) {
+    .near-lossless-presets {
+      grid-template-columns: 1fr;
+    }
   }
 `;
 
@@ -250,35 +110,9 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
   disabled = false,
   className = "",
 }) => {
-  const supportedFormats: SupportedFormatType[] = [
-    "jpeg",
-    "png",
-    "webp",
-    "avif",
-  ];
-
-  const {
-    accessibilityMode,
-    announce,
-    isReducedMotion,
-  } = useAccessibility({
+  const { announce, isReducedMotion } = useAccessibility({
     announceChanges: true,
   });
-
-  const formatGridRef = useRef<HTMLDivElement>(null);
-
-  // Get format button elements for keyboard navigation
-  const getFormatButtonElements = (): HTMLElement[] => {
-    if (!formatGridRef.current) return [];
-    return Array.from(
-      formatGridRef.current.querySelectorAll('button[role="radio"]')
-    ) as HTMLElement[];
-  };
-
-  const { onKeyDown } = useKeyboardNavigation(
-    getFormatButtonElements(),
-    "horizontal"
-  );
 
   const formatInfo = useMemo(() => {
     const info: Record<SupportedFormatType, string> = {
@@ -367,32 +201,22 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
 
     return (
       <div className="setting-item">
-        <div className="setting-label">
-          <span>Quality {isQualityDisabled && "(N/A in lossless mode)"}</span>
-          <span className="setting-value">
-            {isQualityDisabled ? "—" : `${quality}%`}
-          </span>
-        </div>
-        <input
+        <RangeControl
           id={`quality-slider-${settings.format}`}
-          type="range"
-          min="1"
-          max="100"
+          label="Quality"
+          valueText={isQualityDisabled ? "—" : `${quality}%`}
+          helperText={
+            isQualityDisabled
+              ? "Quality setting is not applicable in lossless mode"
+              : "Higher quality = larger file size"
+          }
+          min={1}
+          max={100}
           value={quality}
           onChange={(e) => handleQualityChange(Number(e.target.value))}
-          className="quality-slider"
-          data-accessibility-mode={accessibilityMode}
           disabled={disabled || isProcessing || isQualityDisabled}
-          aria-label={`Quality setting for ${settings.format.toUpperCase()} format${isQualityDisabled ? " (disabled in lossless mode)" : ""}`}
-          aria-valuemin={1}
-          aria-valuemax={100}
-          aria-valuenow={quality}
+          aria-valuetext={isQualityDisabled ? "Unavailable" : `${quality}%`}
         />
-        <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-          {isQualityDisabled
-            ? "Quality setting is not applicable in lossless mode"
-            : "Higher quality = larger file size"}
-        </p>
       </div>
     );
   };
@@ -405,118 +229,154 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     return (
       <>
         <div className="setting-item">
-          <div className="setting-label">
-            <span>Compression Level</span>
-            <span className="setting-value">{compressionLevel}</span>
-          </div>
-          <Select
-            value={compressionLevel.toString()}
-            onValueChange={(value) => handleCompressionChange(Number(value))}
-            disabled={disabled || isProcessing}
+          <ControlField
+            id="png-compression-level"
+            label="Compression level"
+            value={compressionLevel}
+            helperText="Higher levels create smaller files but take longer to encode."
           >
-            <SelectTrigger className="compression-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 10 }, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>
-                  Level {i}{" "}
-                  {i === 0
-                    ? "(Fastest)"
-                    : i === 9
-                    ? "(Best compression)"
-                    : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-label">
-            <span>Interlacing (Adam7)</span>
-            <span className="setting-value" style={{ fontSize: '11px' }}>
-              {settings.interlace ? "Progressive display" : "Sequential"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`toggle-button ${settings.interlace ? "active" : ""}`}
-            onClick={() => onSettingsChange({ ...settings, interlace: !settings.interlace })}
-            disabled={disabled || isProcessing}
-          >
-            {settings.interlace ? (
-              <ToggleRight size={16} />
-            ) : (
-              <ToggleLeft size={16} />
-            )}
-            {settings.interlace ? "Enabled" : "Disabled"}
-          </button>
-          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-            {settings.interlace
-              ? "Shows low-res preview first (larger file)"
-              : "Standard top-to-bottom loading"}
-          </p>
-        </div>
-
-        <div className="setting-item">
-          <div className="setting-label">
-            <span>Palette Quantization</span>
-            <span className="setting-value" style={{ fontSize: '11px' }}>
-              {settings.palette ? `${settings.colors || 256} colors` : "Full color"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`toggle-button ${settings.palette ? "active" : ""}`}
-            onClick={() => onSettingsChange({ ...settings, palette: !settings.palette })}
-            disabled={disabled || isProcessing}
-          >
-            {settings.palette ? (
-              <ToggleRight size={16} />
-            ) : (
-              <ToggleLeft size={16} />
-            )}
-            {settings.palette ? "Enabled" : "Disabled"}
-          </button>
-          {settings.palette && (
-            <>
-              <input
-                type="range"
-                min="2"
-                max="256"
-                value={settings.colors || 256}
-                onChange={(e) => onSettingsChange({ ...settings, colors: Number(e.target.value) })}
-                className="quality-slider"
+            {({ controlId, describedBy }) => (
+              <Select
+                value={compressionLevel.toString()}
+                onValueChange={(value) =>
+                  handleCompressionChange(Number(value))
+                }
                 disabled={disabled || isProcessing}
-                style={{ marginTop: '8px' }}
-              />
-              <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '4px' }}>
-                Colors: {settings.colors || 256} (fewer colors = smaller file)
-              </p>
-            </>
-          )}
+              >
+                <SelectTrigger id={controlId} aria-describedby={describedBy}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <SelectItem key={i} value={i.toString()}>
+                      Level {i}{" "}
+                      {i === 0
+                        ? "(Fastest)"
+                        : i === 9
+                          ? "(Best compression)"
+                          : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </ControlField>
         </div>
+
+        <div className="setting-item">
+          <ControlField
+            id="png-interlacing"
+            label="Interlacing (Adam7)"
+            value={settings.interlace ? "Progressive display" : "Sequential"}
+            helperText={
+              settings.interlace
+                ? "Shows low-res preview first (larger file)"
+                : "Standard top-to-bottom loading"
+            }
+          >
+            {({ controlId, describedBy }) => (
+              <ToggleControl
+                id={controlId}
+                className="toggle-control"
+                pressed={settings.interlace === true}
+                onClick={() =>
+                  onSettingsChange({
+                    ...settings,
+                    interlace: !settings.interlace,
+                  })
+                }
+                disabled={disabled || isProcessing}
+                aria-label="Interlacing (Adam7)"
+                aria-describedby={describedBy}
+              >
+                {settings.interlace ? (
+                  <ToggleRight aria-hidden="true" />
+                ) : (
+                  <ToggleLeft aria-hidden="true" />
+                )}
+                {settings.interlace ? "Enabled" : "Disabled"}
+              </ToggleControl>
+            )}
+          </ControlField>
+        </div>
+
+        <div className="setting-item">
+          <ControlField
+            id="png-palette"
+            label="Palette quantization"
+            value={
+              settings.palette ? `${settings.colors ?? 256} colors` : "Full color"
+            }
+            helperText="Reduces the color palette to create a smaller PNG."
+          >
+            {({ controlId, describedBy }) => (
+              <ToggleControl
+                id={controlId}
+                className="toggle-control"
+                pressed={settings.palette === true}
+                onClick={() =>
+                  onSettingsChange({
+                    ...settings,
+                    palette: !settings.palette,
+                  })
+                }
+                disabled={disabled || isProcessing}
+                aria-label="Palette quantization"
+                aria-describedby={describedBy}
+              >
+                {settings.palette ? (
+                  <ToggleRight aria-hidden="true" />
+                ) : (
+                  <ToggleLeft aria-hidden="true" />
+                )}
+                {settings.palette ? "Enabled" : "Disabled"}
+              </ToggleControl>
+            )}
+          </ControlField>
+        </div>
+
+        {settings.palette ? (
+          <div className="setting-item">
+            <RangeControl
+              id="png-palette-colors"
+              label="Palette colors"
+              valueText={`${settings.colors ?? 256}`}
+              helperText={`Colors: ${
+                settings.colors ?? 256
+              } (fewer colors = smaller file)`}
+              min={2}
+              max={256}
+              value={settings.colors ?? 256}
+              onChange={(event) =>
+                onSettingsChange({
+                  ...settings,
+                  colors: Number(event.target.value),
+                })
+              }
+              disabled={disabled || isProcessing}
+              aria-valuetext={`${settings.colors ?? 256} colors`}
+            />
+          </div>
+        ) : null}
       </>
     );
   };
 
-  const [nearLosslessValue, setNearLosslessValue] = useState(settings.nearLossless || 100); // 100 = true lossless
+  const nearLosslessValue = settings.nearLossless ?? 100;
 
-  // Initialize near-lossless value when settings change
   useEffect(() => {
-    if (settings.format === "webp" && settings.lossless) {
-      // Initialize near-lossless to 100 if not set
-      if (settings.nearLossless === undefined) {
-        onSettingsChange({ ...settings, nearLossless: 100 });
-      }
+    if (
+      settings.format === "webp" &&
+      settings.lossless &&
+      settings.nearLossless === undefined
+    ) {
+      onSettingsChange({ ...settings, nearLossless: 100 });
     }
-  }, [settings.format, settings.lossless]);
+  }, [settings, onSettingsChange]);
 
   // Handle near-lossless change
   const handleNearLosslessChange = useCallback(
     (value: number) => {
-      setNearLosslessValue(value);
       onSettingsChange({ ...settings, nearLossless: value });
 
       announce({
@@ -536,162 +396,146 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     return (
       <>
         <div className="setting-item">
-          <div className="setting-label">
-            <span>Compression Mode</span>
-          </div>
-          <div className="toggle-container">
-            <button
-              type="button"
-              className={`toggle-button ${!settings.lossless ? "active" : ""}`}
-              onClick={() => onSettingsChange({ ...settings, lossless: false })}
-              disabled={disabled || isProcessing}
-            >
-              {!settings.lossless ? (
-                <ToggleRight size={16} />
-              ) : (
-                <ToggleLeft size={16} />
-              )}
-              Lossy
-            </button>
-            <button
-              type="button"
-              className={`toggle-button ${settings.lossless ? "active" : ""}`}
-              onClick={() => onSettingsChange({ ...settings, lossless: true })}
-              disabled={disabled || isProcessing}
-            >
-              {settings.lossless ? (
-                <ToggleRight size={16} />
-              ) : (
-                <ToggleLeft size={16} />
-              )}
-              Lossless
-            </button>
-          </div>
+          <OptionCardGroup
+            label="Compression mode"
+            name="webp-compression-mode"
+            value={settings.lossless ? "lossless" : "lossy"}
+            options={COMPRESSION_MODE_OPTIONS}
+            variant="compact"
+            disabled={disabled || isProcessing}
+            onValueChange={(mode) =>
+              onSettingsChange({
+                ...settings,
+                lossless: mode === "lossless",
+                nearLossless:
+                  mode === "lossless"
+                    ? (settings.nearLossless ?? 100)
+                    : settings.nearLossless,
+              })
+            }
+          />
         </div>
 
-        {/* WebP Preset for lossy mode */}
         {!settings.lossless && (
           <div className="setting-item">
-            <div className="setting-label">
-              <span>Optimization Preset</span>
-              <span className="setting-value" style={{ fontSize: '11px' }}>
-                {settings.preset || "default"}
-              </span>
-            </div>
-            <Select
-              value={settings.preset || "default"}
-              onValueChange={(value) => onSettingsChange({ ...settings, preset: value as "default" | "photo" | "picture" | "drawing" | "icon" | "text" })}
-              disabled={disabled || isProcessing}
+            <ControlField
+              id="webp-optimization-preset"
+              label="Optimization preset"
+              value={settings.preset ?? "default"}
+              helperText="Optimizes compression for specific content types"
             >
-              <SelectTrigger className="compression-select">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="photo">Photo (natural images)</SelectItem>
-                <SelectItem value="picture">Picture (portraits)</SelectItem>
-                <SelectItem value="drawing">Drawing (high contrast)</SelectItem>
-                <SelectItem value="icon">Icon (small colorful)</SelectItem>
-                <SelectItem value="text">Text (legibility)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-              Optimizes compression for specific content types
-            </p>
+              {({ controlId, describedBy }) => (
+                <Select
+                  value={settings.preset ?? "default"}
+                  onValueChange={(value) =>
+                    onSettingsChange({
+                      ...settings,
+                      preset: value as
+                        | "default"
+                        | "photo"
+                        | "picture"
+                        | "drawing"
+                        | "icon"
+                        | "text",
+                    })
+                  }
+                  disabled={disabled || isProcessing}
+                >
+                  <SelectTrigger id={controlId} aria-describedby={describedBy}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="photo">Photo (natural images)</SelectItem>
+                    <SelectItem value="picture">Picture (portraits)</SelectItem>
+                    <SelectItem value="drawing">
+                      Drawing (high contrast)
+                    </SelectItem>
+                    <SelectItem value="icon">Icon (small colorful)</SelectItem>
+                    <SelectItem value="text">Text (legibility)</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </ControlField>
           </div>
         )}
 
-        {/* Alpha Quality for images with transparency */}
         {!settings.lossless && (
           <div className="setting-item">
-            <div className="setting-label">
-              <span>Alpha Channel Quality</span>
-              <span className="setting-value" style={{ fontSize: '11px' }}>
-                {settings.alphaQuality || 100}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={settings.alphaQuality || 100}
-              onChange={(e) => onSettingsChange({ ...settings, alphaQuality: Number(e.target.value) })}
-              className="quality-slider"
+            <RangeControl
+              id="webp-alpha-quality"
+              label="Alpha channel quality"
+              valueText={`${settings.alphaQuality ?? 100}%`}
+              helperText="Quality of transparency channel (if present)"
+              min={0}
+              max={100}
+              value={settings.alphaQuality ?? 100}
+              onChange={(event) =>
+                onSettingsChange({
+                  ...settings,
+                  alphaQuality: Number(event.target.value),
+                })
+              }
               disabled={disabled || isProcessing}
+              aria-valuetext={`${settings.alphaQuality ?? 100}%`}
             />
-            <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-              Quality of transparency channel (if present)
-            </p>
           </div>
         )}
 
-        {/* Near-lossless slider for WebP lossless only */}
-        {settings.format === "webp" && settings.lossless && (
-              <div className="setting-item">
-                <div className="setting-label">
-                  <label htmlFor="near-lossless-slider">
-                    Near-Lossless Quality
-                    {nearLosslessValue < 100 && (
-                      <span style={{ fontSize: '11px', marginLeft: '8px', color: '#10b981' }}>
-                        (Smaller file)
-                      </span>
-                    )}
-                  </label>
-                  <span className="setting-value" aria-live="polite">
-                    {nearLosslessValue === 100 ? "True Lossless" : `${nearLosslessValue}%`}
-                  </span>
-                </div>
-                <input
-                  id="near-lossless-slider"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={nearLosslessValue}
-                  onChange={(e) => handleNearLosslessChange(Number(e.target.value))}
-                  className="quality-slider"
-                  disabled={disabled || isProcessing}
-                  aria-label="Near-lossless quality setting"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={nearLosslessValue}
-                  aria-valuetext={nearLosslessValue === 100 ? "True lossless" : `${nearLosslessValue} percent quality`}
-                />
-                <div className="preset-buttons">
-                  <button
-                    type="button"
-                    onClick={() => handleNearLosslessChange(100)}
-                    disabled={disabled || isProcessing}
-                    className={`preset-button ${nearLosslessValue === 100 ? 'active' : ''}`}
-                  >
-                    True Lossless
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleNearLosslessChange(80)}
-                    disabled={disabled || isProcessing}
-                    className={`preset-button ${nearLosslessValue === 80 ? 'active' : ''}`}
-                  >
-                    Balanced (80%)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleNearLosslessChange(60)}
-                    disabled={disabled || isProcessing}
-                    className={`preset-button ${nearLosslessValue === 60 ? 'active' : ''}`}
-                  >
-                    Max Compression (60%)
-                  </button>
-                </div>
-                <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-                  {nearLosslessValue === 100
-                    ? "Pixel-perfect quality, larger file size"
-                    : nearLosslessValue >= 80
+        {settings.lossless ? (
+          <div className="setting-item">
+            <RangeControl
+              id="near-lossless-slider"
+              label="Near-lossless quality"
+              valueText={
+                nearLosslessValue === 100
+                  ? "True lossless"
+                  : `${nearLosslessValue}%`
+              }
+              helperText={
+                nearLosslessValue === 100
+                  ? "Pixel-perfect quality, larger file size"
+                  : nearLosslessValue >= 80
                     ? "Visually identical, 10-20% smaller file"
-                    : "Minor quality loss, 20-40% smaller file"}
-                </p>
-              </div>
-            )}
+                    : "Minor quality loss, 20-40% smaller file"
+              }
+              min={0}
+              max={100}
+              step={5}
+              value={nearLosslessValue}
+              onChange={(event) =>
+                handleNearLosslessChange(Number(event.target.value))
+              }
+              disabled={disabled || isProcessing}
+              aria-valuetext={
+                nearLosslessValue === 100
+                  ? "True lossless"
+                  : `${nearLosslessValue} percent quality`
+              }
+            />
+            <div
+              className="near-lossless-presets"
+              aria-label="Near-lossless presets"
+            >
+              {[
+                { value: 100, label: "True Lossless" },
+                { value: 80, label: "Balanced (80%)" },
+                { value: 60, label: "Max Compression (60%)" },
+              ].map((preset) => (
+                <Button
+                  key={preset.value}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleNearLosslessChange(preset.value)}
+                  disabled={disabled || isProcessing}
+                  aria-pressed={nearLosslessValue === preset.value}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </>
     );
   };
@@ -702,83 +546,109 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     return (
       <>
         <div className="setting-item">
-          <div className="setting-label">
-            <span>Progressive JPEG</span>
-            <span className="setting-value" style={{ fontSize: '11px' }}>
-              {settings.progressive ? "Better for web" : "Standard"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`toggle-button ${settings.progressive ? "active" : ""}`}
-            onClick={handleProgressiveToggle}
-            disabled={disabled || isProcessing}
+          <ControlField
+            id="jpeg-progressive"
+            label="Progressive JPEG"
+            value={settings.progressive ? "Better for web" : "Standard"}
+            helperText={
+              settings.progressive
+                ? "Shows a low-quality preview first, then improves."
+                : "Loads from top to bottom."
+            }
           >
-            {settings.progressive ? (
-              <ToggleRight size={16} />
-            ) : (
-              <ToggleLeft size={16} />
+            {({ controlId, describedBy }) => (
+              <ToggleControl
+                id={controlId}
+                className="toggle-control"
+                pressed={settings.progressive === true}
+                onClick={handleProgressiveToggle}
+                disabled={disabled || isProcessing}
+                aria-label="Progressive JPEG"
+                aria-describedby={describedBy}
+              >
+                {settings.progressive ? (
+                  <ToggleRight aria-hidden="true" />
+                ) : (
+                  <ToggleLeft aria-hidden="true" />
+                )}
+                {settings.progressive ? "Enabled" : "Disabled"}
+              </ToggleControl>
             )}
-            {settings.progressive ? "Enabled" : "Disabled"}
-          </button>
-          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-            {settings.progressive
-              ? "Shows low-quality preview first, then improves."
-              : "Loads from top to bottom."}
-          </p>
+          </ControlField>
         </div>
 
         <div className="setting-item">
-          <div className="setting-label">
-            <span>Chroma Subsampling</span>
-            <span className="setting-value" style={{ fontSize: '11px' }}>
-              {settings.chromaSubsampling || "auto"}
-            </span>
-          </div>
-          <Select
-            value={settings.chromaSubsampling || "auto"}
-            onValueChange={(value) => onSettingsChange({ ...settings, chromaSubsampling: value as "4:4:4" | "4:2:2" | "4:2:0" | "auto" })}
-            disabled={disabled || isProcessing}
+          <ControlField
+            id="jpeg-chroma-subsampling"
+            label="Chroma Subsampling"
+            value={settings.chromaSubsampling ?? "auto"}
+            helperText={
+              settings.chromaSubsampling === "4:4:4"
+                ? "No color compression - best for graphics"
+                : settings.chromaSubsampling === "4:2:0"
+                  ? "Maximum compression - best for photos"
+                  : "Automatic based on quality setting"
+            }
           >
-            <SelectTrigger className="compression-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="auto">Auto (Quality based)</SelectItem>
-              <SelectItem value="4:4:4">4:4:4 (Best quality)</SelectItem>
-              <SelectItem value="4:2:2">4:2:2 (Balanced)</SelectItem>
-              <SelectItem value="4:2:0">4:2:0 (Smallest file)</SelectItem>
-            </SelectContent>
-          </Select>
-          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-            {settings.chromaSubsampling === "4:4:4"
-              ? "No color compression - best for graphics"
-              : settings.chromaSubsampling === "4:2:0"
-              ? "Maximum compression - best for photos"
-              : "Automatic based on quality setting"}
-          </p>
+            {({ controlId, describedBy }) => (
+              <Select
+                value={settings.chromaSubsampling ?? "auto"}
+                onValueChange={(value) =>
+                  onSettingsChange({
+                    ...settings,
+                    chromaSubsampling: value as
+                      | "4:4:4"
+                      | "4:2:2"
+                      | "4:2:0"
+                      | "auto",
+                  })
+                }
+                disabled={disabled || isProcessing}
+              >
+                <SelectTrigger id={controlId} aria-describedby={describedBy}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto (Quality based)</SelectItem>
+                  <SelectItem value="4:4:4">4:4:4 (Best quality)</SelectItem>
+                  <SelectItem value="4:2:2">4:2:2 (Balanced)</SelectItem>
+                  <SelectItem value="4:2:0">4:2:0 (Smallest file)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </ControlField>
         </div>
 
         <div className="setting-item">
-          <div className="setting-label">
-            <span>MozJPEG Encoder</span>
-            <span className="setting-value" style={{ fontSize: '11px' }}>
-              10-15% smaller files
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`toggle-button ${settings.mozjpeg !== false ? "active" : ""}`}
-            onClick={() => onSettingsChange({ ...settings, mozjpeg: settings.mozjpeg === false })}
-            disabled={disabled || isProcessing}
+          <ControlField
+            id="jpeg-mozjpeg"
+            label="MozJPEG encoder"
+            value="10-15% smaller files"
           >
-            {settings.mozjpeg !== false ? (
-              <ToggleRight size={16} />
-            ) : (
-              <ToggleLeft size={16} />
+            {({ controlId, describedBy }) => (
+              <ToggleControl
+                id={controlId}
+                className="toggle-control"
+                pressed={settings.mozjpeg !== false}
+                onClick={() =>
+                  onSettingsChange({
+                    ...settings,
+                    mozjpeg: settings.mozjpeg === false,
+                  })
+                }
+                disabled={disabled || isProcessing}
+                aria-label="MozJPEG encoder"
+                aria-describedby={describedBy}
+              >
+                {settings.mozjpeg !== false ? (
+                  <ToggleRight aria-hidden="true" />
+                ) : (
+                  <ToggleLeft aria-hidden="true" />
+                )}
+                {settings.mozjpeg !== false ? "Enabled" : "Disabled"}
+              </ToggleControl>
             )}
-            {settings.mozjpeg !== false ? "Enabled" : "Disabled"}
-          </button>
+          </ControlField>
         </div>
       </>
     );
@@ -787,71 +657,56 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
   const renderAVIFOptions = () => {
     if (settings.format !== "avif") return null;
 
+    const effort = settings.effort ?? 4;
+
     return (
       <>
         <div className="setting-item">
-          <div className="setting-label">
-            <span>Compression Mode</span>
-          </div>
-          <div className="toggle-container">
-            <button
-              type="button"
-              className={`toggle-button ${!settings.lossless ? "active" : ""}`}
-              onClick={() => onSettingsChange({ ...settings, lossless: false })}
-              disabled={disabled || isProcessing}
-            >
-              {!settings.lossless ? (
-                <ToggleRight size={16} />
-              ) : (
-                <ToggleLeft size={16} />
-              )}
-              Lossy
-            </button>
-            <button
-              type="button"
-              className={`toggle-button ${settings.lossless ? "active" : ""}`}
-              onClick={() => onSettingsChange({ ...settings, lossless: true })}
-              disabled={disabled || isProcessing}
-            >
-              {settings.lossless ? (
-                <ToggleRight size={16} />
-              ) : (
-                <ToggleLeft size={16} />
-              )}
-              Lossless
-            </button>
-          </div>
+          <OptionCardGroup
+            label="Compression mode"
+            name="avif-compression-mode"
+            value={settings.lossless ? "lossless" : "lossy"}
+            options={COMPRESSION_MODE_OPTIONS}
+            variant="compact"
+            disabled={disabled || isProcessing}
+            onValueChange={(mode) =>
+              onSettingsChange({
+                ...settings,
+                lossless: mode === "lossless",
+              })
+            }
+          />
         </div>
 
-        {/* AVIF Effort level (controls compression quality and speed) */}
         <div className="setting-item">
-          <div className="setting-label">
-            <span>Compression Effort</span>
-            <span className="setting-value" style={{ fontSize: '11px' }}>
-              {settings.effort ?? 4}/9
-            </span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="9"
-            value={settings.effort ?? 4}
-            onChange={(e) => onSettingsChange({ ...settings, effort: Number(e.target.value) })}
-            className="quality-slider"
+          <RangeControl
+            id="avif-compression-effort"
+            label="Compression effort"
+            valueText={`${effort}/9`}
+            helperText={
+              effort <= 2
+                ? "Fast encoding, larger file size"
+                : effort >= 7
+                  ? "Best compression, very slow encoding"
+                  : "Balanced speed and compression"
+            }
+            min={0}
+            max={9}
+            value={effort}
+            onChange={(event) =>
+              onSettingsChange({
+                ...settings,
+                effort: Number(event.target.value),
+              })
+            }
             disabled={disabled || isProcessing}
+            aria-valuetext={`${effort} out of 9`}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-            <span style={{ fontSize: '10px', color: 'rgba(187, 225, 250, 0.5)' }}>Fast (0)</span>
-            <span style={{ fontSize: '10px', color: 'rgba(187, 225, 250, 0.5)' }}>Balanced (4)</span>
-            <span style={{ fontSize: '10px', color: 'rgba(187, 225, 250, 0.5)' }}>Best (9)</span>
+          <div className="range-scale" aria-hidden="true">
+            <span>Fast (0)</span>
+            <span>Balanced (4)</span>
+            <span>Best (9)</span>
           </div>
-          <p style={{ fontSize: '11px', color: 'rgba(187, 225, 250, 0.6)', marginTop: '8px' }}>
-            {(settings.effort ?? 4) <= 2
-              ? "Fast encoding, larger file size"
-              : (settings.effort ?? 4) >= 7
-              ? "Best compression, very slow encoding"
-              : "Balanced speed and compression"}
-          </p>
         </div>
       </>
     );
@@ -861,40 +716,15 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
     <ConversionPanelStyled isProcessing={isProcessing} className={className}>
       <div className="settings-panel">
         <div className="format-selection">
-          <label className="format-label" id="format-selection-label">
-            Output Format
-          </label>
-          <div
-            ref={formatGridRef}
-            className="format-grid"
-            role="radiogroup"
-            aria-labelledby="format-selection-label"
-            aria-describedby="format-description"
-            onKeyDown={onKeyDown}
-          >
-            {supportedFormats.map((format) => (
-              <button
-                key={format}
-                type="button"
-                role="radio"
-                className={`format-button ${
-                  settings.format === format ? "active" : ""
-                }`}
-                data-accessibility-mode={accessibilityMode}
-                aria-checked={settings.format === format}
-                aria-label={`Select ${format.toUpperCase()} format`}
-                tabIndex={settings.format === format ? 0 : -1}
-                onClick={() => handleFormatChange(format)}
-                disabled={disabled || isProcessing}
-              >
-                {format}
-              </button>
-            ))}
-          </div>
-          <div id="format-description" className="sr-only">
-            Use arrow keys to navigate between format options. Press Enter or
-            Space to select.
-          </div>
+          <OptionCardGroup
+            label="Output format"
+            name="image-output-format"
+            value={settings.format}
+            options={IMAGE_FORMAT_OPTIONS}
+            variant="compact"
+            disabled={disabled || isProcessing}
+            onValueChange={handleFormatChange}
+          />
         </div>
 
         <div className="settings-group">
@@ -909,7 +739,7 @@ const ConversionPanel: React.FC<ConversionPanelPropsType> = ({
           <div className="format-info">
             <Sliders
               size={14}
-              style={{ display: "inline", marginRight: "8px" }}
+              aria-hidden="true"
             />
             {formatInfo}
           </div>

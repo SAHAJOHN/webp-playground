@@ -47,7 +47,9 @@ export const useAccessibility = (
   } = options;
 
   const [accessibilityMode, setAccessibilityModeState] =
-    useState<AccessibilityModeType>("normal");
+    useState<AccessibilityModeType>(() =>
+      accessibilityService.getAccessibilityMode()
+    );
   const [keyboardConfig, setKeyboardConfig] =
     useState<KeyboardNavigationConfigType>(
       accessibilityService.getKeyboardConfig()
@@ -64,8 +66,6 @@ export const useAccessibility = (
       announceChanges,
       enableSkipLinks: !!skipLinkTarget,
     });
-
-    setAccessibilityModeState(accessibilityService.getAccessibilityMode());
   }, [
     enableFocusTrapping,
     enableArrowKeyNavigation,
@@ -160,7 +160,7 @@ export const useAccessibility = (
 
 // Hook for keyboard navigation within a specific container
 export const useKeyboardNavigation = (
-  elements: HTMLElement[],
+  getElements: () => HTMLElement[],
   orientation: "horizontal" | "vertical" | "both" = "both",
   initialIndex = 0
 ) => {
@@ -169,20 +169,20 @@ export const useKeyboardNavigation = (
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
+      const elements = getElements();
+      if (elements.length === 0) return;
+
+      const safeCurrentIndex = Math.min(currentIndex, elements.length - 1);
       const newIndex = handleKeyboardNavigation(
         e as KeyboardEvent,
         elements,
-        currentIndex,
+        safeCurrentIndex,
         orientation
       );
       setCurrentIndex(newIndex);
     },
-    [elements, currentIndex, orientation, handleKeyboardNavigation]
+    [getElements, currentIndex, orientation, handleKeyboardNavigation]
   );
-
-  useEffect(() => {
-    setCurrentIndex(Math.min(initialIndex, elements.length - 1));
-  }, [elements.length, initialIndex]);
 
   return {
     currentIndex,

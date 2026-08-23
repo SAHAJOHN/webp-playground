@@ -5,12 +5,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Dark Theme Colors */
-  --color-bg-primary: #1B262C;
-  --color-bg-secondary: #0F4C75;
-  --color-accent-primary: #3282B8;
-  --color-accent-secondary: #BBE1FA;
-
   /* Semantic Colors */
 
   --radius: 0.625rem;
@@ -124,8 +118,8 @@
 }
 
 body {
-  background: #1B262C;
-  color: #BBE1FA;
+  background: #09090b;
+  color: #f4f4f5;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

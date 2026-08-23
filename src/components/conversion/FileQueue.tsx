@@ -3,6 +3,7 @@
 import React from "react";
 import styled from "styled-components";
 import { X, CheckCircle, AlertCircle, Loader2, Clock } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { theme } from "@/styles/theme";
 
 const QueueContainerStyled = styled.div`
@@ -120,25 +121,10 @@ const StatusIndicatorStyled = styled.div<{ $status: "pending" | "processing" | "
   }
 `;
 
-const RemoveButtonStyled = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  min-height: 24px;
-  min-width: 24px;
-  border: none;
-  background: transparent;
-  color: ${theme.colors.text.muted};
-  cursor: pointer;
-  border-radius: ${theme.radii.xl};
-  transition: all ${theme.transitions.fast};
-
-  &:hover {
-    background: ${theme.colors.bg.elevated};
-    color: ${theme.colors.accent.error};
-  }
+const RemoveButtonStyled = styled(Button)`
+  width: 44px;
+  flex: 0 0 44px;
+  padding: 0;
 `;
 
 const ProgressBarStyled = styled.div<{
@@ -285,7 +271,12 @@ export const FileQueue: React.FC<FileQueuePropsType> = ({
             {getStatusIcon(file.status)}
           </StatusIndicatorStyled>
           {onRemove && (
-            <RemoveButtonStyled onClick={() => onRemove(file.id)}>
+            <RemoveButtonStyled
+              variant="ghost"
+              size="md"
+              aria-label={`Remove ${file.name}`}
+              onClick={() => onRemove(file.id)}
+            >
               <X size={20} />
             </RemoveButtonStyled>
           )}

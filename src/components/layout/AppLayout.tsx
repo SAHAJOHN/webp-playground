@@ -49,16 +49,32 @@ const PanelContentStyled = styled.div`
   border-radius: ${theme.radii.xl};
 `;
 
-const FooterStyled = styled.footer`
-  height: 40px;
-  background: ${theme.colors.bg.base};
-  border-top: 1px solid ${theme.colors.border.subtle};
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 ${theme.spacing[4]};
-  font-size: ${theme.fontSizes.xs};
-  color: ${theme.colors.text.muted};
+const ResponsiveLayoutStyled = styled.div`
+  display: contents;
+
+  @media (max-width: 900px) {
+    ${MainContentStyled} {
+      overflow-y: auto;
+      flex-direction: column;
+    }
+
+    ${LeftPanelStyled},
+    ${RightPanelStyled} {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      overflow: visible;
+    }
+
+    ${LeftPanelStyled} {
+      border-right: 0;
+      border-bottom: 1px solid ${theme.colors.border.subtle};
+    }
+
+    ${PanelContentStyled} {
+      min-height: 520px;
+    }
+  }
 `;
 
 interface AppLayoutPropsType {
@@ -78,17 +94,19 @@ export const AppLayout: React.FC<AppLayoutPropsType> = ({
 }) => {
   return (
     <LayoutStyled>
-      {header}
-      <MainContentStyled>
-        {sidebar}
-        <LeftPanelStyled>
-          <PanelContentStyled data-scroll-render-target="true">{leftPanel}</PanelContentStyled>
-        </LeftPanelStyled>
-        <RightPanelStyled>
-          <PanelContentStyled data-scroll-render-target="true">{rightPanel}</PanelContentStyled>
-        </RightPanelStyled>
-      </MainContentStyled>
-      {footer}
+      <ResponsiveLayoutStyled>
+        {header}
+        <MainContentStyled>
+          {sidebar}
+          <LeftPanelStyled>
+            <PanelContentStyled data-scroll-render-target="true">{leftPanel}</PanelContentStyled>
+          </LeftPanelStyled>
+          <RightPanelStyled>
+            <PanelContentStyled data-scroll-render-target="true">{rightPanel}</PanelContentStyled>
+          </RightPanelStyled>
+        </MainContentStyled>
+        {footer}
+      </ResponsiveLayoutStyled>
     </LayoutStyled>
   );
 };

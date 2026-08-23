@@ -3,6 +3,7 @@
 import React from "react";
 import styled from "styled-components";
 import { FileArchive, HardDriveDownload } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { theme } from "@/styles/theme";
 
 const ContainerStyled = styled.div`
@@ -36,56 +37,8 @@ const ButtonsRowStyled = styled.div`
   gap: ${theme.spacing[3]};
 `;
 
-const PrimaryButtonStyled = styled.button`
+const DownloadAllButtonStyled = styled(Button)`
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${theme.spacing[2]};
-  padding: ${theme.spacing[2]};
-  background: ${theme.colors.accent.primary};
-  color: white;
-  border: none;
-  border-radius: ${theme.radii.lg};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.medium};
-  cursor: pointer;
-  transition: background ${theme.transitions.fast};
-
-  &:hover {
-    background: ${theme.colors.accent.primaryHover};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const SecondaryButtonStyled = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${theme.spacing[2]};
-  padding: ${theme.spacing[4]} ${theme.spacing[5]};
-  background: transparent;
-  color: ${theme.colors.text.secondary};
-  border: 1px solid ${theme.colors.border.default};
-  border-radius: ${theme.radii.lg};
-  font-size: ${theme.fontSizes.sm};
-  font-weight: ${theme.fontWeights.medium};
-  cursor: pointer;
-  transition: all ${theme.transitions.fast};
-
-  &:hover {
-    border-color: ${theme.colors.border.strong};
-    color: ${theme.colors.text.primary};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `;
 
 interface DownloadAreaPropsType {
@@ -110,21 +63,23 @@ export const DownloadArea: React.FC<DownloadAreaPropsType> = ({
         <SavedTextStyled>{totalSaved} saved</SavedTextStyled>
       </StatsRowStyled>
       <ButtonsRowStyled>
-        <PrimaryButtonStyled
+        <DownloadAllButtonStyled
+          variant="primary"
           onClick={onDownloadAll}
           disabled={filesReady === 0 || isDownloading}
         >
           <FileArchive size={18} />
           {isDownloading ? "Downloading..." : "Download All as ZIP"}
-        </PrimaryButtonStyled>
+        </DownloadAllButtonStyled>
         {onDownloadIndividual && (
-          <SecondaryButtonStyled
+          <Button
+            variant="secondary"
             onClick={onDownloadIndividual}
             disabled={filesReady === 0 || isDownloading}
           >
             <HardDriveDownload size={16} />
             Individual
-          </SecondaryButtonStyled>
+          </Button>
         )}
       </ButtonsRowStyled>
     </ContainerStyled>

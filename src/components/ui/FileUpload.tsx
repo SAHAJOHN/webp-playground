@@ -5,6 +5,7 @@
 import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 import { Upload, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { theme } from "@/styles/theme";
 import { useFileUpload } from "@/hooks/ui/useFileUpload";
 import {
@@ -87,28 +88,6 @@ const FileUploadContainerStyled = styled.div.withConfig({
     font-size: ${theme.fontSizes.sm};
     color: ${theme.colors.text.muted};
     margin-bottom: ${theme.spacing[3]};
-  }
-
-  .upload-button {
-    background: ${theme.colors.accent.primary};
-    color: white;
-    border: none;
-    border-radius: ${theme.radii.lg};
-    padding: ${theme.spacing[3]} ${theme.spacing[5]};
-    font-size: ${theme.fontSizes.sm};
-    font-weight: ${theme.fontWeights.medium};
-    cursor: pointer;
-    transition: background ${theme.transitions.fast};
-  }
-
-  .upload-button:hover {
-    background: ${theme.colors.accent.primaryHover};
-  }
-
-  .upload-button:disabled {
-    background: ${theme.colors.bg.elevated};
-    cursor: not-allowed;
-    color: ${theme.colors.text.muted};
   }
 
   .file-input {
@@ -342,9 +321,8 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
           <div id="upload-instructions" className="upload-subtext">
             or press Enter to select files ({maxFiles} max)
           </div>
-          <button
-            type="button"
-            className="upload-button"
+          <Button
+            variant="primary"
             disabled={disabled}
             data-accessibility-mode={accessibilityMode}
             aria-label="Choose files to upload"
@@ -358,7 +336,7 @@ export const FileUpload: React.FC<FileUploadPropsType> = ({
             }}
           >
             Choose Files
-          </button>
+          </Button>
           <div className="format-info">
             Supported formats: {acceptedFormats.join(", ").toUpperCase()}
             <br />

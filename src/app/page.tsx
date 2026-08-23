@@ -5,7 +5,6 @@ import styled from "styled-components";
 import {
   AppHeader,
   AppLayout,
-  MiniSidebar,
   ScrollProgress,
 } from "@/components/layout";
 import {
@@ -109,6 +108,7 @@ const EmptyTextStyled = styled.p`
 `;
 
 const FooterStyled = styled.footer`
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -131,7 +131,6 @@ type ServerProcessingStatusType = {
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileUploadKey, setFileUploadKey] = useState(0);
-  const [activeTab, setActiveTab] = useState<"upload" | "settings" | "history" | "stats">("upload");
   const [isDownloading, setIsDownloading] = useState(false);
   const [serverProcessing, setServerProcessing] =
     useState<ServerProcessingStatusType>({
@@ -479,11 +478,11 @@ export default function Home() {
     <AppLayout
       header={
         <AppHeader
+          mode="image"
           filesProcessed={simpleResults.length}
           totalSaved={totalSaved}
         />
       }
-      sidebar={<MiniSidebar activeTab={activeTab} onTabChange={setActiveTab} />}
       leftPanel={
         <LeftPanelContentStyled>
           <ScrollProgress selectors={["scroll-section"]}>

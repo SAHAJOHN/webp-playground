@@ -28,3 +28,21 @@ export type {
   DownloadOptionsType,
   ErrorBoundaryPropsType,
 } from "./components";
+
+export {
+  MAX_VIDEO_FILE_SIZE_BYTES,
+  VIDEO_UPLOAD_CHUNK_SIZE_BYTES,
+  AUDIO_OUTPUT_FORMATS,
+  AUDIO_BITRATES_KBPS,
+  SUPPORTED_VIDEO_EXTENSIONS,
+} from "./video-conversion";
+export type {
+  AudioOutputFormatType,
+  AudioBitrateKbpsType,
+  SupportedVideoExtensionType,
+  VideoJobStatusType,
+  CreateVideoJobInputType,
+  VideoConversionSettingsType,
+  VideoJobPublicType,
+  VideoConversionApiErrorType,
+} from "./video-conversion";

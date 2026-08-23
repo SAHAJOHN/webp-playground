@@ -5,3 +5,4 @@ export * from "./error-handling-service";
 export * from "./image-conversion-service";
 export * from "./memory-management-service";
 export * from "./server-conversion-service";
+export * from "./video-conversion-service";

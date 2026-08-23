@@ -12,11 +12,25 @@ export const theme = {
     },
     // Accent colors
     accent: {
-      primary: '#6366f1',
-      primaryHover: '#818cf8',
+      primary: '#3282b8',
+      primaryHover: '#5aa1cf',
       success: '#22c55e',
       warning: '#f59e0b',
       error: '#ef4444',
+    },
+    // Shared Blue Ocean interaction colors
+    control: {
+      accent: '#3282b8',
+      accentHover: '#5aa1cf',
+      surface: 'rgba(15, 76, 117, 0.30)',
+      surfaceHover: 'rgba(15, 76, 117, 0.50)',
+      surfaceSelected: 'rgba(50, 130, 184, 0.34)',
+      popup: '#0f4c75',
+      border: 'rgba(50, 130, 184, 0.34)',
+      borderStrong: 'rgba(50, 130, 184, 0.58)',
+      text: '#bbe1fa',
+      textMuted: 'rgba(187, 225, 250, 0.68)',
+      focusRing: 'rgba(50, 130, 184, 0.36)',
     },
     // Text colors
     text: {

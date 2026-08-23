@@ -23,7 +23,6 @@ const PreviewCardStyled = styled.div<{ $status: "pending" | "processing" | "done
 
   &:hover {
     border-color: ${theme.colors.border.default};
-    transform: scale(1.02);
   }
 `;
 

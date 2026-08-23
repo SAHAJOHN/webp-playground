@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import {
   ZoomIn,
@@ -289,9 +289,13 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
   className,
 }) => {
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
-  const [convertedImageUrl, setConvertedImageUrl] = useState<string | null>(
-    null
+  const originalImageUrl = useMemo(
+    () => (originalFile ? URL.createObjectURL(originalFile) : null),
+    [originalFile]
+  );
+  const convertedImageUrl = useMemo(
+    () => (convertedBlob ? URL.createObjectURL(convertedBlob) : null),
+    [convertedBlob]
   );
   const [imageError, setImageError] = useState<string | null>(null);
   const originalImageRef = useRef<HTMLImageElement>(null);
@@ -302,22 +306,18 @@ const PreviewComparison: React.FC<PreviewComparisonPropsType> = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
 
-  // Create object URLs for images
+  // Revoke memoized object URLs after their source changes or on unmount.
   useEffect(() => {
-    if (originalFile) {
-      const url = URL.createObjectURL(originalFile);
-      setOriginalImageUrl(url);
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [originalFile]);
+    return () => {
+      if (originalImageUrl) URL.revokeObjectURL(originalImageUrl);
+    };
+  }, [originalImageUrl]);
 
   useEffect(() => {
-    if (convertedBlob) {
-      const url = URL.createObjectURL(convertedBlob);
-      setConvertedImageUrl(url);
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [convertedBlob]);
+    return () => {
+      if (convertedImageUrl) URL.revokeObjectURL(convertedImageUrl);
+    };
+  }, [convertedImageUrl]);
 
   // Zoom controls
   const handleZoomIn = () => {

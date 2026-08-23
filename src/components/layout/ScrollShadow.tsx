@@ -57,23 +57,19 @@ export const ScrollShadow: React.FC<ScrollShadowPropsType> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [topOpacity, setTopOpacity] = useState(0);
   const [bottomOpacity, setBottomOpacity] = useState(0);
+  const selectorQuery = selectors.map((selector) => `.${selector}`).join(",");
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Find scrollable element
-    let scrollElement: Element | null = container;
-    for (const selector of selectors) {
-      const el = container.querySelector(`.${selector}`);
-      if (el) {
-        scrollElement = el;
-        break;
-      }
-    }
+    const scrollElement = selectorQuery
+      ? container.querySelector(selectorQuery)
+      : container;
+    if (!scrollElement) return;
 
-    const handleScroll = (el: Element) => {
-      const { scrollTop, scrollHeight, clientHeight } = el;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollElement;
       const isAtTop = scrollTop <= 1;
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
 
@@ -81,23 +77,42 @@ export const ScrollShadow: React.FC<ScrollShadowPropsType> = ({
       setBottomOpacity(isAtBottom ? 0 : 1);
     };
 
-    // Initial check
-    if (scrollElement) {
-      handleScroll(scrollElement);
+    handleScroll();
+    scrollElement.addEventListener("scroll", handleScroll, { passive: true });
 
-      // Add scroll listener
-      scrollElement.addEventListener("scroll", () => handleScroll(scrollElement!));
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(handleScroll);
+    const observeResizeTargets = () => {
+      resizeObserver?.disconnect();
+      resizeObserver?.observe(scrollElement);
+      Array.from(scrollElement.children).forEach((child) =>
+        resizeObserver?.observe(child)
+      );
+    };
+    observeResizeTargets();
 
-      // Also check on resize
-      const resizeObserver = new ResizeObserver(() => handleScroll(scrollElement!));
-      resizeObserver.observe(scrollElement);
+    const mutationObserver =
+      typeof MutationObserver === "undefined"
+        ? null
+        : new MutationObserver(() => {
+            observeResizeTargets();
+            handleScroll();
+          });
+    mutationObserver?.observe(scrollElement, {
+      attributes: true,
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
 
-      return () => {
-        scrollElement.removeEventListener("scroll", () => handleScroll(scrollElement!));
-        resizeObserver.disconnect();
-      };
-    }
-  }, [selectors]);
+    return () => {
+      scrollElement.removeEventListener("scroll", handleScroll);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+    };
+  }, [selectorQuery]);
 
   return (
     <ShadowContainerStyled
@@ -105,6 +120,9 @@ export const ScrollShadow: React.FC<ScrollShadowPropsType> = ({
       $topOpacity={topOpacity}
       $bottomOpacity={bottomOpacity}
       $color={color}
+      data-scroll-shadow="true"
+      data-top-shadow={topOpacity > 0 ? "visible" : "hidden"}
+      data-bottom-shadow={bottomOpacity > 0 ? "visible" : "hidden"}
       className={className}
     >
       {children}

@@ -51,6 +51,27 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
   const { showError, showWarning, showInfo } = useNotificationHelpers();
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCallbackRef = useRef<(() => Promise<void>) | null>(null);
+  const performRetryRef = useRef<() => Promise<void>>(async () => undefined);
+
+  // Clear error state
+  const clearError = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    setErrorState({
+      hasError: false,
+      error: null,
+      retryState: {
+        isRetrying: false,
+        retryCount: 0,
+        maxRetries: 0,
+      },
+    });
+
+    retryCallbackRef.current = null;
+  }, []);
 
   // Handle error with processing and optional retry
   const handleError = useCallback(
@@ -64,7 +85,7 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
         logToConsole: true,
       });
 
-      setErrorState((prev) => ({
+      setErrorState({
         hasError: true,
         error: processedError,
         retryState: {
@@ -72,7 +93,7 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
           retryCount: 0,
           maxRetries: processedError.recoveryStrategy.maxRetries || 0,
         },
-      }));
+      });
 
       // Store retry callback
       retryCallbackRef.current = retryCallback || null;
@@ -90,7 +111,7 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
         ) {
           actions.push({
             label: "Retry",
-            action: () => performRetry(),
+            action: () => performRetryRef.current(),
             style: "primary" as const,
           });
         }
@@ -143,7 +164,7 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
       ) {
         const delay = ErrorHandlingService.getRetryDelay(processedError, 0);
         setTimeout(() => {
-          performRetry();
+          void performRetryRef.current();
         }, delay);
       }
     },
@@ -230,27 +251,12 @@ export const useErrorHandling = (options: UseErrorHandlingOptionsType = {}) => {
     showNotifications,
     showInfo,
     showError,
+    clearError,
   ]);
 
-  // Clear error state
-  const clearError = useCallback(() => {
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-
-    setErrorState({
-      hasError: false,
-      error: null,
-      retryState: {
-        isRetrying: false,
-        retryCount: 0,
-        maxRetries: 0,
-      },
-    });
-
-    retryCallbackRef.current = null;
-  }, []);
+  useEffect(() => {
+    performRetryRef.current = performRetry;
+  }, [performRetry]);
 
   // Cleanup on unmount
   useEffect(() => {

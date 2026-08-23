@@ -109,7 +109,6 @@ const ProgressIndicatorStyled = styled.div<{
   .cancel-button:hover:not(:disabled) {
     background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.5);
-    transform: scale(1.05);
   }
 
   .cancel-button:disabled {

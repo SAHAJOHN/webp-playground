@@ -3,6 +3,7 @@
 import React from "react";
 import styled from "styled-components";
 import { Play, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { theme } from "@/styles/theme";
 
 const ContainerStyled = styled.div`
@@ -33,62 +34,14 @@ const QueueTextStyled = styled.span`
   white-space: nowrap;
 `;
 
-const ClearButtonStyled = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${theme.spacing[2]};
+const ActionButtonStyled = styled(Button)`
   width: 100%;
-  padding: ${theme.spacing[2]};
-  background: ${theme.colors.accent.error};
-  color: white;
-  border: none;
-  border-radius: ${theme.radii.lg};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.medium};
-  cursor: pointer;
-  transition: all ${theme.transitions.fast};
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `;
 
 const ActionsRowStyled = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: ${theme.spacing[2]};
-`;
-
-const ConvertButtonStyled = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${theme.spacing[2]};
-  width: 100%;
-  padding: ${theme.spacing[2]};
-  background: ${theme.colors.accent.primary};
-  color: white;
-  border: none;
-  border-radius: ${theme.radii.lg};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.medium};
-  cursor: pointer;
-  transition: all ${theme.transitions.fast};
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `;
 
 interface ClearAllAreaPropsType {
@@ -116,20 +69,22 @@ export const ClearAllArea: React.FC<ClearAllAreaPropsType> = ({
         <QueueTextStyled>{statusText || "Click to remove all"}</QueueTextStyled>
       </StatsRowStyled>
       <ActionsRowStyled>
-        <ClearButtonStyled
+        <ActionButtonStyled
+          variant="danger"
           onClick={onClearAll}
           disabled={filesInQueue === 0 || isClearing}
         >
           <Trash2 size={18} />
           {isClearing ? "Clearing..." : "Clear All"}
-        </ClearButtonStyled>
-        <ConvertButtonStyled
-            onClick={onConvertAll}
-            disabled={!canConvert || isProcessing}
+        </ActionButtonStyled>
+        <ActionButtonStyled
+          variant="primary"
+          onClick={onConvertAll}
+          disabled={!canConvert || isProcessing}
         >
           <Play size={18} />
           {isProcessing ? "Converting..." : "Convert All"}
-        </ConvertButtonStyled>
+        </ActionButtonStyled>
       </ActionsRowStyled>
     </ContainerStyled>
   );
