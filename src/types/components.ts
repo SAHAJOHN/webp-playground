@@ -60,8 +60,21 @@ export type BatchProgressType = {
 // Download Options Type
 export type DownloadOptionsType = {
   format: "individual" | "zip";
+  /**
+   * Keep the original file base name for each downloaded file / ZIP entry and
+   * only swap the extension for the converted format (`holiday.jpg` ->
+   * `holiday.webp`). Defaults to `true`.
+   */
   preserveNames: boolean;
+  /**
+   * Append a timestamp to the ZIP archive name. When `preserveNames` is
+   * `false`, the timestamp is also appended to entry names (legacy behavior).
+   */
   addTimestamp: boolean;
+  /**
+   * Prefix for the ZIP archive name. When `preserveNames` is `false`, the
+   * prefix is also applied to entry names (legacy behavior).
+   */
   customPrefix?: string;
 };
 

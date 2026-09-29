@@ -51,7 +51,6 @@ const CardOverlayStyled = styled.div`
 const OverlayContentStyled = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${theme.spacing[1]};
 `;
 
 const OverlayFileNameStyled = styled.span`
@@ -92,6 +91,11 @@ const StatusDotStyled = styled.div<{ $status: "pending" | "processing" | "done" 
 
 const DownloadBadgeStyled = styled.div`
   position: absolute;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   bottom: ${theme.spacing[3]};
   right: ${theme.spacing[3]};
   background: ${theme.colors.accent.primary};

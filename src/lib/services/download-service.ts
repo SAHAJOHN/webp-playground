@@ -175,12 +175,17 @@ export class DownloadService {
       });
 
       // Add files to ZIP
+      const usedFilenames = new Set<string>();
+
       for (const result of results) {
         if (abortController.signal.aborted) {
           throw new Error("Download cancelled");
         }
 
-        const filename = this.generateFilename(result, options);
+        const filename = this.getUniqueZipFilename(
+          this.generateFilename(result, options),
+          usedFilenames
+        );
         const arrayBuffer = await result.convertedBlob.arrayBuffer();
 
         zip.file(filename, arrayBuffer);
@@ -278,44 +283,114 @@ export class DownloadService {
   }
 
   /**
-   * Generate filename for converted file
+   * Generate filename for a downloaded / converted file
+   *
+   * The original file base name is always preserved and the extension follows
+   * the converted format (`holiday.jpg` -> `holiday.webp`), so a converted
+   * WebP is never saved with a `.jpg`/`.png` extension.
+   * `customPrefix`/`addTimestamp` are legacy naming options that apply to the
+   * generated name only when `preserveNames: false` is passed explicitly;
+   * otherwise they only affect the ZIP archive name (see `generateZipFilename`).
    */
   private static generateFilename(
     result: ConversionResultType,
     options: Partial<DownloadOptionsType> = {}
   ): string {
     const {
-      // preserveNames = true,
+      preserveNames = true,
       addTimestamp = false,
       customPrefix,
     } = options;
 
-    let baseName = result.originalFile.name;
+    let baseName = this.getBaseName(result.originalFile.name);
 
-    // Remove original extension
-    const lastDotIndex = baseName.lastIndexOf(".");
-    if (lastDotIndex !== -1) {
-      baseName = baseName.substring(0, lastDotIndex);
+    if (!preserveNames) {
+      // Add custom prefix if provided
+      if (customPrefix) {
+        baseName = `${customPrefix}_${baseName}`;
+      }
+
+      // Add timestamp if requested
+      if (addTimestamp) {
+        baseName = `${baseName}_${this.generateTimestamp()}`;
+      }
     }
 
-    // Add custom prefix if provided
-    if (customPrefix) {
-      baseName = `${customPrefix}_${baseName}`;
-    }
-
-    // Add timestamp if requested
-    if (addTimestamp) {
-      const timestamp = new Date()
-        .toISOString()
-        .replace(/[:.]/g, "-")
-        .slice(0, -5);
-      baseName = `${baseName}_${timestamp}`;
-    }
-
-    // Add new extension
+    // Add the converted format extension
     const extension = this.getFileExtension(result.format);
 
     return `${baseName}.${extension}`;
+  }
+
+  /**
+   * Extract a safe file name: no directory parts, no control characters.
+   */
+  private static getSafeFileName(filename: string): string {
+    const lastPathSeparatorIndex = Math.max(
+      filename.lastIndexOf("/"),
+      filename.lastIndexOf("\\")
+    );
+    const withoutPath =
+      lastPathSeparatorIndex >= 0
+        ? filename.slice(lastPathSeparatorIndex + 1)
+        : filename;
+
+    const sanitized = withoutPath
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim();
+
+    return sanitized || "image";
+  }
+
+  /**
+   * Extract a safe base name from a file name: no directory parts, no control
+   * characters, no extension.
+   */
+  private static getBaseName(filename: string): string {
+    const safeName = this.getSafeFileName(filename);
+    const lastDotIndex = safeName.lastIndexOf(".");
+    const withoutExtension =
+      lastDotIndex > 0 ? safeName.substring(0, lastDotIndex) : safeName;
+
+    return withoutExtension.trim() || "image";
+  }
+
+  /**
+   * Ensure every entry inside a ZIP has a unique name. Results are keyed by
+   * the full original file name, so `photo.jpg` and `photo.png` both map to
+   * `photo.webp`; later duplicates become `photo (2).webp`, `photo (3).webp`, ...
+   */
+  private static getUniqueZipFilename(
+    filename: string,
+    usedFilenames: Set<string>
+  ): string {
+    if (!usedFilenames.has(filename)) {
+      usedFilenames.add(filename);
+      return filename;
+    }
+
+    const lastDotIndex = filename.lastIndexOf(".");
+    const baseName =
+      lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename;
+    const extension = lastDotIndex > 0 ? filename.substring(lastDotIndex) : "";
+
+    let duplicateIndex = 2;
+    let candidate = `${baseName} (${duplicateIndex})${extension}`;
+
+    while (usedFilenames.has(candidate)) {
+      duplicateIndex += 1;
+      candidate = `${baseName} (${duplicateIndex})${extension}`;
+    }
+
+    usedFilenames.add(candidate);
+    return candidate;
+  }
+
+  /**
+   * Generate a filesystem-safe timestamp (e.g. `2026-09-29T12-36-00`)
+   */
+  private static generateTimestamp(): string {
+    return new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
   }
 
   /**
@@ -329,11 +404,7 @@ export class DownloadService {
     let filename = customPrefix;
 
     if (addTimestamp) {
-      const timestamp = new Date()
-        .toISOString()
-        .replace(/[:.]/g, "-")
-        .slice(0, -5);
-      filename = `${filename}_${timestamp}`;
+      filename = `${filename}_${this.generateTimestamp()}`;
     }
 
     return `${filename}.zip`;

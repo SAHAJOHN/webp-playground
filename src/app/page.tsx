@@ -373,7 +373,9 @@ export default function Home() {
     setIsDownloading(true);
     try {
       await DownloadService.downloadAsZip(simpleResults, {
-        customPrefix: "converted_images",
+        // Keep each original file name (base name) inside the ZIP with the
+        // converted format extension; only the ZIP archive gets a timestamp.
+        preserveNames: true,
         addTimestamp: true,
       });
     } catch (error) {
